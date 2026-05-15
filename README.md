@@ -1,8 +1,4 @@
 # kotoba-uke-mimamori-for-x
-Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」のソースコード管理リポジトリ
-
-# ことばうけみまもり｜Xことばに心のワンクッション
-
 Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」のソースコード管理リポジトリです。
 
 ## 概要
@@ -203,7 +199,7 @@ Chrome Extension
   - リポジトリ: https://github.com/na0AaooQ/safe-comment-filter-app
     - ※プライベートリポジトリ
  
-##注意事項
+## 注意事項
 
 本拡張機能は、SNS上の投稿に対して読む前のワンクッションを置くための補助ツールです。
 
