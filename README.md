@@ -170,6 +170,9 @@ Chrome Extension
 │  ├─ 検知強度
 │  └─ 対象画面設定
 └─ chrome.storage.local
+└─ tests
+│  ├─ risk-detector.test.js
+│  │  ├─ risk-detector.js のユニットテストコード
 ```
 
 ## 開発ステータス
