@@ -1,0 +1,22 @@
+{
+  "name": "kotoba-uke-mimamori-for-x",
+  "version": "0.1.0",
+  "description": "Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」のソースコード管理リポジトリ",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "node tests/risk-detector.test.js",
+    "check": "node --check risk-detector.js && node --check tests/risk-detector.test.js"
+  },
+  "keywords": [
+    "chrome-extension",
+    "x",
+    "twitter",
+    "safety",
+    "word-cushion",
+    "kotoba-uke-mimamori"
+  ],
+  "author": "Naohisa Aoki",
+  "license": "MIT",
+  "devDependencies": {}
+}
