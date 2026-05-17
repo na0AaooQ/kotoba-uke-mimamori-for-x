@@ -441,6 +441,32 @@ Chrome Extension
 - XのDOM変更に備えて、DOMセレクタは分離し、更新しやすくする。
 - 安全性に関わる処理にはコメントを残す。
 
+## 静的解析・フォーマット方針
+
+本リポジトリでは、JavaScript / JSON の静的解析とフォーマットに Biome を使用します。
+
+コード変更時は、以下を実行してから完了としてください。
+
+```bash
+npm run check
+```
+
+個別に確認する場合:
+
+```bash
+npm run lint
+npm run format:check
+npm test
+```
+
+フォーマット修正が必要な場合:
+
+```bash
+npm run format
+```
+
+CodexなどのAIコーディングエージェントは、コードを変更した場合、可能な限り `npm run check` が通る状態にしてください。
+
 ## テスト方針
 
 テストでは、過検知を防ぐことを重視してください。
@@ -520,4 +546,3 @@ AGENTS.md を更新すべき変更:
 - Chrome拡張機能の最小構成作成
 - ワンクッションUIの試作
 - XのDOM抽出方式の検証
-

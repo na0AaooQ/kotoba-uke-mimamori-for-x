@@ -327,44 +327,42 @@ Chrome Extension
       └─ risk-detector.js のユニットテストコード
 ```
 
-## テスト
+## 開発用コマンド
 
-テスト実行
+テスト実行:
 
 ```bash
-
-cd /Users/aokinaohisa/GitHub/kotoba-uke-mimamori-for-x
-
 npm test
 ```
 
-構文チェックを含めたテスト実行
+構文チェック:
 
+```bash
+npm run check:syntax
 ```
+
+静的解析:
+
+```bash
+npm run lint
+```
+
+フォーマット:
+
+```bash
+npm run format
+```
+
+フォーマットチェック:
+
+```bash
+npm run format:check
+```
+
+構文チェック、テスト、静的解析、フォーマットチェックをまとめて実行:
+
+```bash
 npm run check
-```
-
-テスト実行例
-
-```bash
-% cd /Users/aokinaohisa/GitHub/kotoba-uke-mimamori-for-x
-
-% npm test
-
-> kotoba-uke-mimamori-for-x@0.1.0 test
-> node tests/risk-detector.test.js
-
-All risk-detector tests passed.
-%
-```
-
-```bash
-% npm run check
-
-> kotoba-uke-mimamori-for-x@0.1.0 check
-> node --check risk-detector.js && node --check tests/risk-detector.test.js
-
-% 
 ```
 
 ## 開発ステータス

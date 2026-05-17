@@ -129,25 +129,12 @@ const BOOST_RULES = Object.freeze([
   {
     id: 'direct_attack.second_person',
     score: 15,
-    patterns: [
-      /お前/u,
-      /おまえ/u,
-      /あなた/u,
-      /君/u,
-      /てめえ/u,
-      /貴様/u
-    ]
+    patterns: [/お前/u, /おまえ/u, /あなた/u, /君/u, /てめえ/u, /貴様/u]
   },
   {
     id: 'direct_attack.command',
     score: 10,
-    patterns: [
-      /黙れ/u,
-      /消えろ/u,
-      /出てくるな/u,
-      /やめろ/u,
-      /答えろ/u
-    ]
+    patterns: [/黙れ/u, /消えろ/u, /出てくるな/u, /やめろ/u, /答えろ/u]
   },
   {
     id: 'short_attack.short_text',
@@ -197,14 +184,7 @@ const DEDUCTION_RULES = Object.freeze([
   {
     id: 'context.target_is_content',
     score: -20,
-    patterns: [
-      /その意見/u,
-      /その考え方/u,
-      /その主張/u,
-      /その発言/u,
-      /その対応/u,
-      /その説明/u
-    ]
+    patterns: [/その意見/u, /その考え方/u, /その主張/u, /その発言/u, /その対応/u, /その説明/u]
   }
 ]);
 
@@ -268,13 +248,7 @@ function detectTextRisk(text, options = {}) {
   });
 }
 
-function buildResult({
-  score,
-  threshold,
-  matchedCategories,
-  reasons,
-  matchedRules
-}) {
+function buildResult({ score, threshold, matchedCategories, reasons, matchedRules }) {
   const normalizedScore = clampScore(score);
   const riskLevel = resolveRiskLevel(normalizedScore);
   const shouldCushion = normalizedScore >= threshold;

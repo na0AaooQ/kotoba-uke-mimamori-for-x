@@ -45,11 +45,7 @@ function testHealthyCriticismShouldNotCushion() {
   for (const text of cases) {
     const result = detectTextRisk(text);
 
-    assert.equal(
-      result.shouldCushion,
-      false,
-      `健全な批判はワンクッション対象外にする: ${text}`
-    );
+    assert.equal(result.shouldCushion, false, `健全な批判はワンクッション対象外にする: ${text}`);
   }
 }
 
@@ -110,11 +106,7 @@ function testHighRiskTextShouldCushion() {
   for (const { text, category } of cases) {
     const result = detectTextRisk(text);
 
-    assert.equal(
-      result.shouldCushion,
-      true,
-      `高リスク表現はワンクッション対象にする: ${text}`
-    );
+    assert.equal(result.shouldCushion, true, `高リスク表現はワンクッション対象にする: ${text}`);
 
     assert.equal(
       result.riskLevel,
@@ -122,15 +114,9 @@ function testHighRiskTextShouldCushion() {
       `高リスク表現は riskLevel=high にする: ${text}`
     );
 
-    assert.ok(
-      result.categories.includes(category),
-      `期待カテゴリ ${category} を含める: ${text}`
-    );
+    assert.ok(result.categories.includes(category), `期待カテゴリ ${category} を含める: ${text}`);
 
-    assert.ok(
-      result.reasons.length > 0,
-      `高リスク表現には理由を含める: ${text}`
-    );
+    assert.ok(result.reasons.length > 0, `高リスク表現には理由を含める: ${text}`);
   }
 }
 
@@ -151,19 +137,11 @@ function testThresholdBehavior() {
     'threshold を上げた場合、score が threshold 未満ならワンクッションしない'
   );
 
-  assert.equal(
-    DEFAULT_CUSHION_THRESHOLD,
-    80,
-    'MVPのデフォルトしきい値は80にする'
-  );
+  assert.equal(DEFAULT_CUSHION_THRESHOLD, 80, 'MVPのデフォルトしきい値は80にする');
 }
 
 function testNormalizeText() {
-  assert.equal(
-    normalizeText('　消えろ　'),
-    '消えろ',
-    '全角スペースを含む前後空白を正規化する'
-  );
+  assert.equal(normalizeText('　消えろ　'), '消えろ', '全角スペースを含む前後空白を正規化する');
 
   assert.equal(
     normalizeText('存在価値がない\n\nと思う'),
@@ -173,12 +151,7 @@ function testNormalizeText() {
 }
 
 function testEmptyText() {
-  const cases = [
-    '',
-    '   ',
-    null,
-    undefined
-  ];
+  const cases = ['', '   ', null, undefined];
 
   for (const text of cases) {
     const result = detectTextRisk(text);
@@ -189,11 +162,7 @@ function testEmptyText() {
       `空文字やnull相当はワンクッション対象外にする: ${String(text)}`
     );
 
-    assert.equal(
-      result.score,
-      0,
-      `空文字やnull相当は score=0 にする: ${String(text)}`
-    );
+    assert.equal(result.score, 0, `空文字やnull相当は score=0 にする: ${String(text)}`);
 
     assert.deepEqual(
       result.categories,
