@@ -6,7 +6,11 @@
   "type": "commonjs",
   "scripts": {
     "test": "node tests/risk-detector.test.js",
-    "check": "node --check risk-detector.js && node --check tests/risk-detector.test.js"
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check:syntax": "node --check risk-detector.js && node --check tests/risk-detector.test.js",
+    "check": "npm run check:syntax && npm test && npm run lint && npm run format:check"
   },
   "keywords": [
     "chrome-extension",
@@ -18,5 +22,7 @@
   ],
   "author": "Naohisa Aoki",
   "license": "MIT",
-  "devDependencies": {}
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15"
+  }
 }
