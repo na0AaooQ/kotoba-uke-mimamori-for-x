@@ -139,6 +139,154 @@ MVPでは、`score >= 80` の場合のみワンクッション表示の対象に
 - ユーザーの精神状態を推定しない
 - 保存が必要な機能を追加する場合は、ユーザーの明示的な操作を前提にする
 
+## 多言語対応方針
+
+本拡張機能は、初期設計段階から多言語対応を前提にします。
+
+Chrome拡張機能の i18n 仕組みに合わせて、UI文言、manifest上の名称・説明文、オプション画面の文言、ワンクッションUIの文言などは、可能な限り `_locales` 配下の `messages.json` で管理します。
+
+初期対応言語は以下を想定します。
+
+- 日本語: `ja`
+- 英語: `en`
+
+MVPでは日本語を主言語としつつ、英語メッセージファイルも同時に用意し、将来的に他言語を追加しやすい構成にします。
+
+### 多言語対応の対象
+
+多言語対応の対象は、主に以下です。
+
+- 拡張機能名
+- 拡張機能の説明文
+- ワンクッションUIの見出し
+- ワンクッションUIの本文
+- 判定理由文
+- ボタン文言
+- オプション画面の文言
+- エラー・補助メッセージ
+- Chrome Web Store 掲載説明文の原稿
+
+### 多言語対応の基本方針
+
+- UIに表示する固定文言は、原則としてコード内に直接書かない。
+- UI文言は `chrome.i18n.getMessage()` などを通して取得する。
+- `manifest.json` の `name` や `description` は `__MSG_xxx__` 形式を使う。
+- `manifest.json` には `default_locale` を設定する。
+- `_locales/ja/messages.json` と `_locales/en/messages.json` のキーは揃える。
+- 新しいUI文言を追加した場合は、日本語・英語の両方の `messages.json` を更新する。
+- 判定ロジックのカテゴリIDや内部IDは英語の安定したIDを使い、ユーザー向け表示文言は i18n で管理する。
+- 文章の意味が変わる翻訳を避け、特に安全・倫理・プライバシーに関する文言は慎重に扱う。
+- 投稿者を断定的に責める表現、法律判断・医療判断・心理診断に見える表現にならないよう、翻訳後の文言も確認する。
+
+### 想定する i18n 構成
+
+```text
+_locales
+├─ ja
+│  └─ messages.json
+└─ en
+   └─ messages.json
+```
+
+### manifest の方針
+
+`manifest.json` では、拡張機能名と説明文を i18n メッセージ参照にします。
+
+```json
+{
+  "name": "__MSG_extensionName__",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "ja"
+}
+```
+
+### メッセージキー例
+
+`_locales/ja/messages.json` の例:
+
+```json
+{
+  "extensionName": {
+    "message": "ことばうけみまもり｜Xことばに心のワンクッション"
+  },
+  "extensionDescription": {
+    "message": "Xで届く言葉に、読む前のワンクッションを置くためのChrome拡張機能です。"
+  },
+  "cushionTitle": {
+    "message": "読む前に、少しだけワンクッションを置きました"
+  },
+  "cushionBody": {
+    "message": "この投稿には、心に負荷がかかる可能性のある表現が含まれているかもしれません。"
+  },
+  "buttonShowContent": {
+    "message": "内容を表示する"
+  },
+  "buttonHideForNow": {
+    "message": "今は見ない"
+  }
+}
+```
+
+`_locales/en/messages.json` の例:
+
+```json
+{
+  "extensionName": {
+    "message": "Kotoba Uke Mimamori | A Gentle Pause for Words on X"
+  },
+  "extensionDescription": {
+    "message": "A Chrome extension that adds a gentle pause before reading potentially harmful words on X."
+  },
+  "cushionTitle": {
+    "message": "A gentle pause before reading"
+  },
+  "cushionBody": {
+    "message": "This post may contain expressions that could place an emotional burden on the reader."
+  },
+  "buttonShowContent": {
+    "message": "Show content"
+  },
+  "buttonHideForNow": {
+    "message": "Not now"
+  }
+}
+```
+
+### ディレクトリ構成方針
+
+多言語対応を前提に、Chrome拡張機能のユーザー向け文言は `_locales` 配下で管理します。
+
+想定構成:
+
+```text
+kotoba-uke-mimamori-for-x
+├─ manifest.json
+├─ content.js
+├─ overlay.js
+├─ options.html
+├─ options.js
+├─ i18n.js
+├─ risk-detector.js
+├─ _locales
+│  ├─ ja
+│  │  └─ messages.json
+│  └─ en
+│     └─ messages.json
+└─ tests
+   └─ risk-detector.test.js
+```
+
+必要に応じて、i18n取得用のヘルパーファイル `i18n.js` を追加します。
+
+`i18n.js` は以下を担当します。
+
+- `chrome.i18n.getMessage()` のラップ
+- テスト環境でのフォールバック
+- メッセージキー未定義時の安全な表示
+- UI文言取得処理の一元化
+
+ユーザー向け文言を追加する場合は、コードへ直書きせず、原則として `_locales/ja/messages.json` と `_locales/en/messages.json` に追加します。
+
 ## 技術方針
 
 初期MVPでは、以下の構成を想定します。
@@ -155,6 +303,15 @@ Chrome Extension
 │  ├─ ルールベース判定
 │  ├─ スコアリング
 │  └─ 判定理由生成
+├─ i18n.js
+│  ├─ chrome.i18n.getMessage() のラップ
+│  ├─ テスト環境でのフォールバック
+│  └─ UI文言取得処理の一元化
+├─ _locales
+│  ├─ ja
+│  │  └─ messages.json
+│  └─ en
+│     └─ messages.json
 ├─ overlay.js
 │  ├─ ワンクッションUI
 │  ├─ 表示する / 今は見ない
@@ -164,10 +321,10 @@ Chrome Extension
 │  ├─ ON/OFF
 │  ├─ 検知強度
 │  └─ 対象画面設定
-└─ chrome.storage.local
+├─ chrome.storage.local
 └─ tests
-│  ├─ risk-detector.test.js
-│  │  ├─ risk-detector.js のユニットテストコード
+   └─ risk-detector.test.js
+      └─ risk-detector.js のユニットテストコード
 ```
 
 ## テスト

@@ -254,6 +254,110 @@ UIは、落ち着いた、やさしい、非断定的な表現にしてくださ
 [内容を表示する] [今は見ない]
 ```
 
+## 多言語対応方針
+
+本拡張機能は、初期実装から多言語対応を前提にしてください。
+
+Chrome拡張機能の i18n 仕組みに合わせて、UIに表示する固定文言、manifest上の名称・説明文、オプション画面の文言、ワンクッションUIの文言、判定理由文は、可能な限り `_locales` 配下の `messages.json` で管理してください。
+
+### 初期対応言語
+
+初期対応言語は以下です。
+
+- 日本語: `ja`
+- 英語: `en`
+
+MVPでは日本語を主言語とし、英語も同時に管理してください。
+
+### 必ず守ること
+
+- UIに表示する固定文言を、原則として JavaScript / HTML に直接書かない。
+- ユーザー向け文言は `chrome.i18n.getMessage()` で取得できる形にする。
+- `manifest.json` の `name` と `description` は `__MSG_xxx__` 形式にする。
+- `manifest.json` には `default_locale` を設定する。
+- `_locales/ja/messages.json` と `_locales/en/messages.json` のキーを揃える。
+- 新しいユーザー向け文言を追加した場合は、必ず日本語・英語の両方を追加する。
+- 判定ロジックの内部カテゴリIDは英語の安定IDを使い、表示文言は i18n 側で管理する。
+- 安全・倫理・プライバシーに関する文言は、意味が変わらないよう慎重に翻訳する。
+
+### 禁止事項
+
+以下は避けてください。
+
+- ユーザー向け固定文言を複数ファイルに直書きすること。
+- 日本語だけを追加し、英語の `messages.json` を更新しないこと。
+- 英語だけを追加し、日本語の `messages.json` を更新しないこと。
+- 判定カテゴリIDをそのままユーザーに表示すること。
+- `score` や `matchedRules` などの内部情報をユーザー向け文言として表示すること。
+- 翻訳によって、投稿者を断定的に責める表現へ変えること。
+- 翻訳によって、法律判断・医療判断・心理診断のように見える表現へ変えること。
+
+### 推奨ディレクトリ構成
+
+```text
+_locales
+├─ ja
+│  └─ messages.json
+└─ en
+   └─ messages.json
+```
+
+### メッセージキー命名方針
+
+メッセージキーは、英語の camelCase を使ってください。
+
+例:
+
+- `extensionName`
+- `extensionDescription`
+- `cushionTitle`
+- `cushionBody`
+- `buttonShowContent`
+- `buttonHideForNow`
+- `reasonExistenceDenial`
+- `reasonPersonalityAttack`
+- `reasonDiscriminatoryAttack`
+- `reasonSevereInsult`
+- `optionEnableExtension`
+- `optionDetectionStrength`
+
+### 実装方針
+
+i18n取得用の小さなヘルパー関数を用意しても構いません。
+
+例:
+
+```js
+function getMessage(key, substitutions) {
+  if (typeof chrome !== 'undefined' && chrome.i18n?.getMessage) {
+    return chrome.i18n.getMessage(key, substitutions) || key;
+  }
+
+  return key;
+}
+```
+
+ただし、テスト環境では `chrome.i18n` が存在しない場合があるため、テストしやすいようにフォールバックやモックを考慮してください。
+
+### テスト方針
+
+多言語対応に関する実装を追加した場合は、以下を確認してください。
+
+- `_locales/ja/messages.json` と `_locales/en/messages.json` のキーが揃っていること。
+- UIに表示する固定文言が、コード内に不要に直書きされていないこと。
+- `chrome.i18n.getMessage()` が利用できないテスト環境でも、安全にフォールバックできること。
+- manifest の `name` と `description` が `__MSG_xxx__` 形式になっていること。
+- `default_locale` が設定されていること。
+
+### ドキュメント更新方針
+
+ユーザー向け文言、manifest文言、オプション画面文言、ワンクッションUI文言、判定理由文を追加・変更した場合は、以下を更新してください。
+
+- `_locales/ja/messages.json`
+- `_locales/en/messages.json`
+- 必要に応じて README.md
+- 必要に応じて AGENTS.md
+
 ## 実装方針
 
 ### 想定ファイル構成
@@ -263,6 +367,12 @@ Chrome Extension
 ├─ manifest.json
 ├─ content.js
 ├─ risk-detector.js
+├─ i18n.js
+├─ _locales
+│  ├─ ja
+│  │  └─ messages.json
+│  └─ en
+│     └─ messages.json
 ├─ overlay.js
 ├─ options.html
 ├─ options.js
