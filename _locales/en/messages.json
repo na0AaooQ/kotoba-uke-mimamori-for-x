@@ -1,0 +1,44 @@
+{
+  "extensionName": {
+    "message": "Kotoba Uke Mimamori | A Gentle Pause for Words on X"
+  },
+  "extensionDescription": {
+    "message": "A Chrome extension that adds a gentle pause before reading potentially harmful words on X."
+  },
+  "cushionTitle": {
+    "message": "A gentle pause before reading"
+  },
+  "cushionBody": {
+    "message": "This post may contain expressions that could place an emotional burden on the reader."
+  },
+  "buttonShowContent": {
+    "message": "Show content"
+  },
+  "buttonHideForNow": {
+    "message": "Not now"
+  },
+  "reasonExistenceDenial": {
+    "message": "This may contain wording close to existence denial."
+  },
+  "reasonPersonalityAttack": {
+    "message": "This may contain wording close to a personality attack."
+  },
+  "reasonDiscriminatoryAttack": {
+    "message": "This may contain wording close to an attribute-based attack."
+  },
+  "reasonSevereInsult": {
+    "message": "This may contain wording close to a severe insult."
+  },
+  "reasonPersistentAttack": {
+    "message": "This may contain wording that could feel pressuring."
+  },
+  "reasonThreatOrHarm": {
+    "message": "This may contain wording that could raise safety concerns."
+  },
+  "reasonDoxxingOrPrivacyRisk": {
+    "message": "This may contain wording related to personal information or safety."
+  },
+  "reasonPotentialBurden": {
+    "message": "This may contain wording that could place an emotional burden on the reader."
+  }
+}

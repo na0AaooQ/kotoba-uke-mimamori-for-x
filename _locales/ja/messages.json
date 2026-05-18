@@ -1,0 +1,44 @@
+{
+  "extensionName": {
+    "message": "ことばうけみまもり｜Xことばに心のワンクッション"
+  },
+  "extensionDescription": {
+    "message": "Xで届く言葉に、読む前のワンクッションを置くためのChrome拡張機能です。"
+  },
+  "cushionTitle": {
+    "message": "読む前に、少しだけワンクッションを置きました"
+  },
+  "cushionBody": {
+    "message": "この投稿には、心に負荷がかかる可能性のある表現が含まれているかもしれません。"
+  },
+  "buttonShowContent": {
+    "message": "内容を表示する"
+  },
+  "buttonHideForNow": {
+    "message": "今は見ない"
+  },
+  "reasonExistenceDenial": {
+    "message": "存在否定に近い表現の可能性があります"
+  },
+  "reasonPersonalityAttack": {
+    "message": "人格否定に近い表現の可能性があります"
+  },
+  "reasonDiscriminatoryAttack": {
+    "message": "属性への攻撃に近い表現の可能性があります"
+  },
+  "reasonSevereInsult": {
+    "message": "強い侮辱表現に近い内容の可能性があります"
+  },
+  "reasonPersistentAttack": {
+    "message": "追い詰めるような表現を含む可能性があります"
+  },
+  "reasonThreatOrHarm": {
+    "message": "身の安全に不安を感じる可能性のある表現かもしれません"
+  },
+  "reasonDoxxingOrPrivacyRisk": {
+    "message": "個人情報や安全に関わる可能性のある表現かもしれません"
+  },
+  "reasonPotentialBurden": {
+    "message": "心に負荷がかかる可能性のある表現かもしれません"
+  }
+}
