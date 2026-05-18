@@ -287,6 +287,14 @@ kotoba-uke-mimamori-for-x
 
 ユーザー向け文言を追加する場合は、コードへ直書きせず、原則として `_locales/ja/messages.json` と `_locales/en/messages.json` に追加します。
 
+## Chrome拡張最小構成
+
+Manifest V3 の `manifest.json` を追加し、`https://x.com/*` と `https://twitter.com/*` で content script を読み込める最小構成を用意しています。
+
+`_locales/ja/messages.json` と `_locales/en/messages.json` を追加し、拡張機能名・説明文・ワンクッションUI文言・判定理由文を Chrome i18n 前提で管理します。`i18n.js` は `chrome.i18n.getMessage()` を安全にラップし、テスト環境でもキー名へフォールバックします。
+
+`content.js` と `overlay.js` は、読み込み確認とワンクッションUI生成のための土台です。現時点では本格的なXのDOM解析、投稿本文抽出、ぼかし適用、外部通信、投稿本文の保存は行いません。
+
 ## 技術方針
 
 初期MVPでは、以下の構成を想定します。
@@ -367,17 +375,15 @@ npm run check
 
 ## 開発ステータス
 
-現在のステータス: 設計・MVP開発準備中
+現在のステータス: Chrome拡張として読み込むための最小構成を追加済み。本格的なXのDOM解析・ワンクッション適用は今後実装予定です。
 
 ## 今後の予定
 
-- README.md の整備
-- AGENTS.md の整備
-- MVP判定ルールの整理
-- risk-detector.js の初期実装
 - X上のDOM抽出方式の検討
-- ワンクッションUIの試作
-- Chrome拡張機能としての最小構成作成
+- 投稿本文抽出とDOM監視の実装
+- `risk-detector.js` と `overlay.js` の接続
+- ワンクッションUIの実画面への適用
+- Chrome拡張機能としての手動読み込み確認
 
 ## 関連プロジェクト
 
