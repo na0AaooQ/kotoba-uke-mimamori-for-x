@@ -308,6 +308,15 @@ function addUnique(array, value) {
   }
 }
 
+if (typeof globalThis !== 'undefined') {
+  globalThis.kotobaUkeMimamoriRiskDetector = Object.freeze({
+    detectTextRisk,
+    normalizeText,
+    RISK_LEVELS,
+    DEFAULT_CUSHION_THRESHOLD
+  });
+}
+
 if (typeof module !== 'undefined') {
   module.exports = {
     detectTextRisk,

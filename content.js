@@ -9,6 +9,12 @@ const SELECTORS = Object.freeze({
   text: '[data-testid="tweetText"]'
 });
 
+const SKIPPED_PROCESS_RESULT = Object.freeze({
+  processed: false,
+  riskChecked: false,
+  shouldCushion: false
+});
+
 let initialized = false;
 let timelineObserver = null;
 let scanTimerId = null;
@@ -90,13 +96,20 @@ function extractPostText(postNode) {
 
 function processCandidatePost(postNode) {
   if (!isElement(postNode) || isProcessed(postNode)) {
-    return false;
+    return SKIPPED_PROCESS_RESULT;
   }
 
-  extractPostText(postNode);
+  const postText = extractPostText(postNode);
+  const riskResult = detectPostTextRisk(postText);
+
+  // ドライラン: 判定結果は画面表示やぼかしに使わず、件数のみログで確認する。
   markProcessed(postNode);
 
-  return true;
+  return {
+    processed: true,
+    riskChecked: Boolean(riskResult),
+    shouldCushion: Boolean(riskResult?.shouldCushion)
+  };
 }
 
 function markProcessed(postNode) {
@@ -125,16 +138,30 @@ function scanCandidatePosts(root) {
   try {
     const candidatePostNodes = findCandidatePostNodes(root);
     let processedCount = 0;
+    let riskCheckedCount = 0;
+    let cushionCandidateCount = 0;
 
     for (const postNode of candidatePostNodes) {
-      if (processCandidatePost(postNode)) {
+      const processResult = processCandidatePost(postNode);
+
+      if (processResult.processed) {
         processedCount += 1;
+      }
+
+      if (processResult.riskChecked) {
+        riskCheckedCount += 1;
+      }
+
+      if (processResult.shouldCushion) {
+        cushionCandidateCount += 1;
       }
     }
 
     if (!hasLoggedInitialScan || processedCount > 0) {
       console.info(`${LOG_PREFIX} candidate posts scanned: ${candidatePostNodes.length}`);
       console.info(`${LOG_PREFIX} new candidate posts processed: ${processedCount}`);
+      console.info(`${LOG_PREFIX} risk checked posts: ${riskCheckedCount}`);
+      console.info(`${LOG_PREFIX} cushion candidates: ${cushionCandidateCount}`);
       hasLoggedInitialScan = true;
     }
   } finally {
@@ -175,6 +202,26 @@ function matchesSelector(node, selector) {
   return isElement(node) && typeof node.matches === 'function' && node.matches(selector);
 }
 
+function detectPostTextRisk(postText) {
+  const riskDetector = getRiskDetector();
+
+  if (!riskDetector) {
+    return null;
+  }
+
+  return riskDetector.detectTextRisk(postText);
+}
+
+function getRiskDetector() {
+  const riskDetector = globalThis.kotobaUkeMimamoriRiskDetector;
+
+  if (!riskDetector || typeof riskDetector.detectTextRisk !== 'function') {
+    return null;
+  }
+
+  return riskDetector;
+}
+
 function normalizeExtractedText(text) {
   if (typeof text !== 'string') {
     return '';
@@ -190,6 +237,7 @@ if (globalThis.document) {
 if (typeof module !== 'undefined') {
   module.exports = {
     SELECTORS,
+    detectPostTextRisk,
     extractPostText,
     findCandidatePostNodes,
     initialize,
