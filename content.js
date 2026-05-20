@@ -6,8 +6,11 @@ const OBSERVER_DEBOUNCE_MS = 250;
 // ワンクッションUIの実画面挿入は開発確認用フラグ配下でのみ有効です。
 // 通常状態では画面表示変更を行いません。
 const FEATURE_FLAGS = Object.freeze({
-  enableCushionOverlayDev: false
+  enableCushionOverlayDev: false,
+  enableDevTestCushionText: false
 });
+
+const DEV_TEST_CUSHION_TEXT = '【テスト用】「ことばうけみまもり」のテストメッセージです。';
 
 const ATTRIBUTES = Object.freeze({
   processed: 'data-kum-processed',
@@ -63,6 +66,8 @@ function observeTimeline() {
   });
 
   timelineObserver.observe(root, {
+    attributeFilter: [ATTRIBUTES.cushionCandidate],
+    attributes: true,
     childList: true,
     subtree: true
   });
@@ -106,8 +111,10 @@ function extractPostText(postNode) {
     .trim();
 }
 
-function processCandidatePost(postNode) {
+function processCandidatePost(postNode, featureFlags = FEATURE_FLAGS) {
   if (!isElement(postNode) || isProcessed(postNode)) {
+    maybeRenderCushionOverlay(postNode, featureFlags);
+
     return SKIPPED_PROCESS_RESULT;
   }
 
@@ -125,7 +132,9 @@ function processCandidatePost(postNode) {
 
   const riskResult = detectPostTextRisk(postText);
   const riskChecked = Boolean(riskResult);
-  const shouldCushion = Boolean(riskResult?.shouldCushion);
+  const shouldCushion = Boolean(
+    riskResult?.shouldCushion || shouldForceCushionForDevTest(postText, featureFlags)
+  );
 
   if (riskChecked) {
     markRiskChecked(postNode);
@@ -133,7 +142,7 @@ function processCandidatePost(postNode) {
 
   if (shouldCushion) {
     markCushionCandidate(postNode);
-    maybeRenderCushionOverlay(postNode);
+    maybeRenderCushionOverlay(postNode, featureFlags);
   }
 
   // 通常状態では内部属性は接続準備に留め、画面表示やぼかしには使わない。
@@ -144,6 +153,15 @@ function processCandidatePost(postNode) {
     riskChecked,
     shouldCushion
   };
+}
+
+function shouldForceCushionForDevTest(postText, featureFlags = FEATURE_FLAGS) {
+  return Boolean(
+    featureFlags.enableCushionOverlayDev &&
+      featureFlags.enableDevTestCushionText &&
+      typeof postText === 'string' &&
+      postText.includes(DEV_TEST_CUSHION_TEXT)
+  );
 }
 
 function markProcessed(postNode) {
@@ -357,6 +375,7 @@ if (globalThis.document) {
 if (typeof module !== 'undefined') {
   module.exports = {
     ATTRIBUTES,
+    DEV_TEST_CUSHION_TEXT,
     FEATURE_FLAGS,
     SELECTORS,
     detectPostTextRisk,
@@ -373,6 +392,7 @@ if (typeof module !== 'undefined') {
     maybeRenderCushionOverlay,
     observeTimeline,
     processCandidatePost,
+    shouldForceCushionForDevTest,
     startDomMonitoring
   };
 }
