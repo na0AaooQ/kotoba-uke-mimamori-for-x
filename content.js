@@ -1,8 +1,13 @@
 'use strict';
 
 const LOG_PREFIX = '[kotoba-uke-mimamori]';
-const PROCESSED_ATTRIBUTE = 'data-kum-processed';
 const OBSERVER_DEBOUNCE_MS = 250;
+
+const ATTRIBUTES = Object.freeze({
+  processed: 'data-kum-processed',
+  riskChecked: 'data-kum-risk-checked',
+  cushionCandidate: 'data-kum-cushion-candidate'
+});
 
 const SELECTORS = Object.freeze({
   post: 'article[data-testid="tweet"], article',
@@ -100,15 +105,36 @@ function processCandidatePost(postNode) {
   }
 
   const postText = extractPostText(postNode);
-  const riskResult = detectPostTextRisk(postText);
 
-  // ドライラン: 判定結果は画面表示やぼかしに使わず、件数のみログで確認する。
+  if (!postText) {
+    markProcessed(postNode);
+
+    return {
+      processed: true,
+      riskChecked: false,
+      shouldCushion: false
+    };
+  }
+
+  const riskResult = detectPostTextRisk(postText);
+  const riskChecked = Boolean(riskResult);
+  const shouldCushion = Boolean(riskResult?.shouldCushion);
+
+  if (riskChecked) {
+    markRiskChecked(postNode);
+  }
+
+  if (shouldCushion) {
+    markCushionCandidate(postNode);
+  }
+
+  // ドライラン: 内部属性は次工程の接続準備に留め、画面表示やぼかしには使わない。
   markProcessed(postNode);
 
   return {
     processed: true,
-    riskChecked: Boolean(riskResult),
-    shouldCushion: Boolean(riskResult?.shouldCushion)
+    riskChecked,
+    shouldCushion
   };
 }
 
@@ -117,7 +143,23 @@ function markProcessed(postNode) {
     return;
   }
 
-  postNode.setAttribute(PROCESSED_ATTRIBUTE, 'true');
+  postNode.setAttribute(ATTRIBUTES.processed, 'true');
+}
+
+function markRiskChecked(postNode) {
+  if (!isElement(postNode)) {
+    return;
+  }
+
+  postNode.setAttribute(ATTRIBUTES.riskChecked, 'true');
+}
+
+function markCushionCandidate(postNode) {
+  if (!isElement(postNode)) {
+    return;
+  }
+
+  postNode.setAttribute(ATTRIBUTES.cushionCandidate, 'true');
 }
 
 function initializeKotobaUkeMimamoriContentScript() {
@@ -195,7 +237,7 @@ function isElement(node) {
 }
 
 function isProcessed(postNode) {
-  return postNode.getAttribute(PROCESSED_ATTRIBUTE) === 'true';
+  return postNode.getAttribute(ATTRIBUTES.processed) === 'true';
 }
 
 function matchesSelector(node, selector) {
@@ -236,13 +278,16 @@ if (globalThis.document) {
 
 if (typeof module !== 'undefined') {
   module.exports = {
+    ATTRIBUTES,
     SELECTORS,
     detectPostTextRisk,
     extractPostText,
     findCandidatePostNodes,
     initialize,
     initializeKotobaUkeMimamoriContentScript,
+    markCushionCandidate,
     markProcessed,
+    markRiskChecked,
     observeTimeline,
     processCandidatePost,
     startDomMonitoring
