@@ -1,7 +1,11 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { createCushionElement } = require('../overlay');
+const {
+  CUSHION_STYLE_ELEMENT_ID,
+  createCushionElement,
+  ensureCushionStyles
+} = require('../overlay');
 
 const MESSAGES = Object.freeze({
   cushionTitle: '読む前に、少しだけワンクッションを置きました',
@@ -13,6 +17,7 @@ const MESSAGES = Object.freeze({
 
 function runTests() {
   testCreatesGenericCushionElement();
+  testInjectsCushionStylesOnce();
   testDoesNotRenderPostTextOrInternalRiskDetails();
   testShowButtonHandler();
 
@@ -24,12 +29,33 @@ function testCreatesGenericCushionElement() {
     const element = createCushionElement({ reasonMessageKey: 'reasonGeneric' });
 
     assert.equal(element.tagName, 'SECTION');
+    assert.equal(element.className, 'kum-cushion');
     assert.equal(element.getAttribute('role'), 'group');
+    assert.equal(element.children[0].className, 'kum-cushion__title');
+    assert.equal(element.children[1].className, 'kum-cushion__body');
+    assert.equal(element.children[2].className, 'kum-cushion__reason');
+    assert.equal(element.children[3].className, 'kum-cushion__actions');
+    assert.equal(element.children[3].children[0].className, 'kum-cushion__button');
+    assert.equal(element.children[3].children[1].className, 'kum-cushion__button');
     assert.ok(element.textContent.includes(MESSAGES.cushionTitle));
     assert.ok(element.textContent.includes(MESSAGES.cushionBody));
     assert.ok(element.textContent.includes(MESSAGES.reasonGeneric));
     assert.ok(element.textContent.includes(MESSAGES.buttonShowContent));
     assert.ok(element.textContent.includes(MESSAGES.buttonHideForNow));
+  });
+}
+
+function testInjectsCushionStylesOnce() {
+  withFakeDomAndI18n((fakeDocument) => {
+    const firstResult = ensureCushionStyles();
+    const secondResult = ensureCushionStyles();
+    const styleElement = fakeDocument.getElementById(CUSHION_STYLE_ELEMENT_ID);
+
+    assert.equal(firstResult, true);
+    assert.equal(secondResult, false);
+    assert.equal(fakeDocument.head.children.length, 1);
+    assert.ok(styleElement.textContent.includes('.kum-cushion'));
+    assert.ok(styleElement.textContent.includes('@media (prefers-color-scheme: dark)'));
   });
 }
 
@@ -74,10 +100,15 @@ function testShowButtonHandler() {
 function withFakeDomAndI18n(callback) {
   const previousDocument = globalThis.document;
   const previousI18n = globalThis.kotobaUkeMimamoriI18n;
-
-  globalThis.document = {
-    createElement
+  const fakeDocument = {
+    createElement,
+    head: createElement('head'),
+    getElementById(id) {
+      return findElementById(this.head, id);
+    }
   };
+
+  globalThis.document = fakeDocument;
   globalThis.kotobaUkeMimamoriI18n = {
     getMessage(key) {
       return MESSAGES[key] || key;
@@ -85,7 +116,7 @@ function withFakeDomAndI18n(callback) {
   };
 
   try {
-    callback();
+    callback(fakeDocument);
   } finally {
     restoreGlobal('document', previousDocument);
     restoreGlobal('kotobaUkeMimamoriI18n', previousI18n);
@@ -98,6 +129,26 @@ function restoreGlobal(key, value) {
   } else {
     globalThis[key] = value;
   }
+}
+
+function findElementById(root, id) {
+  if (!root) {
+    return null;
+  }
+
+  if (typeof root.getAttribute === 'function' && root.getAttribute('id') === id) {
+    return root;
+  }
+
+  for (const childNode of root.children || []) {
+    const foundNode = findElementById(childNode, id);
+
+    if (foundNode) {
+      return foundNode;
+    }
+  }
+
+  return null;
 }
 
 function createElement(tagName) {
@@ -124,6 +175,10 @@ function createElement(tagName) {
       for (const childNode of childNodes) {
         this.children.push(childNode);
       }
+    },
+    appendChild(childNode) {
+      this.children.push(childNode);
+      return childNode;
     },
     click() {
       const clickHandler = listeners.get('click');

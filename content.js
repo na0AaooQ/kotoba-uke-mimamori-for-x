@@ -228,14 +228,49 @@ function maybeRenderCushionOverlay(postNode, featureFlags = FEATURE_FLAGS) {
     }
   );
 
-  if (!isElement(cushionElement) || typeof postNode.insertBefore !== 'function') {
+  if (!isElement(cushionElement)) {
     return false;
   }
 
-  postNode.insertBefore(cushionElement, postNode.firstChild || null);
+  if (!insertCushionElement(postNode, cushionElement)) {
+    return false;
+  }
+
   markCushionRendered(postNode);
 
   return true;
+}
+
+function insertCushionElement(postNode, cushionElement) {
+  const textNode = findFirstPostTextNode(postNode);
+
+  if (isElement(textNode) && typeof textNode.parentNode?.insertBefore === 'function') {
+    textNode.parentNode.insertBefore(cushionElement, textNode);
+    return true;
+  }
+
+  if (typeof postNode.insertBefore === 'function') {
+    postNode.insertBefore(cushionElement, postNode.firstChild || null);
+    return true;
+  }
+
+  return false;
+}
+
+function findFirstPostTextNode(postNode) {
+  if (!isElement(postNode)) {
+    return null;
+  }
+
+  if (typeof postNode.querySelector === 'function') {
+    return postNode.querySelector(SELECTORS.text);
+  }
+
+  if (typeof postNode.querySelectorAll === 'function') {
+    return postNode.querySelectorAll(SELECTORS.text)[0] || null;
+  }
+
+  return null;
 }
 
 function keepCushionOverlayVisible() {
@@ -383,8 +418,10 @@ if (typeof module !== 'undefined') {
     detectPostTextRisk,
     extractPostText,
     findCandidatePostNodes,
+    findFirstPostTextNode,
     initialize,
     initializeKotobaUkeMimamoriContentScript,
+    insertCushionElement,
     isCushionCandidate,
     isCushionRendered,
     markCushionCandidate,

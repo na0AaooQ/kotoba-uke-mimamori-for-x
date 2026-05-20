@@ -17,6 +17,7 @@ function runTests() {
   testSkipsAlreadyProcessedPost();
   testDoesNotRenderOverlayWhenDevFlagIsOff();
   testRendersOverlayOnceWhenDevFlagIsOn();
+  testRendersOverlayNearPostTextWhenAvailable();
   testDefaultFeatureFlagsAreOff();
   testDoesNotForceDevTestCushionWhenDevTextFlagIsOff();
   testDoesNotForceDevTestCushionWhenOverlayDevFlagIsOff();
@@ -207,6 +208,35 @@ function testRendersOverlayOnceWhenDevFlagIsOn() {
       assert.equal(secondResult, false);
       assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
       assert.equal(postNode.children.length, 1);
+      assert.equal(createCount, 1);
+    }
+  );
+}
+
+function testRendersOverlayNearPostTextWhenAvailable() {
+  let createCount = 0;
+  const { bodyNode, postNode, textNode } = createPostNodeWithNestedText();
+
+  postNode.setAttribute(ATTRIBUTES.cushionCandidate, 'true');
+
+  withOverlay(
+    {
+      createCushionElement() {
+        createCount += 1;
+
+        return createElement('section');
+      }
+    },
+    () => {
+      const result = maybeRenderCushionOverlay(postNode, {
+        enableCushionOverlayDev: true
+      });
+
+      assert.equal(result, true);
+      assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+      assert.equal(postNode.parentNode, null);
+      assert.equal(bodyNode.children[0].tagName, 'SECTION');
+      assert.equal(bodyNode.children[1], textNode);
       assert.equal(createCount, 1);
     }
   );
@@ -413,6 +443,29 @@ function testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn() {
       assert.equal(createCount, 1);
     }
   );
+}
+
+function createPostNodeWithNestedText() {
+  const postNode = createElement('article');
+  const bodyNode = createElement('div');
+  const textNode = createElement('div');
+
+  postNode.insertBefore(bodyNode, null);
+  bodyNode.insertBefore(textNode, null);
+
+  postNode.querySelector = (selector) => {
+    if (selector !== SELECTORS.text) {
+      return null;
+    }
+
+    return textNode;
+  };
+
+  return {
+    bodyNode,
+    postNode,
+    textNode
+  };
 }
 
 function createPostNode(texts) {
