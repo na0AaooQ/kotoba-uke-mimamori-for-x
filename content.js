@@ -6,7 +6,9 @@ const OBSERVER_DEBOUNCE_MS = 250;
 // ワンクッションUIの実画面挿入は開発確認用フラグ配下でのみ有効です。
 // 通常状態では画面表示変更を行いません。
 const FEATURE_FLAGS = Object.freeze({
+  // 開発確認時のみ、候補化済み投稿へのワンクッションUI挿入を許可します。
   enableCushionOverlayDev: false,
+  // 開発確認時のみ、安全な固定テスト文言をワンクッション候補として扱います。
   enableDevTestCushionText: false
 });
 
