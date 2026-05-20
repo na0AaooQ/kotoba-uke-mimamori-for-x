@@ -1,0 +1,144 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const { createCushionElement } = require('../overlay');
+
+const MESSAGES = Object.freeze({
+  cushionTitle: '読む前に、少しだけワンクッションを置きました',
+  cushionBody: 'この投稿には、心に負荷がかかる可能性のある表現が含まれているかもしれません。',
+  reasonGeneric: '心に負荷がかかる可能性のある表現を検知しました',
+  buttonShowContent: '内容を表示する',
+  buttonHideForNow: '今は見ない'
+});
+
+function runTests() {
+  testCreatesGenericCushionElement();
+  testDoesNotRenderPostTextOrInternalRiskDetails();
+  testShowButtonHandler();
+
+  console.log('All overlay tests passed.');
+}
+
+function testCreatesGenericCushionElement() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({ reasonMessageKey: 'reasonGeneric' });
+
+    assert.equal(element.tagName, 'SECTION');
+    assert.equal(element.getAttribute('role'), 'group');
+    assert.ok(element.textContent.includes(MESSAGES.cushionTitle));
+    assert.ok(element.textContent.includes(MESSAGES.cushionBody));
+    assert.ok(element.textContent.includes(MESSAGES.reasonGeneric));
+    assert.ok(element.textContent.includes(MESSAGES.buttonShowContent));
+    assert.ok(element.textContent.includes(MESSAGES.buttonHideForNow));
+  });
+}
+
+function testDoesNotRenderPostTextOrInternalRiskDetails() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({
+      postText: 'これはUIに出してはいけない投稿本文です',
+      score: 100,
+      matchedRules: ['existence_denial.strong_phrase'],
+      categories: ['existence_denial'],
+      reasons: ['存在否定に近い表現の可能性があります']
+    });
+
+    assert.equal(element.textContent.includes('これはUIに出してはいけない投稿本文です'), false);
+    assert.equal(element.textContent.includes('100'), false);
+    assert.equal(element.textContent.includes('existence_denial'), false);
+    assert.equal(element.textContent.includes('existence_denial.strong_phrase'), false);
+    assert.equal(element.textContent.includes('存在否定に近い表現の可能性があります'), false);
+    assert.ok(element.textContent.includes(MESSAGES.reasonGeneric));
+  });
+}
+
+function testShowButtonHandler() {
+  withFakeDomAndI18n(() => {
+    let showCount = 0;
+    const element = createCushionElement(
+      {},
+      {
+        onShow: () => {
+          showCount += 1;
+        }
+      }
+    );
+    const showButton = element.children[3].children[0];
+
+    showButton.click();
+
+    assert.equal(showCount, 1);
+  });
+}
+
+function withFakeDomAndI18n(callback) {
+  const previousDocument = globalThis.document;
+  const previousI18n = globalThis.kotobaUkeMimamoriI18n;
+
+  globalThis.document = {
+    createElement
+  };
+  globalThis.kotobaUkeMimamoriI18n = {
+    getMessage(key) {
+      return MESSAGES[key] || key;
+    }
+  };
+
+  try {
+    callback();
+  } finally {
+    restoreGlobal('document', previousDocument);
+    restoreGlobal('kotobaUkeMimamoriI18n', previousI18n);
+  }
+}
+
+function restoreGlobal(key, value) {
+  if (value === undefined) {
+    delete globalThis[key];
+  } else {
+    globalThis[key] = value;
+  }
+}
+
+function createElement(tagName) {
+  const attributes = new Map();
+  const listeners = new Map();
+
+  return {
+    children: [],
+    className: '',
+    nodeType: 1,
+    tagName: String(tagName).toUpperCase(),
+    _textContent: '',
+    get textContent() {
+      return this._textContent + this.children.map((childNode) => childNode.textContent).join('');
+    },
+    set textContent(value) {
+      this._textContent = String(value);
+      this.children = [];
+    },
+    addEventListener(eventName, handler) {
+      listeners.set(eventName, handler);
+    },
+    append(...childNodes) {
+      for (const childNode of childNodes) {
+        this.children.push(childNode);
+      }
+    },
+    click() {
+      const clickHandler = listeners.get('click');
+
+      if (typeof clickHandler === 'function') {
+        clickHandler();
+      }
+    },
+    getAttribute(name) {
+      return attributes.get(name) ?? null;
+    },
+    setAttribute(name, value) {
+      attributes.set(name, String(value));
+    }
+  };
+}
+
+runTests();

@@ -38,6 +38,9 @@
   "reasonDoxxingOrPrivacyRisk": {
     "message": "This may contain wording related to personal information or safety."
   },
+  "reasonGeneric": {
+    "message": "Potentially emotionally burdensome wording was detected."
+  },
   "reasonPotentialBurden": {
     "message": "This may contain wording that could place an emotional burden on the reader."
   }
