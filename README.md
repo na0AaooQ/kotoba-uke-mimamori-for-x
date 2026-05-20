@@ -299,6 +299,85 @@ Manifest V3 の `manifest.json` を追加し、`https://x.com/*` と `https://tw
 
 `overlay.js` は、ワンクッションUI生成のための土台です。開発用フラグ配下で、`shouldCushion=true` の内部マーキング済み投稿にワンクッションUIを試験挿入できます。通常状態ではフラグOFFのため、画面表示変更は行いません。また、外部通信、投稿本文の保存、ぼかし表示は行いません。
 
+## 開発確認手順
+
+以下の確認は、開発中に安全にワンクッションUIの接続状態を確認するためのものです。
+
+確認後は必ず `content.js` の開発用フラグを `false` に戻し、Chrome拡張を再読み込みしてください。通常状態では画面表示変更を行いません。テスト文言は開発確認専用であり、通常判定ルールには含めません。投稿本文・ユーザー情報・URL・内部判定詳細をログやUIに出さないでください。
+
+### B. DOM手動属性付与によるワンクッションUI確認
+
+この確認方法は、実在の投稿本文を使わずに、開発用フラグON時のUI挿入位置・重複挿入防止を確認するためのものです。
+
+確認時のみ、`content.js` の開発用フラグ `enableCushionOverlayDev` を一時的に `true` にします。`enableDevTestCushionText` は `false` のままで構いません。
+
+```js
+const FEATURE_FLAGS = Object.freeze({
+  enableCushionOverlayDev: true,
+  enableDevTestCushionText: false
+});
+```
+
+Chrome拡張を再読み込みし、X上の確認対象画面を開きます。DevTools の Elements パネルで対象の投稿DOMを選択し、以下の属性を手動で付与します。
+
+```text
+data-kum-cushion-candidate="true"
+```
+
+`article[data-testid="tweet"]` または `article` の投稿DOMに属性を付けると、開発用フラグON時のみワンクッションUIが一度だけ挿入されます。挿入後は、対象DOMに以下の属性が付くことを確認します。
+
+```text
+data-kum-cushion-rendered="true"
+```
+
+確認項目:
+
+- UIが投稿DOMに挿入される
+- UIが重複挿入されない
+- 投稿本文は削除されない
+- 投稿DOMは削除されない
+- score / matchedRules / categories / reasons はUIに表示されない
+- 投稿本文はログに出ない
+- 外部通信・保存処理が発生しない
+
+確認後は、必ず `enableCushionOverlayDev` を `false` に戻し、Chrome拡張を再読み込みしてください。
+
+### A. テスト文言による実フロー確認
+
+この確認方法は、実在の攻撃的な文言を使わずに、投稿DOM検出からワンクッションUI試験挿入までの流れを確認するためのものです。
+
+確認時のみ、`content.js` の以下の開発用フラグを一時的に `true` にします。
+
+```js
+const FEATURE_FLAGS = Object.freeze({
+  enableCushionOverlayDev: true,
+  enableDevTestCushionText: true
+});
+```
+
+確認用文言:
+
+```text
+【テスト用】「ことばうけみまもり」のテストメッセージです。
+```
+
+Chrome拡張を再読み込みし、この文言を含むテスト投稿または確認用表示を使って確認します。この文言は開発確認専用であり、`risk-detector.js` の通常判定ルールには追加しません。
+
+確認項目:
+
+- 投稿DOM候補として検出される
+- `data-kum-risk-checked="true"` が付与される
+- `data-kum-cushion-candidate="true"` が付与される
+- 開発用フラグON時のみワンクッションUIが挿入される
+- `data-kum-cushion-rendered="true"` が付与される
+- 投稿本文はログに出ない
+- 投稿本文はUIに出ない
+- score / matchedRules / categories / reasons はログにもUIにも出ない
+- 投稿本文や投稿DOMは削除されない
+- 外部通信・保存処理は発生しない
+
+確認後は、必ず `enableCushionOverlayDev` と `enableDevTestCushionText` をどちらも `false` に戻し、Chrome拡張を再読み込みしてください。
+
 ## 技術方針
 
 初期MVPでは、以下の構成を想定します。

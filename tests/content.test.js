@@ -3,6 +3,8 @@
 const assert = require('node:assert/strict');
 const {
   ATTRIBUTES,
+  DEV_TEST_CUSHION_TEXT,
+  FEATURE_FLAGS,
   SELECTORS,
   maybeRenderCushionOverlay,
   processCandidatePost
@@ -15,6 +17,12 @@ function runTests() {
   testSkipsAlreadyProcessedPost();
   testDoesNotRenderOverlayWhenDevFlagIsOff();
   testRendersOverlayOnceWhenDevFlagIsOn();
+  testDefaultFeatureFlagsAreOff();
+  testDoesNotForceDevTestCushionWhenDevTextFlagIsOff();
+  testDoesNotForceDevTestCushionWhenOverlayDevFlagIsOff();
+  testForcesDevTestCushionOnlyWhenBothFlagsAreOn();
+  testDevTestCushionTextIsNotIncludedInOverlay();
+  testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn();
 
   console.log('All content tests passed.');
 }
@@ -197,6 +205,209 @@ function testRendersOverlayOnceWhenDevFlagIsOn() {
 
       assert.equal(firstResult, true);
       assert.equal(secondResult, false);
+      assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+      assert.equal(postNode.children.length, 1);
+      assert.equal(createCount, 1);
+    }
+  );
+}
+
+function testDefaultFeatureFlagsAreOff() {
+  assert.equal(FEATURE_FLAGS.enableCushionOverlayDev, false);
+  assert.equal(FEATURE_FLAGS.enableDevTestCushionText, false);
+}
+
+function testDoesNotForceDevTestCushionWhenDevTextFlagIsOff() {
+  let createCount = 0;
+  const postNode = createPostNode([DEV_TEST_CUSHION_TEXT]);
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return {
+          shouldCushion: false
+        };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            createCount += 1;
+
+            return createElement('section');
+          }
+        },
+        () => {
+          const result = processCandidatePost(postNode, {
+            enableCushionOverlayDev: true,
+            enableDevTestCushionText: false
+          });
+
+          assert.deepEqual(result, {
+            processed: true,
+            riskChecked: true,
+            shouldCushion: false
+          });
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), null);
+          assert.equal(postNode.children.length, 0);
+          assert.equal(createCount, 0);
+        }
+      );
+    }
+  );
+}
+
+function testDoesNotForceDevTestCushionWhenOverlayDevFlagIsOff() {
+  let createCount = 0;
+  const postNode = createPostNode([DEV_TEST_CUSHION_TEXT]);
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return {
+          shouldCushion: false
+        };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            createCount += 1;
+
+            return createElement('section');
+          }
+        },
+        () => {
+          const result = processCandidatePost(postNode, {
+            enableCushionOverlayDev: false,
+            enableDevTestCushionText: true
+          });
+
+          assert.deepEqual(result, {
+            processed: true,
+            riskChecked: true,
+            shouldCushion: false
+          });
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), null);
+          assert.equal(postNode.children.length, 0);
+          assert.equal(createCount, 0);
+        }
+      );
+    }
+  );
+}
+
+function testForcesDevTestCushionOnlyWhenBothFlagsAreOn() {
+  let createCount = 0;
+  const postNode = createPostNode([DEV_TEST_CUSHION_TEXT]);
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return {
+          shouldCushion: false
+        };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            createCount += 1;
+
+            return createElement('section');
+          }
+        },
+        () => {
+          const result = processCandidatePost(postNode, {
+            enableCushionOverlayDev: true,
+            enableDevTestCushionText: true
+          });
+
+          assert.deepEqual(result, {
+            processed: true,
+            riskChecked: true,
+            shouldCushion: true
+          });
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), 'true');
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+          assert.equal(postNode.children.length, 1);
+          assert.equal(createCount, 1);
+        }
+      );
+    }
+  );
+}
+
+function testDevTestCushionTextIsNotIncludedInOverlay() {
+  let overlayResult = null;
+  const postNode = createPostNode([DEV_TEST_CUSHION_TEXT]);
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return {
+          shouldCushion: false
+        };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement(result) {
+            overlayResult = result;
+
+            const element = createElement('section');
+            element.textContent = result.reasonMessageKey;
+
+            return element;
+          }
+        },
+        () => {
+          processCandidatePost(postNode, {
+            enableCushionOverlayDev: true,
+            enableDevTestCushionText: true
+          });
+
+          assert.deepEqual(overlayResult, {
+            reasonMessageKey: 'reasonGeneric'
+          });
+          assert.equal(postNode.children[0].textContent.includes(DEV_TEST_CUSHION_TEXT), false);
+        }
+      );
+    }
+  );
+}
+
+function testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn() {
+  let createCount = 0;
+  const postNode = createPostNode(['通常の確認用テキスト']);
+
+  postNode.setAttribute(ATTRIBUTES.processed, 'true');
+  postNode.setAttribute(ATTRIBUTES.cushionCandidate, 'true');
+
+  withOverlay(
+    {
+      createCushionElement() {
+        createCount += 1;
+
+        return createElement('section');
+      }
+    },
+    () => {
+      const result = processCandidatePost(postNode, {
+        enableCushionOverlayDev: true
+      });
+
+      assert.deepEqual(result, {
+        processed: false,
+        riskChecked: false,
+        shouldCushion: false
+      });
       assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
       assert.equal(postNode.children.length, 1);
       assert.equal(createCount, 1);
