@@ -3,6 +3,7 @@
 const assert = require('node:assert/strict');
 const {
   ATTRIBUTES,
+  CLASSES,
   DEV_TEST_CUSHION_TEXT,
   FEATURE_FLAGS,
   SELECTORS,
@@ -18,6 +19,10 @@ function runTests() {
   testDoesNotRenderOverlayWhenDevFlagIsOff();
   testRendersOverlayOnceWhenDevFlagIsOn();
   testRendersOverlayNearPostTextWhenAvailable();
+  testDoesNotBlurContentWhenDevFlagIsOff();
+  testAppliesContentBlurWhenDevFlagIsOn();
+  testShowButtonRevealsContentAndRemovesOverlay();
+  testHideButtonKeepsContentBlurAndOverlay();
   testDefaultFeatureFlagsAreOff();
   testDoesNotForceDevTestCushionWhenDevTextFlagIsOff();
   testDoesNotForceDevTestCushionWhenOverlayDevFlagIsOff();
@@ -238,6 +243,126 @@ function testRendersOverlayNearPostTextWhenAvailable() {
       assert.equal(bodyNode.children[0].tagName, 'SECTION');
       assert.equal(bodyNode.children[1], textNode);
       assert.equal(createCount, 1);
+    }
+  );
+}
+
+function testDoesNotBlurContentWhenDevFlagIsOff() {
+  let createCount = 0;
+  const { postNode, textNode } = createPostNodeWithNestedText();
+
+  postNode.setAttribute(ATTRIBUTES.cushionCandidate, 'true');
+
+  withOverlay(
+    {
+      createCushionElement() {
+        createCount += 1;
+
+        return createElement('section');
+      }
+    },
+    () => {
+      const result = maybeRenderCushionOverlay(postNode);
+
+      assert.equal(result, false);
+      assert.equal(textNode.className.includes(CLASSES.contentBlur), false);
+      assert.equal(textNode.getAttribute(ATTRIBUTES.contentBlurred), null);
+      assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), null);
+      assert.equal(createCount, 0);
+    }
+  );
+}
+
+function testAppliesContentBlurWhenDevFlagIsOn() {
+  let createCount = 0;
+  const { postNode, textNode } = createPostNodeWithNestedText();
+
+  postNode.setAttribute(ATTRIBUTES.cushionCandidate, 'true');
+
+  withOverlay(
+    {
+      createCushionElement() {
+        createCount += 1;
+
+        return createElement('section');
+      }
+    },
+    () => {
+      const result = maybeRenderCushionOverlay(postNode, {
+        enableCushionOverlayDev: true
+      });
+
+      assert.equal(result, true);
+      assert.equal(textNode.className.includes(CLASSES.contentBlur), true);
+      assert.equal(textNode.getAttribute(ATTRIBUTES.contentBlurred), 'true');
+      assert.equal(textNode.getAttribute(ATTRIBUTES.contentRevealed), null);
+      assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+      assert.equal(createCount, 1);
+    }
+  );
+}
+
+function testShowButtonRevealsContentAndRemovesOverlay() {
+  let onShow = null;
+  const { bodyNode, postNode, textNode } = createPostNodeWithNestedText();
+
+  postNode.setAttribute(ATTRIBUTES.cushionCandidate, 'true');
+
+  withOverlay(
+    {
+      createCushionElement(_result, handlers) {
+        onShow = handlers.onShow;
+
+        return createElement('section');
+      }
+    },
+    () => {
+      maybeRenderCushionOverlay(postNode, {
+        enableCushionOverlayDev: true
+      });
+
+      assert.equal(textNode.className.includes(CLASSES.contentBlur), true);
+      assert.equal(bodyNode.children.length, 2);
+
+      onShow();
+
+      assert.equal(textNode.className.includes(CLASSES.contentBlur), false);
+      assert.equal(textNode.getAttribute(ATTRIBUTES.contentBlurred), null);
+      assert.equal(textNode.getAttribute(ATTRIBUTES.contentRevealed), 'true');
+      assert.equal(bodyNode.children.length, 1);
+      assert.equal(bodyNode.children[0], textNode);
+      assert.equal(postNode.parentNode, null);
+    }
+  );
+}
+
+function testHideButtonKeepsContentBlurAndOverlay() {
+  let onHide = null;
+  const { bodyNode, postNode, textNode } = createPostNodeWithNestedText();
+
+  postNode.setAttribute(ATTRIBUTES.cushionCandidate, 'true');
+
+  withOverlay(
+    {
+      createCushionElement(_result, handlers) {
+        onHide = handlers.onHide;
+
+        return createElement('section');
+      }
+    },
+    () => {
+      maybeRenderCushionOverlay(postNode, {
+        enableCushionOverlayDev: true
+      });
+
+      onHide();
+
+      assert.equal(textNode.className.includes(CLASSES.contentBlur), true);
+      assert.equal(textNode.getAttribute(ATTRIBUTES.contentBlurred), 'true');
+      assert.equal(textNode.getAttribute(ATTRIBUTES.contentRevealed), null);
+      assert.equal(bodyNode.children.length, 2);
+      assert.equal(bodyNode.children[1], textNode);
+      assert.equal(postNode.parentNode, null);
     }
   );
 }
@@ -492,6 +617,7 @@ function createElement(tagName) {
 
   return {
     children: [],
+    className: '',
     nodeType: 1,
     parentNode: null,
     tagName: String(tagName).toUpperCase(),
@@ -531,6 +657,9 @@ function createElement(tagName) {
       }
 
       this.parentNode = null;
+    },
+    removeAttribute(name) {
+      attributes.delete(name);
     },
     setAttribute(name, value) {
       attributes.set(name, String(value));
