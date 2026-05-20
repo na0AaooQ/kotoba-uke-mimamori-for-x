@@ -38,6 +38,9 @@
   "reasonDoxxingOrPrivacyRisk": {
     "message": "個人情報や安全に関わる可能性のある表現かもしれません"
   },
+  "reasonGeneric": {
+    "message": "心に負荷がかかる可能性のある表現を検知しました"
+  },
   "reasonPotentialBurden": {
     "message": "心に負荷がかかる可能性のある表現かもしれません"
   }
