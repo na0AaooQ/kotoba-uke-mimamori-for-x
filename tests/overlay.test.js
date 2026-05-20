@@ -55,6 +55,8 @@ function testInjectsCushionStylesOnce() {
     assert.equal(secondResult, false);
     assert.equal(fakeDocument.head.children.length, 1);
     assert.ok(styleElement.textContent.includes('.kum-cushion'));
+    assert.ok(styleElement.textContent.includes('.kum-content-blur'));
+    assert.ok(styleElement.textContent.includes('filter: blur(5px)'));
     assert.ok(styleElement.textContent.includes('@media (prefers-color-scheme: dark)'));
   });
 }

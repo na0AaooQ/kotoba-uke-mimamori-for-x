@@ -18,7 +18,13 @@ const ATTRIBUTES = Object.freeze({
   processed: 'data-kum-processed',
   riskChecked: 'data-kum-risk-checked',
   cushionCandidate: 'data-kum-cushion-candidate',
-  cushionRendered: 'data-kum-cushion-rendered'
+  cushionRendered: 'data-kum-cushion-rendered',
+  contentBlurred: 'data-kum-content-blurred',
+  contentRevealed: 'data-kum-content-revealed'
+});
+
+const CLASSES = Object.freeze({
+  contentBlur: 'kum-content-blur'
 });
 
 const SELECTORS = Object.freeze({
@@ -220,11 +226,11 @@ function maybeRenderCushionOverlay(postNode, featureFlags = FEATURE_FLAGS) {
     },
     {
       onShow: () => {
-        if (typeof cushionElement?.remove === 'function') {
-          cushionElement.remove();
-        }
+        revealPostContent(postNode, cushionElement);
       },
-      onHide: keepCushionOverlayVisible
+      onHide: () => {
+        keepPostContentHidden(postNode);
+      }
     }
   );
 
@@ -236,7 +242,62 @@ function maybeRenderCushionOverlay(postNode, featureFlags = FEATURE_FLAGS) {
     return false;
   }
 
+  applyContentBlur(postNode);
   markCushionRendered(postNode);
+
+  return true;
+}
+
+function applyContentBlur(postNode) {
+  const textNode = findFirstPostTextNode(postNode);
+
+  if (!isElement(textNode) || isContentRevealed(postNode)) {
+    return false;
+  }
+
+  if (typeof textNode.classList?.add === 'function') {
+    textNode.classList.add(CLASSES.contentBlur);
+  } else {
+    appendClassName(textNode, CLASSES.contentBlur);
+  }
+
+  textNode.setAttribute(ATTRIBUTES.contentBlurred, 'true');
+
+  return true;
+}
+
+function revealPostContent(postNode, cushionElement) {
+  const textNode = findFirstPostTextNode(postNode);
+
+  if (isElement(textNode)) {
+    removeContentBlur(textNode);
+    if (typeof textNode.removeAttribute === 'function') {
+      textNode.removeAttribute(ATTRIBUTES.contentBlurred);
+    }
+    textNode.setAttribute(ATTRIBUTES.contentRevealed, 'true');
+  }
+
+  if (typeof cushionElement?.remove === 'function') {
+    cushionElement.remove();
+  }
+
+  return undefined;
+}
+
+function keepPostContentHidden() {
+  return undefined;
+}
+
+function removeContentBlur(textNode) {
+  if (!isElement(textNode)) {
+    return false;
+  }
+
+  if (typeof textNode.classList?.remove === 'function') {
+    textNode.classList.remove(CLASSES.contentBlur);
+  } else {
+    removeClassName(textNode, CLASSES.contentBlur);
+  }
 
   return true;
 }
@@ -273,8 +334,10 @@ function findFirstPostTextNode(postNode) {
   return null;
 }
 
-function keepCushionOverlayVisible() {
-  return undefined;
+function isContentRevealed(postNode) {
+  const textNode = findFirstPostTextNode(postNode);
+
+  return isElement(textNode) && textNode.getAttribute(ATTRIBUTES.contentRevealed) === 'true';
 }
 
 function initializeKotobaUkeMimamoriContentScript() {
@@ -351,6 +414,21 @@ function isElement(node) {
   return Boolean(node && node.nodeType === 1);
 }
 
+function appendClassName(node, className) {
+  const currentClassName = typeof node.className === 'string' ? node.className : '';
+  const classNames = new Set(currentClassName.split(/\s+/u).filter(Boolean));
+  classNames.add(className);
+  node.className = Array.from(classNames).join(' ');
+}
+
+function removeClassName(node, className) {
+  const currentClassName = typeof node.className === 'string' ? node.className : '';
+  node.className = currentClassName
+    .split(/\s+/u)
+    .filter((currentName) => currentName && currentName !== className)
+    .join(' ');
+}
+
 function isProcessed(postNode) {
   return postNode.getAttribute(ATTRIBUTES.processed) === 'true';
 }
@@ -412,8 +490,10 @@ if (globalThis.document) {
 if (typeof module !== 'undefined') {
   module.exports = {
     ATTRIBUTES,
+    CLASSES,
     DEV_TEST_CUSHION_TEXT,
     FEATURE_FLAGS,
+    applyContentBlur,
     SELECTORS,
     detectPostTextRisk,
     extractPostText,
@@ -424,6 +504,7 @@ if (typeof module !== 'undefined') {
     insertCushionElement,
     isCushionCandidate,
     isCushionRendered,
+    isContentRevealed,
     markCushionCandidate,
     markProcessed,
     markCushionRendered,
@@ -431,6 +512,8 @@ if (typeof module !== 'undefined') {
     maybeRenderCushionOverlay,
     observeTimeline,
     processCandidatePost,
+    removeContentBlur,
+    revealPostContent,
     shouldForceCushionForDevTest,
     startDomMonitoring
   };

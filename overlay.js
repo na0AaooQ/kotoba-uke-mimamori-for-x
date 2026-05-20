@@ -66,6 +66,11 @@ const CUSHION_STYLES = `
   outline-offset: 2px;
 }
 
+.kum-content-blur {
+  filter: blur(5px);
+  transition: filter 160ms ease;
+}
+
 @media (prefers-color-scheme: dark) {
   .kum-cushion {
     border-color: rgba(251, 191, 36, 0.32);
