@@ -126,6 +126,8 @@ MVPでは、以下を実装しないでください。
 
 投稿本文、判定結果、閲覧履歴、ユーザーID、投稿URL、`score`、`matchedRules` は保存しないでください。
 
+`content.js` の本番動作は、ユーザーが明示的に `enabled=true` にした場合のみ有効にしてください。初期値は `enabled=false` とし、`enabled=false` では表示変更・ぼかし・ワンクッションUI・候補属性付与を行わないでください。
+
 ## 判定方針
 
 MVPでは、ローカルのルールベース + スコアリング方式を採用してください。
@@ -401,6 +403,8 @@ Chrome Extension
 - `detectTextRisk` を呼び出す。
 - 高リスク判定結果を `overlay.js` に渡す。
 - 同じDOMノードを重複処理しない。
+- 本番動作は `settings.enabled === true` の場合のみ行う。
+- `settings.enabled === false` ではDOM監視・通常判定・候補属性付与・ワンクッションUI・ぼかし表示を行わない。
 
 ### `overlay.js`
 

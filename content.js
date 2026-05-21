@@ -3,8 +3,7 @@
 const LOG_PREFIX = '[kotoba-uke-mimamori]';
 const OBSERVER_DEBOUNCE_MS = 250;
 
-// ワンクッションUIの実画面挿入は開発確認用フラグ配下でのみ有効です。
-// 通常状態では画面表示変更を行いません。
+// 開発用フラグは、通常ユーザー向け設定とは分離して扱います。
 const FEATURE_FLAGS = Object.freeze({
   // 開発確認時のみ、候補化済み投稿へのワンクッションUI挿入を許可します。
   enableCushionOverlayDev: false,
@@ -13,6 +12,10 @@ const FEATURE_FLAGS = Object.freeze({
 });
 
 const DEV_TEST_CUSHION_TEXT = '【テスト用】「ことばうけみまもり」のテストメッセージです。';
+
+const FALLBACK_SETTINGS = Object.freeze({
+  enabled: false
+});
 
 const ATTRIBUTES = Object.freeze({
   processed: 'data-kum-processed',
@@ -44,33 +47,46 @@ let scanTimerId = null;
 let isScanning = false;
 let hasLoggedInitialScan = false;
 
-function initialize() {
+async function initialize(settingsApi = getSettingsApi(), featureFlags = FEATURE_FLAGS) {
   if (initialized) {
-    return;
+    return false;
   }
 
   initialized = true;
   // 投稿本文など、センシティブな内容はログに出さない。
   console.info(`${LOG_PREFIX} content script initialized`);
-  observeTimeline();
+
+  const settings = await loadContentSettings(settingsApi);
+
+  if (!isCushionFeatureEnabled(settings, featureFlags)) {
+    console.info(`${LOG_PREFIX} feature disabled`);
+    return false;
+  }
+
+  observeTimeline(settings, featureFlags);
+  return true;
 }
 
-function observeTimeline() {
+function observeTimeline(settings = getDefaultSettings(), featureFlags = FEATURE_FLAGS) {
+  if (!isCushionFeatureEnabled(settings, featureFlags)) {
+    return false;
+  }
+
   const root = getDocumentRoot();
 
   if (!root) {
     console.info(`${LOG_PREFIX} timeline root unavailable`);
-    return;
+    return false;
   }
 
-  scanCandidatePosts(root);
+  scanCandidatePosts(root, settings, featureFlags);
 
   if (timelineObserver || typeof globalThis.MutationObserver !== 'function') {
-    return;
+    return true;
   }
 
   timelineObserver = new globalThis.MutationObserver(() => {
-    scheduleCandidatePostScan(root);
+    scheduleCandidatePostScan(root, settings, featureFlags);
   });
 
   timelineObserver.observe(root, {
@@ -81,6 +97,7 @@ function observeTimeline() {
   });
 
   console.info(`${LOG_PREFIX} timeline observer started`);
+  return true;
 }
 
 function findCandidatePostNodes(root) {
@@ -119,9 +136,17 @@ function extractPostText(postNode) {
     .trim();
 }
 
-function processCandidatePost(postNode, featureFlags = FEATURE_FLAGS) {
+function processCandidatePost(
+  postNode,
+  featureFlags = FEATURE_FLAGS,
+  settings = getDefaultSettings()
+) {
+  if (!isCushionFeatureEnabled(settings, featureFlags)) {
+    return SKIPPED_PROCESS_RESULT;
+  }
+
   if (!isElement(postNode) || isProcessed(postNode)) {
-    maybeRenderCushionOverlay(postNode, featureFlags);
+    maybeRenderCushionOverlay(postNode, featureFlags, settings);
 
     return SKIPPED_PROCESS_RESULT;
   }
@@ -150,10 +175,9 @@ function processCandidatePost(postNode, featureFlags = FEATURE_FLAGS) {
 
   if (shouldCushion) {
     markCushionCandidate(postNode);
-    maybeRenderCushionOverlay(postNode, featureFlags);
+    maybeRenderCushionOverlay(postNode, featureFlags, settings);
   }
 
-  // 通常状態では内部属性は接続準備に留め、画面表示やぼかしには使わない。
   markProcessed(postNode);
 
   return {
@@ -204,8 +228,12 @@ function markCushionRendered(postNode) {
   postNode.setAttribute(ATTRIBUTES.cushionRendered, 'true');
 }
 
-function maybeRenderCushionOverlay(postNode, featureFlags = FEATURE_FLAGS) {
-  if (!featureFlags.enableCushionOverlayDev) {
+function maybeRenderCushionOverlay(
+  postNode,
+  featureFlags = FEATURE_FLAGS,
+  settings = getDefaultSettings()
+) {
+  if (!isCushionFeatureEnabled(settings, featureFlags)) {
     return false;
   }
 
@@ -341,14 +369,18 @@ function isContentRevealed(postNode) {
 }
 
 function initializeKotobaUkeMimamoriContentScript() {
-  initialize();
+  return initialize();
 }
 
-function startDomMonitoring() {
-  observeTimeline();
+function startDomMonitoring(settings = getDefaultSettings(), featureFlags = FEATURE_FLAGS) {
+  return observeTimeline(settings, featureFlags);
 }
 
-function scanCandidatePosts(root) {
+function scanCandidatePosts(root, settings = getDefaultSettings(), featureFlags = FEATURE_FLAGS) {
+  if (!isCushionFeatureEnabled(settings, featureFlags)) {
+    return;
+  }
+
   if (isScanning) {
     return;
   }
@@ -362,7 +394,7 @@ function scanCandidatePosts(root) {
     let cushionCandidateCount = 0;
 
     for (const postNode of candidatePostNodes) {
-      const processResult = processCandidatePost(postNode);
+      const processResult = processCandidatePost(postNode, featureFlags, settings);
 
       if (processResult.processed) {
         processedCount += 1;
@@ -389,15 +421,62 @@ function scanCandidatePosts(root) {
   }
 }
 
-function scheduleCandidatePostScan(root) {
+function scheduleCandidatePostScan(
+  root,
+  settings = getDefaultSettings(),
+  featureFlags = FEATURE_FLAGS
+) {
   if (scanTimerId !== null) {
     return;
   }
 
   scanTimerId = globalThis.setTimeout(() => {
     scanTimerId = null;
-    scanCandidatePosts(root);
+    scanCandidatePosts(root, settings, featureFlags);
   }, OBSERVER_DEBOUNCE_MS);
+}
+
+async function loadContentSettings(settingsApi = getSettingsApi()) {
+  if (!settingsApi || typeof settingsApi.loadSettings !== 'function') {
+    return normalizeContentSettings();
+  }
+
+  try {
+    return normalizeContentSettings(await settingsApi.loadSettings(), settingsApi);
+  } catch (_error) {
+    return normalizeContentSettings(undefined, settingsApi);
+  }
+}
+
+function normalizeContentSettings(settings, settingsApi = getSettingsApi()) {
+  if (settingsApi && typeof settingsApi.normalizeSettings === 'function') {
+    return settingsApi.normalizeSettings(settings);
+  }
+
+  return {
+    enabled:
+      settings && typeof settings.enabled === 'boolean'
+        ? settings.enabled
+        : getDefaultSettings(settingsApi).enabled
+  };
+}
+
+function isCushionFeatureEnabled(settings = getDefaultSettings(), featureFlags = FEATURE_FLAGS) {
+  return Boolean(settings?.enabled || featureFlags.enableCushionOverlayDev);
+}
+
+function getDefaultSettings(settingsApi = getSettingsApi()) {
+  return settingsApi?.DEFAULT_SETTINGS ?? FALLBACK_SETTINGS;
+}
+
+function getSettingsApi() {
+  const settingsApi = globalThis.kotobaUkeMimamoriSettings;
+
+  if (!settingsApi || typeof settingsApi !== 'object') {
+    return null;
+  }
+
+  return settingsApi;
 }
 
 function getDocumentRoot() {
@@ -493,6 +572,7 @@ if (typeof module !== 'undefined') {
     CLASSES,
     DEV_TEST_CUSHION_TEXT,
     FEATURE_FLAGS,
+    FALLBACK_SETTINGS,
     applyContentBlur,
     SELECTORS,
     detectPostTextRisk,
@@ -502,18 +582,22 @@ if (typeof module !== 'undefined') {
     initialize,
     initializeKotobaUkeMimamoriContentScript,
     insertCushionElement,
+    isCushionFeatureEnabled,
     isCushionCandidate,
     isCushionRendered,
     isContentRevealed,
+    loadContentSettings,
     markCushionCandidate,
     markProcessed,
     markCushionRendered,
     markRiskChecked,
     maybeRenderCushionOverlay,
+    normalizeContentSettings,
     observeTimeline,
     processCandidatePost,
     removeContentBlur,
     revealPostContent,
+    scanCandidatePosts,
     shouldForceCushionForDevTest,
     startDomMonitoring
   };

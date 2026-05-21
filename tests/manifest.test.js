@@ -7,6 +7,7 @@ const path = require('node:path');
 function runTests() {
   testOptionsPageIsConfigured();
   testOnlyStoragePermissionIsRequested();
+  testSettingsScriptLoadsBeforeContentScript();
 
   console.log('All manifest tests passed.');
 }
@@ -21,6 +22,15 @@ function testOnlyStoragePermissionIsRequested() {
   const manifest = readManifest();
 
   assert.deepEqual(manifest.permissions, ['storage']);
+}
+
+function testSettingsScriptLoadsBeforeContentScript() {
+  const manifest = readManifest();
+  const scripts = manifest.content_scripts[0].js;
+
+  assert.ok(scripts.indexOf('settings.js') !== -1);
+  assert.ok(scripts.indexOf('content.js') !== -1);
+  assert.ok(scripts.indexOf('settings.js') < scripts.indexOf('content.js'));
 }
 
 function readManifest() {
