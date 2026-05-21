@@ -43,5 +43,26 @@
   },
   "reasonPotentialBurden": {
     "message": "心に負荷がかかる可能性のある表現かもしれません"
+  },
+  "optionsTitle": {
+    "message": "ことばうけみまもりの設定"
+  },
+  "optionsDescription": {
+    "message": "Xで届く言葉に、読む前のワンクッションを置くための設定です。"
+  },
+  "optionEnableExtension": {
+    "message": "ことばうけみまもりを有効にする"
+  },
+  "optionPrivacyNote": {
+    "message": "投稿本文や判定結果は外部送信されません。"
+  },
+  "optionStorageNote": {
+    "message": "設定はこのブラウザ内に保存されます。"
+  },
+  "optionSaved": {
+    "message": "設定を保存しました。"
+  },
+  "optionSaveError": {
+    "message": "設定の保存に失敗しました。"
   }
 }

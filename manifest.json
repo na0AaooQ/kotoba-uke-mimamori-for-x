@@ -4,6 +4,8 @@
   "description": "__MSG_extensionDescription__",
   "version": "0.1.0",
   "default_locale": "ja",
+  "permissions": ["storage"],
+  "options_page": "options.html",
   "content_scripts": [
     {
       "matches": ["https://x.com/*", "https://twitter.com/*"],
