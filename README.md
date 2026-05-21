@@ -143,6 +143,12 @@ MVPでは、`score >= 80` の場合のみワンクッション表示の対象に
 - ユーザーの精神状態を推定しない
 - 保存が必要な機能を追加する場合は、ユーザーの明示的な操作を前提にする
 
+## 設定保存方針
+
+オプション画面の最小土台を追加し、ユーザーが拡張機能の有効 / 無効を切り替えられる設定保存の準備を行いました。設定保存には `chrome.storage.local` を使用し、保存対象は有効 / 無効などの設定値に限定します。投稿本文や判定結果は保存しません。
+
+現時点では、通常判定の本番適用は今後接続予定です。初期設定は `enabled: false` で、ユーザーが明示的にONにする前提の土台にしています。
+
 ## 多言語対応方針
 
 本拡張機能は、初期設計段階から多言語対応を前提にします。
@@ -419,13 +425,22 @@ Chrome Extension
 │  └─ 表示状態の制御
 ├─ options.html
 ├─ options.js
-│  ├─ ON/OFF
-│  ├─ 検知強度
-│  └─ 対象画面設定
+│  ├─ 有効 / 無効設定の読み込み
+│  ├─ 有効 / 無効設定の保存
+│  └─ 保存状態メッセージ表示
+├─ settings.js
+│  ├─ DEFAULT_SETTINGS
+│  ├─ chrome.storage.local への設定保存
+│  └─ テスト環境向けの安全なフォールバック
 ├─ chrome.storage.local
 └─ tests
-   └─ risk-detector.test.js
-      └─ risk-detector.js のユニットテストコード
+   ├─ risk-detector.test.js
+   ├─ i18n.test.js
+   ├─ manifest.test.js
+   ├─ settings.test.js
+   ├─ options.test.js
+   ├─ content.test.js
+   └─ overlay.test.js
 ```
 
 ## 開発用コマンド

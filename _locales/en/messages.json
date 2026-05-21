@@ -43,5 +43,26 @@
   },
   "reasonPotentialBurden": {
     "message": "This may contain wording that could place an emotional burden on the reader."
+  },
+  "optionsTitle": {
+    "message": "Kotoba Uke Mimamori Settings"
+  },
+  "optionsDescription": {
+    "message": "Settings for adding a gentle pause before reading words that arrive on X."
+  },
+  "optionEnableExtension": {
+    "message": "Enable Kotoba Uke Mimamori"
+  },
+  "optionPrivacyNote": {
+    "message": "Post text and detection results are not sent externally."
+  },
+  "optionStorageNote": {
+    "message": "Settings are stored in this browser."
+  },
+  "optionSaved": {
+    "message": "Settings saved."
+  },
+  "optionSaveError": {
+    "message": "Could not save settings."
   }
 }
