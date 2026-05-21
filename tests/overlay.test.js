@@ -17,6 +17,7 @@ const MESSAGES = Object.freeze({
 
 function runTests() {
   testCreatesGenericCushionElement();
+  testCreatesButtonElements();
   testInjectsCushionStylesOnce();
   testDoesNotRenderPostTextOrInternalRiskDetails();
   testShowButtonHandler();
@@ -45,6 +46,21 @@ function testCreatesGenericCushionElement() {
   });
 }
 
+function testCreatesButtonElements() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({ reasonMessageKey: 'reasonGeneric' });
+    const showButton = element.children[3].children[0];
+    const hideButton = element.children[3].children[1];
+
+    assert.equal(showButton.tagName, 'BUTTON');
+    assert.equal(hideButton.tagName, 'BUTTON');
+    assert.equal(showButton.type, 'button');
+    assert.equal(hideButton.type, 'button');
+    assert.equal(showButton.className, 'kum-cushion__button');
+    assert.equal(hideButton.className, 'kum-cushion__button');
+  });
+}
+
 function testInjectsCushionStylesOnce() {
   withFakeDomAndI18n((fakeDocument) => {
     const firstResult = ensureCushionStyles();
@@ -57,7 +73,13 @@ function testInjectsCushionStylesOnce() {
     assert.ok(styleElement.textContent.includes('.kum-cushion'));
     assert.ok(styleElement.textContent.includes('.kum-content-blur'));
     assert.ok(styleElement.textContent.includes('filter: blur(5px)'));
+    assert.ok(styleElement.textContent.includes('.kum-cushion__button:focus-visible'));
+    assert.ok(styleElement.textContent.includes('outline-offset: 2px'));
+    assert.ok(styleElement.textContent.includes('outline: 2px solid rgba(245, 158, 11, 0.85)'));
     assert.ok(styleElement.textContent.includes('@media (prefers-color-scheme: dark)'));
+    assert.ok(styleElement.textContent.includes('body[data-color-scheme="dark"] .kum-cushion'));
+    assert.ok(styleElement.textContent.includes('background: rgba(43, 35, 27, 0.96)'));
+    assert.ok(styleElement.textContent.includes('outline-color: rgba(252, 211, 77, 0.95)'));
   });
 }
 

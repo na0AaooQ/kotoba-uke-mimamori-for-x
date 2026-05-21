@@ -62,8 +62,9 @@ const CUSHION_STYLES = `
 }
 
 .kum-cushion__button:focus-visible {
-  outline: 2px solid rgba(245, 158, 11, 0.55);
+  outline: 2px solid rgba(245, 158, 11, 0.85);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
 }
 
 .kum-content-blur {
@@ -73,10 +74,10 @@ const CUSHION_STYLES = `
 
 @media (prefers-color-scheme: dark) {
   .kum-cushion {
-    border-color: rgba(251, 191, 36, 0.32);
-    background: rgba(67, 56, 38, 0.96);
-    color: #fef3c7;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.24);
+    border-color: rgba(251, 191, 36, 0.38);
+    background: rgba(43, 35, 27, 0.96);
+    color: #f8efd7;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
   }
 
   .kum-cushion__title {
@@ -84,14 +85,45 @@ const CUSHION_STYLES = `
   }
 
   .kum-cushion__button {
-    border-color: rgba(251, 191, 36, 0.42);
-    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(251, 191, 36, 0.52);
+    background: rgba(76, 54, 34, 0.94);
     color: #fde68a;
   }
 
   .kum-cushion__button:hover {
-    background: rgba(51, 65, 85, 0.92);
+    background: rgba(92, 64, 38, 0.96);
   }
+
+  .kum-cushion__button:focus-visible {
+    outline-color: rgba(252, 211, 77, 0.95);
+    box-shadow: 0 0 0 4px rgba(252, 211, 77, 0.2);
+  }
+}
+
+body[data-color-scheme="dark"] .kum-cushion {
+  border-color: rgba(251, 191, 36, 0.38);
+  background: rgba(43, 35, 27, 0.96);
+  color: #f8efd7;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+}
+
+body[data-color-scheme="dark"] .kum-cushion__title {
+  color: #fde68a;
+}
+
+body[data-color-scheme="dark"] .kum-cushion__button {
+  border-color: rgba(251, 191, 36, 0.52);
+  background: rgba(76, 54, 34, 0.94);
+  color: #fde68a;
+}
+
+body[data-color-scheme="dark"] .kum-cushion__button:hover {
+  background: rgba(92, 64, 38, 0.96);
+}
+
+body[data-color-scheme="dark"] .kum-cushion__button:focus-visible {
+  outline-color: rgba(252, 211, 77, 0.95);
+  box-shadow: 0 0 0 4px rgba(252, 211, 77, 0.2);
 }
 `;
 
