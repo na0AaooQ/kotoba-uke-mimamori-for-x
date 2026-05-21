@@ -9,7 +9,7 @@
   "content_scripts": [
     {
       "matches": ["https://x.com/*", "https://twitter.com/*"],
-      "js": ["risk-detector.js", "i18n.js", "overlay.js", "content.js"],
+      "js": ["settings.js", "risk-detector.js", "i18n.js", "overlay.js", "content.js"],
       "run_at": "document_idle"
     }
   ]

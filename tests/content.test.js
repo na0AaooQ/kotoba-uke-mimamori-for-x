@@ -7,20 +7,36 @@ const {
   DEV_TEST_CUSHION_TEXT,
   FEATURE_FLAGS,
   SELECTORS,
+  isCushionFeatureEnabled,
+  loadContentSettings,
   maybeRenderCushionOverlay,
-  processCandidatePost
+  processCandidatePost,
+  scanCandidatePosts
 } = require('../content');
 
-function runTests() {
+const ENABLED_SETTINGS = Object.freeze({
+  enabled: true
+});
+
+const DISABLED_SETTINGS = Object.freeze({
+  enabled: false
+});
+
+async function runTests() {
+  testCushionFeatureEnabledBySettingsOrDevFlag();
+  await testLoadContentSettingsFallsBackToDisabled();
+  testDoesNotProcessCandidateWhenEnabledFalse();
+  testDoesNotScanCandidatePostsWhenEnabledFalse();
   testMarksCushionCandidate();
   testMarksRiskCheckedWithoutCushion();
   testSkipsEmptyPostText();
   testSkipsAlreadyProcessedPost();
-  testDoesNotRenderOverlayWhenDevFlagIsOff();
+  testDoesNotRenderOverlayWhenFeatureDisabled();
   testRendersOverlayOnceWhenDevFlagIsOn();
   testRendersOverlayNearPostTextWhenAvailable();
   testDoesNotBlurContentWhenDevFlagIsOff();
   testAppliesContentBlurWhenDevFlagIsOn();
+  testAppliesContentBlurWhenEnabledIsOn();
   testShowButtonRevealsContentAndRemovesOverlay();
   testHideButtonKeepsContentBlurAndOverlay();
   testDefaultFeatureFlagsAreOff();
@@ -31,6 +47,104 @@ function runTests() {
   testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn();
 
   console.log('All content tests passed.');
+}
+
+function testCushionFeatureEnabledBySettingsOrDevFlag() {
+  assert.equal(isCushionFeatureEnabled(DISABLED_SETTINGS), false);
+  assert.equal(isCushionFeatureEnabled(ENABLED_SETTINGS), true);
+  assert.equal(
+    isCushionFeatureEnabled(DISABLED_SETTINGS, {
+      enableCushionOverlayDev: true
+    }),
+    true
+  );
+}
+
+async function testLoadContentSettingsFallsBackToDisabled() {
+  assert.deepEqual(await loadContentSettings(null), DISABLED_SETTINGS);
+
+  assert.deepEqual(
+    await loadContentSettings({
+      loadSettings() {
+        throw new Error('Storage unavailable');
+      }
+    }),
+    DISABLED_SETTINGS
+  );
+}
+
+function testDoesNotProcessCandidateWhenEnabledFalse() {
+  let riskDetectorCallCount = 0;
+  let createCount = 0;
+  const { bodyNode, postNode, textNode } = createPostNodeWithNestedText('お前なんか存在価値がない');
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        riskDetectorCallCount += 1;
+
+        return {
+          shouldCushion: true
+        };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            createCount += 1;
+
+            return createElement('section');
+          }
+        },
+        () => {
+          const result = processCandidatePost(postNode, FEATURE_FLAGS, DISABLED_SETTINGS);
+
+          assert.deepEqual(result, {
+            processed: false,
+            riskChecked: false,
+            shouldCushion: false
+          });
+          assert.equal(postNode.getAttribute(ATTRIBUTES.processed), null);
+          assert.equal(postNode.getAttribute(ATTRIBUTES.riskChecked), null);
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), null);
+          assert.equal(textNode.className.includes(CLASSES.contentBlur), false);
+          assert.equal(textNode.getAttribute(ATTRIBUTES.contentBlurred), null);
+          assert.equal(bodyNode.children.length, 1);
+          assert.equal(riskDetectorCallCount, 0);
+          assert.equal(createCount, 0);
+        }
+      );
+    }
+  );
+}
+
+function testDoesNotScanCandidatePostsWhenEnabledFalse() {
+  let riskDetectorCallCount = 0;
+  const postNode = createPostNode(['お前なんか存在価値がない']);
+  const rootNode = createElement('main');
+
+  rootNode.querySelectorAll = () => [postNode];
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        riskDetectorCallCount += 1;
+
+        return {
+          shouldCushion: true
+        };
+      }
+    },
+    () => {
+      scanCandidatePosts(rootNode, DISABLED_SETTINGS);
+
+      assert.equal(postNode.getAttribute(ATTRIBUTES.processed), null);
+      assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+      assert.equal(riskDetectorCallCount, 0);
+    }
+  );
 }
 
 function testMarksCushionCandidate() {
@@ -48,7 +162,7 @@ function testMarksCushionCandidate() {
       }
     },
     () => {
-      const result = processCandidatePost(postNode);
+      const result = processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
 
       assert.deepEqual(result, {
         processed: true,
@@ -75,7 +189,7 @@ function testMarksRiskCheckedWithoutCushion() {
       }
     },
     () => {
-      const result = processCandidatePost(postNode);
+      const result = processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
 
       assert.deepEqual(result, {
         processed: true,
@@ -104,7 +218,7 @@ function testSkipsEmptyPostText() {
       }
     },
     () => {
-      const result = processCandidatePost(postNode);
+      const result = processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
 
       assert.deepEqual(result, {
         processed: true,
@@ -135,7 +249,7 @@ function testSkipsAlreadyProcessedPost() {
       }
     },
     () => {
-      const result = processCandidatePost(postNode);
+      const result = processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
 
       assert.deepEqual(result, {
         processed: false,
@@ -149,7 +263,7 @@ function testSkipsAlreadyProcessedPost() {
   );
 }
 
-function testDoesNotRenderOverlayWhenDevFlagIsOff() {
+function testDoesNotRenderOverlayWhenFeatureDisabled() {
   let createCount = 0;
   const postNode = createPostNode(['お前なんか存在価値がない']);
 
@@ -171,7 +285,46 @@ function testDoesNotRenderOverlayWhenDevFlagIsOff() {
           }
         },
         () => {
-          const result = processCandidatePost(postNode);
+          const result = processCandidatePost(postNode, FEATURE_FLAGS, DISABLED_SETTINGS);
+
+          assert.deepEqual(result, {
+            processed: false,
+            riskChecked: false,
+            shouldCushion: false
+          });
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), null);
+          assert.equal(postNode.children.length, 0);
+          assert.equal(createCount, 0);
+        }
+      );
+    }
+  );
+}
+
+function testAppliesContentBlurWhenEnabledIsOn() {
+  let createCount = 0;
+  const { postNode, textNode } = createPostNodeWithNestedText('お前なんか存在価値がない');
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return {
+          shouldCushion: true
+        };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            createCount += 1;
+
+            return createElement('section');
+          }
+        },
+        () => {
+          const result = processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
 
           assert.deepEqual(result, {
             processed: true,
@@ -179,9 +332,10 @@ function testDoesNotRenderOverlayWhenDevFlagIsOff() {
             shouldCushion: true
           });
           assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), 'true');
-          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), null);
-          assert.equal(postNode.children.length, 0);
-          assert.equal(createCount, 0);
+          assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+          assert.equal(textNode.className.includes(CLASSES.contentBlur), true);
+          assert.equal(textNode.getAttribute(ATTRIBUTES.contentBlurred), 'true');
+          assert.equal(createCount, 1);
         }
       );
     }
@@ -442,8 +596,8 @@ function testDoesNotForceDevTestCushionWhenOverlayDevFlagIsOff() {
           });
 
           assert.deepEqual(result, {
-            processed: true,
-            riskChecked: true,
+            processed: false,
+            riskChecked: false,
             shouldCushion: false
           });
           assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
@@ -570,11 +724,12 @@ function testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn() {
   );
 }
 
-function createPostNodeWithNestedText() {
+function createPostNodeWithNestedText(textContent = '') {
   const postNode = createElement('article');
   const bodyNode = createElement('div');
   const textNode = createElement('div');
 
+  textNode.textContent = textContent;
   postNode.insertBefore(bodyNode, null);
   bodyNode.insertBefore(textNode, null);
 
@@ -584,6 +739,13 @@ function createPostNodeWithNestedText() {
     }
 
     return textNode;
+  };
+  postNode.querySelectorAll = (selector) => {
+    if (selector !== SELECTORS.text) {
+      return [];
+    }
+
+    return [textNode];
   };
 
   return {
@@ -697,4 +859,7 @@ function withOverlay(overlay, callback) {
   }
 }
 
-runTests();
+runTests().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
