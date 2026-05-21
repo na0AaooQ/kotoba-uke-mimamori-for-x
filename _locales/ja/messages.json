@@ -59,6 +59,9 @@
   "optionStorageNote": {
     "message": "設定はこのブラウザ内に保存されます。"
   },
+  "optionReloadNote": {
+    "message": "ON/OFFの変更は、開いているXのページを再読み込みすると反映されます。"
+  },
   "optionSaved": {
     "message": "設定を保存しました。"
   },

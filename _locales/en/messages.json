@@ -59,6 +59,9 @@
   "optionStorageNote": {
     "message": "Settings are stored in this browser."
   },
+  "optionReloadNote": {
+    "message": "ON/OFF changes will take effect after reloading the open X page."
+  },
   "optionSaved": {
     "message": "Settings saved."
   },

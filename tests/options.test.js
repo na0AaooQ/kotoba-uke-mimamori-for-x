@@ -9,6 +9,7 @@ const MESSAGES = Object.freeze({
   optionEnableExtension: 'ことばうけみまもりを有効にする',
   optionPrivacyNote: '投稿本文や判定結果は外部送信されません。',
   optionStorageNote: '設定はこのブラウザ内に保存されます。',
+  optionReloadNote: 'ON/OFFの変更は、開いているXのページを再読み込みすると反映されます。',
   optionSaved: '設定を保存しました。',
   optionSaveError: '設定の保存に失敗しました。'
 });
@@ -28,8 +29,10 @@ function testApplyLocalizedMessages() {
     titleElement.setAttribute('data-i18n', 'optionsTitle');
     const descriptionElement = createElement('p');
     descriptionElement.setAttribute('data-i18n', 'optionsDescription');
+    const reloadNoteElement = createElement('p');
+    reloadNoteElement.setAttribute('data-i18n', 'optionReloadNote');
     const fakeDocument = createFakeDocument({
-      localizedElements: [titleElement, descriptionElement]
+      localizedElements: [titleElement, descriptionElement, reloadNoteElement]
     });
 
     applyLocalizedMessages(fakeDocument);
@@ -37,6 +40,7 @@ function testApplyLocalizedMessages() {
     assert.equal(fakeDocument.title, MESSAGES.optionsTitle);
     assert.equal(titleElement.textContent, MESSAGES.optionsTitle);
     assert.equal(descriptionElement.textContent, MESSAGES.optionsDescription);
+    assert.equal(reloadNoteElement.textContent, MESSAGES.optionReloadNote);
   });
 }
 
