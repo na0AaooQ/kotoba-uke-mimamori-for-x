@@ -323,9 +323,17 @@ Manifest V3 の `manifest.json` を追加し、`https://x.com/*` と `https://tw
 
 ```js
 const FEATURE_FLAGS = Object.freeze({
+  // 開発確認時のみ、候補化済み投稿へのワンクッションUI挿入を許可します。
   enableCushionOverlayDev: true,
+  // 開発確認時のみ、安全な固定テスト文言をワンクッション候補として扱います。
   enableDevTestCushionText: false
 });
+```
+
+なお、安全な固定テスト文言とは、`content.js` 内で定義している、以下の文字列のことです。
+
+```js
+const DEV_TEST_CUSHION_TEXT = '【テスト用】「ことばうけみまもり」のテストメッセージです。';
 ```
 
 Chrome拡張を再読み込みし、X上の確認対象画面を開きます。DevTools の Elements パネルで対象の投稿DOMを選択し、以下の属性を手動で付与します。
