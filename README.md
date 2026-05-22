@@ -373,7 +373,9 @@ data-kum-cushion-rendered="true"
 
 ```js
 const FEATURE_FLAGS = Object.freeze({
+  // 開発確認時のみ、候補化済み投稿へのワンクッションUI挿入を許可します。
   enableCushionOverlayDev: true,
+  // 開発確認時のみ、安全な固定テスト文言をワンクッション候補として扱います。
   enableDevTestCushionText: true
 });
 ```
