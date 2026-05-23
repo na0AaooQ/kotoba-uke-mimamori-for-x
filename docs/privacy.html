@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>プライバシーについて</title>
+    <link rel="stylesheet" href="./assets/css/style.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <p class="eyebrow">プライバシー</p>
+        <h1>プライバシーについて</h1>
+        <p class="lead">
+          「ことばうけみまもり」は、読む前のワンクッションをブラウザ内で表示するための拡張機能です。投稿本文や判定結果を外部サーバーへ送信しない方針を大切にしています。
+        </p>
+      </header>
+
+      <main class="content-card">
+        <section>
+          <h2>送信しない情報</h2>
+          <p>
+            この拡張機能は、投稿本文や判定結果を外部サーバーへ送信しません。
+          </p>
+          <p>
+            判定はブラウザ内で行います。
+          </p>
+        </section>
+
+        <section>
+          <h2>保存する設定値</h2>
+          <p>
+            現時点で <code>chrome.storage.local</code> に保存する設定値は、拡張機能を有効にするかどうかを示す <code>enabled</code> のみです。
+          </p>
+          <p>
+            投稿本文、判定結果、URL、ユーザー情報、<code>score</code>、<code>matchedRules</code>、<code>categories</code>、<code>reasons</code> は保存しません。
+          </p>
+        </section>
+
+        <section>
+          <h2>外部通信について</h2>
+          <p>
+            現時点では、ことばうけみまもり由来の外部通信は追加していません。
+          </p>
+          <p>
+            投稿本文や判定結果を外部サーバーへ送ることもありません。
+          </p>
+        </section>
+
+        <section class="quiet-note">
+          <h2>今後の更新について</h2>
+          <p>
+            このページは、現時点の最小構成です。今後仕様を変更する場合は、このページで説明を更新します。
+          </p>
+        </section>
+
+        <nav class="docs-nav" aria-label="ドキュメントページ">
+          <a href="./about.html">この拡張機能について</a>
+          <a href="./privacy.html">プライバシー</a>
+          <a href="./manual.html">使い方</a>
+        </nav>
+      </main>
+
+      <footer class="site-footer">
+        <p>ことばうけみまもり｜Xことばに心のワンクッション</p>
+      </footer>
+    </div>
+  </body>
+</html>
