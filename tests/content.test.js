@@ -4,9 +4,11 @@ const assert = require('node:assert/strict');
 const {
   ATTRIBUTES,
   CLASSES,
+  CUSHION_THRESHOLDS,
   DEV_TEST_CUSHION_TEXT,
   FEATURE_FLAGS,
   SELECTORS,
+  getCushionThreshold,
   isCushionFeatureEnabled,
   loadContentSettings,
   maybeRenderCushionOverlay,
@@ -15,16 +17,20 @@ const {
 } = require('../content');
 
 const ENABLED_SETTINGS = Object.freeze({
-  enabled: true
+  enabled: true,
+  cushionSensitivity: 'standard'
 });
 
 const DISABLED_SETTINGS = Object.freeze({
-  enabled: false
+  enabled: false,
+  cushionSensitivity: 'standard'
 });
 
 async function runTests() {
   testCushionFeatureEnabledBySettingsOrDevFlag();
   await testLoadContentSettingsFallsBackToDisabled();
+  testCushionThresholdMapping();
+  testPassesSelectedThresholdToRiskDetector();
   testDoesNotProcessCandidateWhenEnabledFalse();
   testDoesNotScanCandidatePostsWhenEnabledFalse();
   testMarksCushionCandidate();
@@ -71,6 +77,54 @@ async function testLoadContentSettingsFallsBackToDisabled() {
     }),
     DISABLED_SETTINGS
   );
+
+  assert.deepEqual(
+    await loadContentSettings({
+      loadSettings() {
+        return { enabled: true, cushionSensitivity: 'unsupported' };
+      }
+    }),
+    ENABLED_SETTINGS
+  );
+}
+
+function testCushionThresholdMapping() {
+  assert.deepEqual(CUSHION_THRESHOLDS, {
+    low: 100,
+    standard: 80,
+    high: 60
+  });
+  assert.equal(getCushionThreshold('low'), 100);
+  assert.equal(getCushionThreshold('standard'), 80);
+  assert.equal(getCushionThreshold('high'), 60);
+  assert.equal(getCushionThreshold('unsupported'), 80);
+}
+
+function testPassesSelectedThresholdToRiskDetector() {
+  for (const [cushionSensitivity, threshold] of Object.entries(CUSHION_THRESHOLDS)) {
+    let receivedOptions = null;
+    const postNode = createPostNode(['確認用テキスト']);
+
+    withRiskDetector(
+      {
+        detectTextRisk(_text, options) {
+          receivedOptions = options;
+
+          return {
+            shouldCushion: false
+          };
+        }
+      },
+      () => {
+        processCandidatePost(postNode, FEATURE_FLAGS, {
+          enabled: true,
+          cushionSensitivity
+        });
+      }
+    );
+
+    assert.deepEqual(receivedOptions, { threshold });
+  }
 }
 
 function testDoesNotProcessCandidateWhenEnabledFalse() {

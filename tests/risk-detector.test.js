@@ -23,6 +23,7 @@ function runTests() {
   testQuotedOrContextualTextShouldNotCushion();
   testHighRiskTextShouldCushion();
   testThresholdBehavior();
+  testSensitivityThresholdBoundaries();
   testPressurePhraseActsAsSupportingSignal();
   testPressurePhraseRaisesRiskInPressuringContext();
   testNormalizeText();
@@ -140,6 +141,28 @@ function testThresholdBehavior() {
   );
 
   assert.equal(DEFAULT_CUSHION_THRESHOLD, 80, 'MVPのデフォルトしきい値は80にする');
+}
+
+function testSensitivityThresholdBoundaries() {
+  const mediumRiskText = '最低な人間です。もう少し説明してください。';
+  const lowSensitivityResult = detectTextRisk(mediumRiskText, { threshold: 100 });
+  const standardSensitivityResult = detectTextRisk(mediumRiskText, { threshold: 80 });
+  const highSensitivityResult = detectTextRisk(mediumRiskText, { threshold: 60 });
+
+  assert.equal(standardSensitivityResult.score, 70);
+  assert.equal(standardSensitivityResult.riskLevel, RISK_LEVELS.MEDIUM);
+  assert.equal(lowSensitivityResult.shouldCushion, false);
+  assert.equal(standardSensitivityResult.shouldCushion, false);
+  assert.equal(highSensitivityResult.shouldCushion, true);
+  assert.equal(highSensitivityResult.riskLevel, RISK_LEVELS.MEDIUM);
+
+  for (const healthyText of ['その意見には反対です', '根拠を示してほしいです']) {
+    assert.equal(
+      detectTextRisk(healthyText, { threshold: 60 }).shouldCushion,
+      false,
+      `多め設定でも健全な批判・説明要求は対象外にする: ${healthyText}`
+    );
+  }
 }
 
 function testPressurePhraseActsAsSupportingSignal() {

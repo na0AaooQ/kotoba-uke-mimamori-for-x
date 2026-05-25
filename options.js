@@ -2,8 +2,11 @@
 
 const OPTION_ELEMENTS = Object.freeze({
   enabledCheckbox: 'option-enabled',
+  sensitivityInputSelector: 'input[name="option-cushion-sensitivity"]',
   statusMessage: 'options-status'
 });
+
+const DEFAULT_CUSHION_SENSITIVITY = 'standard';
 
 function initializeOptionsPage(
   currentDocument = globalThis.document,
@@ -17,17 +20,26 @@ function initializeOptionsPage(
 
   const elements = getOptionElements(currentDocument);
 
-  if (!elements.enabledCheckbox || !elements.statusMessage) {
+  if (
+    !elements.enabledCheckbox ||
+    elements.sensitivityInputs.length === 0 ||
+    !elements.statusMessage
+  ) {
     return Promise.resolve(false);
   }
 
   return settingsApi
     .loadSettings()
     .then((settings) => {
-      elements.enabledCheckbox.checked = Boolean(settings.enabled);
+      applySettingsToElements(elements, settings);
       elements.enabledCheckbox.addEventListener('change', () => {
-        saveEnabledSetting(elements, settingsApi);
+        saveOptionSettings(elements, settingsApi);
       });
+      for (const sensitivityInput of elements.sensitivityInputs) {
+        sensitivityInput.addEventListener('change', () => {
+          saveOptionSettings(elements, settingsApi);
+        });
+      }
 
       return true;
     })
@@ -59,17 +71,31 @@ function applyLocalizedMessages(currentDocument = globalThis.document) {
 function getOptionElements(currentDocument) {
   return {
     enabledCheckbox: currentDocument.getElementById(OPTION_ELEMENTS.enabledCheckbox),
+    sensitivityInputs: Array.from(
+      currentDocument.querySelectorAll(OPTION_ELEMENTS.sensitivityInputSelector)
+    ),
     statusMessage: currentDocument.getElementById(OPTION_ELEMENTS.statusMessage)
   };
 }
 
-async function saveEnabledSetting(elements, settingsApi = getSettingsApi()) {
+function applySettingsToElements(elements, settings) {
+  const cushionSensitivity = getCushionSensitivity(settings);
+
+  elements.enabledCheckbox.checked = Boolean(settings?.enabled);
+
+  for (const sensitivityInput of elements.sensitivityInputs) {
+    sensitivityInput.checked = sensitivityInput.value === cushionSensitivity;
+  }
+}
+
+async function saveOptionSettings(elements, settingsApi = getSettingsApi()) {
   try {
     const settings = await settingsApi.saveSettings({
-      enabled: Boolean(elements.enabledCheckbox.checked)
+      enabled: Boolean(elements.enabledCheckbox.checked),
+      cushionSensitivity: getSelectedCushionSensitivity(elements.sensitivityInputs)
     });
 
-    elements.enabledCheckbox.checked = settings.enabled;
+    applySettingsToElements(elements, settings);
     setStatusMessage(elements.statusMessage, 'optionSaved', false);
 
     return settings;
@@ -78,6 +104,22 @@ async function saveEnabledSetting(elements, settingsApi = getSettingsApi()) {
 
     return null;
   }
+}
+
+function getSelectedCushionSensitivity(sensitivityInputs) {
+  const selectedInput = sensitivityInputs.find((sensitivityInput) => sensitivityInput.checked);
+
+  return selectedInput?.value ?? DEFAULT_CUSHION_SENSITIVITY;
+}
+
+function getCushionSensitivity(settings) {
+  const cushionSensitivity = settings?.cushionSensitivity;
+
+  if (cushionSensitivity === 'low' || cushionSensitivity === 'high') {
+    return cushionSensitivity;
+  }
+
+  return DEFAULT_CUSHION_SENSITIVITY;
 }
 
 function setStatusMessage(statusMessage, messageKey, isError) {
@@ -97,8 +139,14 @@ function getSettingsApi() {
   }
 
   return {
-    loadSettings: async () => ({ enabled: false }),
-    saveSettings: async (settings) => ({ enabled: Boolean(settings?.enabled) })
+    loadSettings: async () => ({
+      enabled: false,
+      cushionSensitivity: DEFAULT_CUSHION_SENSITIVITY
+    }),
+    saveSettings: async (settings) => ({
+      enabled: Boolean(settings?.enabled),
+      cushionSensitivity: getCushionSensitivity(settings)
+    })
   };
 }
 
@@ -125,9 +173,11 @@ if (globalThis.document) {
 if (typeof module !== 'undefined') {
   module.exports = {
     applyLocalizedMessages,
+    applySettingsToElements,
+    getSelectedCushionSensitivity,
     getOptionElements,
     initializeOptionsPage,
-    saveEnabledSetting,
+    saveOptionSettings,
     setStatusMessage
   };
 }

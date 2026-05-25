@@ -1,14 +1,20 @@
 'use strict';
 
 const DEFAULT_SETTINGS = Object.freeze({
-  enabled: false
+  enabled: false,
+  cushionSensitivity: 'standard'
 });
+
+const CUSHION_SENSITIVITY_VALUES = Object.freeze(['low', 'standard', 'high']);
 
 function normalizeSettings(rawSettings = {}) {
   const settings = rawSettings && typeof rawSettings === 'object' ? rawSettings : {};
 
   return {
-    enabled: typeof settings.enabled === 'boolean' ? settings.enabled : DEFAULT_SETTINGS.enabled
+    enabled: typeof settings.enabled === 'boolean' ? settings.enabled : DEFAULT_SETTINGS.enabled,
+    cushionSensitivity: CUSHION_SENSITIVITY_VALUES.includes(settings.cushionSensitivity)
+      ? settings.cushionSensitivity
+      : DEFAULT_SETTINGS.cushionSensitivity
   };
 }
 

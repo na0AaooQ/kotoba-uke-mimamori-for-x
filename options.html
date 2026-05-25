@@ -79,6 +79,58 @@
         outline-offset: 3px;
       }
 
+      .options-sensitivity {
+        display: grid;
+        gap: 10px;
+        margin: 8px 0 20px;
+        padding: 16px 0 0;
+        border: 0;
+        border-top: 1px solid rgba(245, 158, 11, 0.2);
+      }
+
+      .options-sensitivity-title {
+        margin: 0;
+        padding: 0 8px 0 0;
+        color: #7c4a03;
+        font-weight: 700;
+      }
+
+      .options-radio-row {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(255, 247, 237, 0.55);
+        color: #3f3f46;
+      }
+
+      .options-radio {
+        width: 20px;
+        height: 20px;
+        margin: 3px 0 0;
+        accent-color: #d97706;
+      }
+
+      .options-radio:focus-visible {
+        outline: 2px solid rgba(245, 158, 11, 0.86);
+        outline-offset: 3px;
+      }
+
+      .options-radio-copy {
+        display: grid;
+      }
+
+      .options-radio-label {
+        font-weight: 600;
+      }
+
+      .options-radio-description {
+        color: #57534e;
+        font-size: 14px;
+        font-weight: 400;
+      }
+
       .options-note {
         margin: 16px 0 0;
         padding: 12px 14px;
@@ -119,17 +171,21 @@
         }
 
         .options-title,
-        .options-status {
+        .options-status,
+        .options-sensitivity-title {
           color: #fde68a;
         }
 
         .options-description,
         .options-setting-row,
-        .options-note {
+        .options-note,
+        .options-radio-row,
+        .options-radio-description {
           color: #f8efd7;
         }
 
-        .options-note {
+        .options-note,
+        .options-radio-row {
           background: rgba(67, 56, 38, 0.72);
         }
 
@@ -149,6 +205,61 @@
           <input id="option-enabled" class="options-checkbox" type="checkbox" />
           <span data-i18n="optionEnableExtension"></span>
         </label>
+
+        <fieldset class="options-sensitivity">
+          <legend class="options-sensitivity-title" data-i18n="optionCushionSensitivity"></legend>
+
+          <label class="options-radio-row">
+            <input
+              id="option-cushion-sensitivity-low"
+              class="options-radio"
+              type="radio"
+              name="option-cushion-sensitivity"
+              value="low"
+            />
+            <span class="options-radio-copy">
+              <span class="options-radio-label" data-i18n="optionSensitivityLow"></span>
+              <span
+                class="options-radio-description"
+                data-i18n="optionSensitivityLowDescription"
+              ></span>
+            </span>
+          </label>
+
+          <label class="options-radio-row">
+            <input
+              id="option-cushion-sensitivity-standard"
+              class="options-radio"
+              type="radio"
+              name="option-cushion-sensitivity"
+              value="standard"
+            />
+            <span class="options-radio-copy">
+              <span class="options-radio-label" data-i18n="optionSensitivityStandard"></span>
+              <span
+                class="options-radio-description"
+                data-i18n="optionSensitivityStandardDescription"
+              ></span>
+            </span>
+          </label>
+
+          <label class="options-radio-row">
+            <input
+              id="option-cushion-sensitivity-high"
+              class="options-radio"
+              type="radio"
+              name="option-cushion-sensitivity"
+              value="high"
+            />
+            <span class="options-radio-copy">
+              <span class="options-radio-label" data-i18n="optionSensitivityHigh"></span>
+              <span
+                class="options-radio-description"
+                data-i18n="optionSensitivityHighDescription"
+              ></span>
+            </span>
+          </label>
+        </fieldset>
 
         <div class="options-note">
           <p data-i18n="optionPrivacyNote"></p>
