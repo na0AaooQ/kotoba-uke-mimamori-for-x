@@ -43,9 +43,9 @@ a:hover {
 }
 
 .page-shell {
-  width: min(100%, 960px);
+  width: min(calc(100% - 40px), 960px);
   margin: 0 auto;
-  padding: 32px 20px 48px;
+  padding: 32px 0 48px;
 }
 
 .site-header {
@@ -55,6 +55,7 @@ a:hover {
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.88);
   box-shadow: var(--shadow);
+  text-align: center;
 }
 
 .eyebrow {
@@ -120,17 +121,65 @@ li + li {
 
 .lead {
   max-width: 760px;
-  margin-top: 14px;
+  margin: 14px auto 0;
   color: var(--muted);
   font-size: 1.08rem;
 }
 
 .content-card {
+  width: 100%;
   padding: 30px;
   border: 1px solid var(--border);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: var(--shadow);
+}
+
+section[id] {
+  scroll-margin-top: 20px;
+}
+
+.toc {
+  margin-bottom: 30px;
+  padding: 22px 24px;
+  border: 1px solid #f4e3cc;
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.toc h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.toc ul {
+  display: grid;
+  gap: 10px;
+  max-width: 620px;
+  margin: 16px auto 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.toc li + li {
+  margin-top: 0;
+}
+
+.toc a {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.toc a:hover {
+  background: #fffaf4;
 }
 
 .section-block {
@@ -141,6 +190,11 @@ li + li {
   background: var(--surface-soft);
 }
 
+.section-block h2,
+.quiet-note h2 {
+  margin-top: 0;
+}
+
 .quiet-note {
   margin-top: 22px;
   padding: 16px 18px;
@@ -148,11 +202,13 @@ li + li {
   border-radius: 12px;
   background: #fffaf4;
   color: var(--muted);
+  text-align: center;
 }
 
 .docs-nav {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
   margin-top: 28px;
   padding-top: 22px;
@@ -180,11 +236,17 @@ li + li {
   margin-top: 22px;
   color: var(--muted);
   font-size: 0.92rem;
+  text-align: center;
+}
+
+.site-footer p {
+  margin: 0;
 }
 
 @media (max-width: 640px) {
   .page-shell {
-    padding: 18px 14px 36px;
+    width: min(calc(100% - 28px), 960px);
+    padding: 18px 0 36px;
   }
 
   .site-header,
@@ -199,6 +261,14 @@ li + li {
 
   .section-block {
     padding: 16px;
+  }
+
+  .toc {
+    padding: 18px 16px;
+  }
+
+  .toc a {
+    padding: 8px 12px;
   }
 
   .docs-nav {
