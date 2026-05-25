@@ -23,6 +23,8 @@ function runTests() {
   testQuotedOrContextualTextShouldNotCushion();
   testHighRiskTextShouldCushion();
   testThresholdBehavior();
+  testPressurePhraseActsAsSupportingSignal();
+  testPressurePhraseRaisesRiskInPressuringContext();
   testNormalizeText();
   testEmptyText();
 
@@ -138,6 +140,88 @@ function testThresholdBehavior() {
   );
 
   assert.equal(DEFAULT_CUSHION_THRESHOLD, 80, 'MVPのデフォルトしきい値は80にする');
+}
+
+function testPressurePhraseActsAsSupportingSignal() {
+  const cases = [
+    '何度でも繰り返しますが、テストメッセージになります。',
+    '何度でも繰り返しますが、資料の提出期限は明日です。'
+  ];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text);
+
+    assert.ok(
+      result.matchedRules.includes('persistent_attack.pressure_phrase'),
+      `追加表現は圧のある文脈の補助シグナルとして検知する: ${text}`
+    );
+
+    assert.ok(
+      result.categories.includes('persistent_attack'),
+      `追加表現は persistent_attack カテゴリに含める: ${text}`
+    );
+
+    assert.equal(result.score, 20, `追加表現のみの加点は補助的な20点に留める: ${text}`);
+
+    assert.equal(
+      result.shouldCushion,
+      false,
+      `追加表現単体ではワンクッション対象にしない: ${text}`
+    );
+  }
+}
+
+function testPressurePhraseRaisesRiskInPressuringContext() {
+  const phraseOnly = detectTextRisk('何度でも繰り返しますが、資料の提出期限は明日です。');
+  const directedPressure = detectTextRisk(
+    '何度でも繰り返しますが、あなたは何回言えば分かるんですか。'
+  );
+
+  assert.ok(
+    directedPressure.score > phraseOnly.score,
+    '相手へ直接向けた圧のある文脈では、追加表現単体よりリスクスコアを高める'
+  );
+
+  assert.ok(
+    directedPressure.matchedRules.includes('persistent_attack.pressure_phrase'),
+    '圧のある文脈でも persistent_attack の関連ルールを含める'
+  );
+
+  assert.ok(
+    directedPressure.matchedRules.includes('direct_attack.second_person'),
+    '相手へ直接向けた文脈は二人称による加点を含める'
+  );
+
+  assert.equal(
+    directedPressure.shouldCushion,
+    false,
+    '補助シグナルと二人称のみでは過剰にワンクッション対象にしない'
+  );
+
+  const combinedHighRisk = detectTextRisk(
+    '何度でも繰り返しますが、あなたは無能です。何回言えば分かるんですか。'
+  );
+
+  assert.ok(
+    combinedHighRisk.score >= DEFAULT_CUSHION_THRESHOLD,
+    '圧のある表現と強い侮辱が重なる場合は本番しきい値以上になる'
+  );
+
+  assert.ok(
+    combinedHighRisk.matchedRules.includes('persistent_attack.pressure_phrase'),
+    '高リスク文脈でも追加した補助シグナルを検知する'
+  );
+
+  assert.ok(
+    combinedHighRisk.matchedRules.includes('severe_insult.strong_word'),
+    '高リスク文脈では組み合わさった強い侮辱ルールも検知する'
+  );
+
+  assert.equal(
+    combinedHighRisk.shouldCushion,
+    true,
+    '圧のある表現と高リスク表現が重なる場合はワンクッション対象にする'
+  );
 }
 
 function testNormalizeText() {

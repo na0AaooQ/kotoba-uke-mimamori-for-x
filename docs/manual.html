@@ -17,31 +17,55 @@
       </header>
 
       <main class="content-card">
-        <section>
+        <section class="toc" aria-labelledby="manual-toc-title">
+          <h2 id="manual-toc-title">目次</h2>
+          <ul>
+            <li><a href="#start">はじめる</a></li>
+            <li><a href="#turn-on">ONにする</a></li>
+            <li><a href="#cushion">ワンクッションが表示されたとき</a></li>
+            <li><a href="#turn-off">OFFにする</a></li>
+            <li><a href="#troubleshooting">うまく動かないとき</a></li>
+            <li><a href="#values">大切にしていること</a></li>
+          </ul>
+        </section>
+
+        <section id="start">
           <h2>はじめる</h2>
           <ol>
             <li>Chrome拡張機能として「ことばうけみまもり」を読み込みます。</li>
             <li>拡張機能のオプション画面を開きます。</li>
-            <li>「ことばうけみまもりを有効にする」をONにします。</li>
+          </ol>
+          <p>
+            この拡張機能は初期状態ではOFFです。使い始めたいタイミングで、次の手順によりONにできます。
+          </p>
+        </section>
+
+        <section id="turn-on">
+          <h2>ONにする</h2>
+          <ol>
+            <li>オプション画面で「ことばうけみまもりを有効にする」をONにします。</li>
             <li>開いているXページを再読み込みします。</li>
           </ol>
+          <p>
+            現時点では、ON/OFFの変更はXページを再読み込みした後に反映されます。
+          </p>
         </section>
 
-        <section>
+        <section id="cushion">
           <h2>ワンクッションが表示されたとき</h2>
           <p>
-            心に負荷がかかる可能性のある投稿には、ワンクッションUIが表示されます。
+            ONの状態で、心に負荷がかかる可能性のある表現を判定した投稿には、読む前のワンクッションUIが表示されます。
           </p>
           <ul>
-            <li>「内容を表示する」を押すと、ぼかしが解除されます。</li>
-            <li>「今は見ない」を押すと、ぼかしとUIが維持されます。</li>
+            <li>「内容を表示する」を押すと、投稿本文のぼかしが解除され、UIが閉じます。</li>
+            <li>「今は見ない」を押すと、その投稿本文のぼかしとUIが維持されます。</li>
           </ul>
           <p>
-            投稿本文を完全に消すのではなく、読むか、今は読まないかを自分で選べるようにします。
+            ぼかしは投稿本文ノードにのみ適用する方針です。投稿本文や投稿DOMを削除するものではなく、読むか、今は読まないかを自分で選べるようにします。
           </p>
         </section>
 
-        <section>
+        <section id="turn-off">
           <h2>OFFにする</h2>
           <ol>
             <li>オプション画面を開きます。</li>
@@ -50,10 +74,21 @@
           </ol>
         </section>
 
-        <section class="quiet-note">
+        <section id="troubleshooting">
+          <h2>うまく動かないとき</h2>
+          <ul>
+            <li>ONまたはOFFに変更した後は、開いているXページを再読み込みしてください。</li>
+            <li>ワンクッションを止めたい場合は、オプション画面でOFFにしてからXページを再読み込みしてください。</li>
+          </ul>
+        </section>
+
+        <section id="values" class="quiet-note">
           <h2>大切にしていること</h2>
           <p>
-            投稿本文や判定結果は外部送信されません。判定はブラウザ内で行い、現時点で保存する設定値は <code>enabled</code> のみです。
+            投稿本文や判定結果は外部サーバーへ送信されません。判定はブラウザ内で行い、現時点で保存する設定値は <code>enabled</code> のみです。
+          </p>
+          <p>
+            閲覧履歴や投稿URL、ユーザー情報、内部判定の詳細は保存せず、自動ブロックや自動通報も行いません。詳しくは<a href="./privacy.html">プライバシーについて</a>をご覧ください。
           </p>
         </section>
 
@@ -65,7 +100,7 @@
       </main>
 
       <footer class="site-footer">
-        <p>ことばうけみまもり｜Xことばに心のワンクッション</p>
+        <p>© ことばうけみまもり 2026 青木直之 (@na0AaooQ) All Rights Reserved.</p>
       </footer>
     </div>
   </body>

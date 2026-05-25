@@ -630,15 +630,21 @@ QA実施時は、必要に応じて以下をPR本文や確認メモに転記し�
 - content.js の開発用フラグ(enableCushionOverlayDev, enableDevTestCushionText)に依存せず、一般ユーザー設定に近い状態でUI・ぼかし・解除導線・表示頻度・操作感を確認するため。
 
 ### 注意:
-- 本番設定ではなく、検証後は risk-detector.js のDEFAULT_CUSHION_THRESHOLD = 80 に戻す。
+- 本番設定ではなく、一時検証後は `risk-detector.js` の `DEFAULT_CUSHION_THRESHOLD = 80` に戻しています。
+
+## 追加した補助シグナルの確認
+
+`persistent_attack.pressure_phrase` に含まれる「何度でも繰り返しますが」は、単体で強い攻撃と断定するものではなく、圧のある文脈と重なった場合の補助シグナルとして扱います。`DEFAULT_CUSHION_THRESHOLD = 80` を維持し、単体で過剰にワンクッション表示しないことと、高リスク表現との組み合わせでスコアが高まることをテストで確認します。
 
 ## ドキュメントページ
 
-以下のユーザー向けドキュメントページの最小構成を追加しています。
+以下のユーザー向けドキュメントページを用意しています。
 
 - `docs/about.html`
 - `docs/privacy.html`
 - `docs/manual.html`
+
+`docs/privacy.html` と `docs/manual.html` では、外部送信を行わないこと、保存対象が `enabled` のみであること、ON/OFFの反映方法やワンクッションUIの動作を説明しています。また、3ページに目次を追加し、共通レイアウトとフッター表記を調整しています。
 
 内容は今後、自己常時ON試用やベータテストで得た気づきを反映しながら更新していきます。
 
