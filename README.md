@@ -621,6 +621,17 @@ QA実施時は、必要に応じて以下をPR本文や確認メモに転記し�
 - 修正PRの要否:
 - 備考:
 
+## 開発者のローカルPCでの一時的な検証内容
+
+### 検証内容:
+- risk-detector.js のDEFAULT_CUSHION_THRESHOLD を一時的に 10 に下げ、開発用フラグOFF / enabled=true の状態で、通常判定フローによるワンクッションUI表示を確認。
+
+### 目的:
+- content.js の開発用フラグ(enableCushionOverlayDev, enableDevTestCushionText)に依存せず、一般ユーザー設定に近い状態でUI・ぼかし・解除導線・表示頻度・操作感を確認するため。
+
+### 注意:
+- 本番設定ではなく、検証後は risk-detector.js のDEFAULT_CUSHION_THRESHOLD = 80 に戻す。
+
 ## ドキュメントページ
 
 以下のユーザー向けドキュメントページの最小構成を追加しています。
