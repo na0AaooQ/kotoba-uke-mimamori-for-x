@@ -53,6 +53,27 @@
   "optionEnableExtension": {
     "message": "ことばうけみまもりを有効にする"
   },
+  "optionCushionSensitivity": {
+    "message": "ワンクッションの表示されやすさ"
+  },
+  "optionSensitivityLow": {
+    "message": "少なめ"
+  },
+  "optionSensitivityLowDescription": {
+    "message": "強い表現を中心に表示します。"
+  },
+  "optionSensitivityStandard": {
+    "message": "標準"
+  },
+  "optionSensitivityStandardDescription": {
+    "message": "通常の設定です。"
+  },
+  "optionSensitivityHigh": {
+    "message": "多め"
+  },
+  "optionSensitivityHighDescription": {
+    "message": "少し軽めのリスク表現にも表示されやすくします。"
+  },
   "optionPrivacyNote": {
     "message": "投稿本文や判定結果は外部送信されません。"
   },
@@ -60,7 +81,7 @@
     "message": "設定はこのブラウザ内に保存されます。"
   },
   "optionReloadNote": {
-    "message": "ON/OFFの変更は、開いているXのページを再読み込みすると反映されます。"
+    "message": "ON/OFFや表示されやすさの変更は、開いているXのページを再読み込みすると反映されます。"
   },
   "optionSaved": {
     "message": "設定を保存しました。"

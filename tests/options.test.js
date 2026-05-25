@@ -1,24 +1,32 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { applyLocalizedMessages, initializeOptionsPage, saveEnabledSetting } = require('../options');
+const { applyLocalizedMessages, initializeOptionsPage, saveOptionSettings } = require('../options');
 
 const MESSAGES = Object.freeze({
   optionsTitle: 'ことばうけみまもりの設定',
   optionsDescription: 'Xで届く言葉に、読む前のワンクッションを置くための設定です。',
   optionEnableExtension: 'ことばうけみまもりを有効にする',
+  optionCushionSensitivity: 'ワンクッションの表示されやすさ',
+  optionSensitivityLow: '少なめ',
+  optionSensitivityLowDescription: '強い表現を中心に表示します。',
+  optionSensitivityStandard: '標準',
+  optionSensitivityStandardDescription: '通常の設定です。',
+  optionSensitivityHigh: '多め',
+  optionSensitivityHighDescription: '少し軽めのリスク表現にも表示されやすくします。',
   optionPrivacyNote: '投稿本文や判定結果は外部送信されません。',
   optionStorageNote: '設定はこのブラウザ内に保存されます。',
-  optionReloadNote: 'ON/OFFの変更は、開いているXのページを再読み込みすると反映されます。',
+  optionReloadNote:
+    'ON/OFFや表示されやすさの変更は、開いているXのページを再読み込みすると反映されます。',
   optionSaved: '設定を保存しました。',
   optionSaveError: '設定の保存に失敗しました。'
 });
 
 async function runTests() {
   testApplyLocalizedMessages();
-  await testInitializeOptionsPageLoadsInitialOffState();
-  await testSaveEnabledSettingStoresEnabledOnly();
-  await testSaveEnabledSettingShowsErrorMessage();
+  await testInitializeOptionsPageLoadsSafeInitialState();
+  await testSaveOptionSettingsStoresThreeSensitivityValues();
+  await testSaveOptionSettingsShowsErrorMessage();
 
   console.log('All options tests passed.');
 }
@@ -29,10 +37,20 @@ function testApplyLocalizedMessages() {
     titleElement.setAttribute('data-i18n', 'optionsTitle');
     const descriptionElement = createElement('p');
     descriptionElement.setAttribute('data-i18n', 'optionsDescription');
+    const sensitivityTitleElement = createElement('legend');
+    sensitivityTitleElement.setAttribute('data-i18n', 'optionCushionSensitivity');
+    const sensitivityHighElement = createElement('span');
+    sensitivityHighElement.setAttribute('data-i18n', 'optionSensitivityHighDescription');
     const reloadNoteElement = createElement('p');
     reloadNoteElement.setAttribute('data-i18n', 'optionReloadNote');
     const fakeDocument = createFakeDocument({
-      localizedElements: [titleElement, descriptionElement, reloadNoteElement]
+      localizedElements: [
+        titleElement,
+        descriptionElement,
+        sensitivityTitleElement,
+        sensitivityHighElement,
+        reloadNoteElement
+      ]
     });
 
     applyLocalizedMessages(fakeDocument);
@@ -40,58 +58,67 @@ function testApplyLocalizedMessages() {
     assert.equal(fakeDocument.title, MESSAGES.optionsTitle);
     assert.equal(titleElement.textContent, MESSAGES.optionsTitle);
     assert.equal(descriptionElement.textContent, MESSAGES.optionsDescription);
+    assert.equal(sensitivityTitleElement.textContent, MESSAGES.optionCushionSensitivity);
+    assert.equal(sensitivityHighElement.textContent, MESSAGES.optionSensitivityHighDescription);
     assert.equal(reloadNoteElement.textContent, MESSAGES.optionReloadNote);
   });
 }
 
-async function testInitializeOptionsPageLoadsInitialOffState() {
+async function testInitializeOptionsPageLoadsSafeInitialState() {
   await withI18n(async () => {
     const fakeDocument = createFakeDocument();
 
     const result = await initializeOptionsPage(fakeDocument, {
-      loadSettings: async () => ({ enabled: false }),
+      loadSettings: async () => ({ enabled: false, cushionSensitivity: 'standard' }),
       saveSettings: async (settings) => settings
     });
 
     assert.equal(result, true);
     assert.equal(fakeDocument.enabledCheckbox.checked, false);
+    assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'standard');
   });
 }
 
-async function testSaveEnabledSettingStoresEnabledOnly() {
+async function testSaveOptionSettingsStoresThreeSensitivityValues() {
   await withI18n(async () => {
-    const savedSettings = [];
-    const fakeDocument = createFakeDocument();
-    fakeDocument.enabledCheckbox.checked = true;
+    for (const cushionSensitivity of ['low', 'standard', 'high']) {
+      const savedSettings = [];
+      const fakeDocument = createFakeDocument();
+      fakeDocument.enabledCheckbox.checked = true;
+      setSelectedSensitivity(fakeDocument.sensitivityInputs, cushionSensitivity);
 
-    const result = await saveEnabledSetting(
-      {
-        enabledCheckbox: fakeDocument.enabledCheckbox,
-        statusMessage: fakeDocument.statusMessage
-      },
-      {
-        saveSettings: async (settings) => {
-          savedSettings.push(settings);
+      const result = await saveOptionSettings(
+        {
+          enabledCheckbox: fakeDocument.enabledCheckbox,
+          sensitivityInputs: fakeDocument.sensitivityInputs,
+          statusMessage: fakeDocument.statusMessage
+        },
+        {
+          saveSettings: async (settings) => {
+            savedSettings.push(settings);
 
-          return { enabled: settings.enabled };
+            return settings;
+          }
         }
-      }
-    );
+      );
 
-    assert.deepEqual(result, { enabled: true });
-    assert.deepEqual(savedSettings, [{ enabled: true }]);
-    assert.equal(fakeDocument.statusMessage.textContent, MESSAGES.optionSaved);
-    assert.equal(fakeDocument.statusMessage.dataset.state, 'saved');
+      assert.deepEqual(result, { enabled: true, cushionSensitivity });
+      assert.deepEqual(savedSettings, [{ enabled: true, cushionSensitivity }]);
+      assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), cushionSensitivity);
+      assert.equal(fakeDocument.statusMessage.textContent, MESSAGES.optionSaved);
+      assert.equal(fakeDocument.statusMessage.dataset.state, 'saved');
+    }
   });
 }
 
-async function testSaveEnabledSettingShowsErrorMessage() {
+async function testSaveOptionSettingsShowsErrorMessage() {
   await withI18n(async () => {
     const fakeDocument = createFakeDocument();
 
-    const result = await saveEnabledSetting(
+    const result = await saveOptionSettings(
       {
         enabledCheckbox: fakeDocument.enabledCheckbox,
+        sensitivityInputs: fakeDocument.sensitivityInputs,
         statusMessage: fakeDocument.statusMessage
       },
       {
@@ -109,10 +136,17 @@ async function testSaveEnabledSettingShowsErrorMessage() {
 
 function createFakeDocument({ localizedElements = [] } = {}) {
   const enabledCheckbox = createElement('input');
+  const sensitivityInputs = ['low', 'standard', 'high'].map((value) => {
+    const input = createElement('input');
+    input.value = value;
+
+    return input;
+  });
   const statusMessage = createElement('p');
 
   return {
     enabledCheckbox,
+    sensitivityInputs,
     statusMessage,
     title: '',
     getElementById(id) {
@@ -127,6 +161,10 @@ function createFakeDocument({ localizedElements = [] } = {}) {
       return null;
     },
     querySelectorAll(selector) {
+      if (selector === 'input[name="option-cushion-sensitivity"]') {
+        return sensitivityInputs;
+      }
+
       if (selector === '[data-i18n]') {
         return localizedElements;
       }
@@ -134,6 +172,16 @@ function createFakeDocument({ localizedElements = [] } = {}) {
       return [];
     }
   };
+}
+
+function getSelectedSensitivity(sensitivityInputs) {
+  return sensitivityInputs.find((input) => input.checked)?.value ?? null;
+}
+
+function setSelectedSensitivity(sensitivityInputs, selectedValue) {
+  for (const sensitivityInput of sensitivityInputs) {
+    sensitivityInput.checked = sensitivityInput.value === selectedValue;
+  }
 }
 
 function createElement(tagName) {

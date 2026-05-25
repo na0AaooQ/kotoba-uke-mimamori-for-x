@@ -13,8 +13,15 @@ const FEATURE_FLAGS = Object.freeze({
 
 const DEV_TEST_CUSHION_TEXT = '【テスト用】「ことばうけみまもり」のテストメッセージです。';
 
+const CUSHION_THRESHOLDS = Object.freeze({
+  low: 100,
+  standard: 80,
+  high: 60
+});
+
 const FALLBACK_SETTINGS = Object.freeze({
-  enabled: false
+  enabled: false,
+  cushionSensitivity: 'standard'
 });
 
 const ATTRIBUTES = Object.freeze({
@@ -163,7 +170,7 @@ function processCandidatePost(
     };
   }
 
-  const riskResult = detectPostTextRisk(postText);
+  const riskResult = detectPostTextRisk(postText, settings);
   const riskChecked = Boolean(riskResult);
   const shouldCushion = Boolean(
     riskResult?.shouldCushion || shouldForceCushionForDevTest(postText, featureFlags)
@@ -449,15 +456,18 @@ async function loadContentSettings(settingsApi = getSettingsApi()) {
 }
 
 function normalizeContentSettings(settings, settingsApi = getSettingsApi()) {
-  if (settingsApi && typeof settingsApi.normalizeSettings === 'function') {
-    return settingsApi.normalizeSettings(settings);
-  }
+  const defaultSettings = getDefaultSettings(settingsApi);
+  const normalizedSettings =
+    settingsApi && typeof settingsApi.normalizeSettings === 'function'
+      ? settingsApi.normalizeSettings(settings)
+      : settings;
 
   return {
     enabled:
-      settings && typeof settings.enabled === 'boolean'
-        ? settings.enabled
-        : getDefaultSettings(settingsApi).enabled
+      normalizedSettings && typeof normalizedSettings.enabled === 'boolean'
+        ? normalizedSettings.enabled
+        : defaultSettings.enabled,
+    cushionSensitivity: normalizeCushionSensitivity(normalizedSettings?.cushionSensitivity)
   };
 }
 
@@ -524,14 +534,28 @@ function matchesSelector(node, selector) {
   return isElement(node) && typeof node.matches === 'function' && node.matches(selector);
 }
 
-function detectPostTextRisk(postText) {
+function detectPostTextRisk(postText, settings = getDefaultSettings()) {
   const riskDetector = getRiskDetector();
 
   if (!riskDetector) {
     return null;
   }
 
-  return riskDetector.detectTextRisk(postText);
+  return riskDetector.detectTextRisk(postText, {
+    threshold: getCushionThreshold(settings?.cushionSensitivity)
+  });
+}
+
+function getCushionThreshold(cushionSensitivity) {
+  return CUSHION_THRESHOLDS[normalizeCushionSensitivity(cushionSensitivity)];
+}
+
+function normalizeCushionSensitivity(cushionSensitivity) {
+  if (Object.hasOwn(CUSHION_THRESHOLDS, cushionSensitivity)) {
+    return cushionSensitivity;
+  }
+
+  return FALLBACK_SETTINGS.cushionSensitivity;
 }
 
 function getRiskDetector() {
@@ -570,6 +594,7 @@ if (typeof module !== 'undefined') {
   module.exports = {
     ATTRIBUTES,
     CLASSES,
+    CUSHION_THRESHOLDS,
     DEV_TEST_CUSHION_TEXT,
     FEATURE_FLAGS,
     FALLBACK_SETTINGS,
@@ -586,6 +611,7 @@ if (typeof module !== 'undefined') {
     isCushionCandidate,
     isCushionRendered,
     isContentRevealed,
+    getCushionThreshold,
     loadContentSettings,
     markCushionCandidate,
     markProcessed,

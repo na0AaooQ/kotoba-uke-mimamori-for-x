@@ -53,6 +53,27 @@
   "optionEnableExtension": {
     "message": "Enable Kotoba Uke Mimamori"
   },
+  "optionCushionSensitivity": {
+    "message": "Cushion display sensitivity"
+  },
+  "optionSensitivityLow": {
+    "message": "Less"
+  },
+  "optionSensitivityLowDescription": {
+    "message": "Shows cushions mainly for stronger expressions."
+  },
+  "optionSensitivityStandard": {
+    "message": "Standard"
+  },
+  "optionSensitivityStandardDescription": {
+    "message": "Uses the standard setting."
+  },
+  "optionSensitivityHigh": {
+    "message": "More"
+  },
+  "optionSensitivityHighDescription": {
+    "message": "Shows cushions more easily for slightly lighter risk expressions."
+  },
   "optionPrivacyNote": {
     "message": "Post text and detection results are not sent externally."
   },
@@ -60,7 +81,7 @@
     "message": "Settings are stored in this browser."
   },
   "optionReloadNote": {
-    "message": "ON/OFF changes will take effect after reloading the open X page."
+    "message": "ON/OFF and display sensitivity changes will take effect after reloading the open X page."
   },
   "optionSaved": {
     "message": "Settings saved."

@@ -4,67 +4,145 @@ const assert = require('node:assert/strict');
 const { DEFAULT_SETTINGS, loadSettings, normalizeSettings, saveSettings } = require('../settings');
 
 async function runTests() {
-  testDefaultSettingsAreOff();
-  testNormalizeSettingsAcceptsBooleanOnly();
+  testDefaultSettingsAreSafe();
+  testNormalizeSettingsAcceptsSupportedValuesOnly();
   await testLoadSettingsFallsBackWithoutChromeStorage();
   await testLoadSettingsNormalizesStoredValues();
-  await testSaveSettingsStoresEnabledOnly();
+  await testSaveSettingsStoresAllowedSettingsOnly();
+  await testSaveSettingsNormalizesInvalidSensitivity();
   await testSaveSettingsFallsBackWithoutChromeStorage();
 
   console.log('All settings tests passed.');
 }
 
-function testDefaultSettingsAreOff() {
+function testDefaultSettingsAreSafe() {
   assert.equal(DEFAULT_SETTINGS.enabled, false);
+  assert.equal(DEFAULT_SETTINGS.cushionSensitivity, 'standard');
 }
 
-function testNormalizeSettingsAcceptsBooleanOnly() {
-  assert.deepEqual(normalizeSettings({ enabled: true }), { enabled: true });
-  assert.deepEqual(normalizeSettings({ enabled: false }), { enabled: false });
-  assert.deepEqual(normalizeSettings({ enabled: 'true' }), { enabled: false });
-  assert.deepEqual(normalizeSettings({ enabled: 1 }), { enabled: false });
-  assert.deepEqual(normalizeSettings({}), { enabled: false });
-  assert.deepEqual(normalizeSettings(null), { enabled: false });
+function testNormalizeSettingsAcceptsSupportedValuesOnly() {
+  assert.deepEqual(normalizeSettings({ enabled: true, cushionSensitivity: 'low' }), {
+    enabled: true,
+    cushionSensitivity: 'low'
+  });
+  assert.deepEqual(normalizeSettings({ enabled: false, cushionSensitivity: 'standard' }), {
+    enabled: false,
+    cushionSensitivity: 'standard'
+  });
+  assert.deepEqual(normalizeSettings({ enabled: true, cushionSensitivity: 'high' }), {
+    enabled: true,
+    cushionSensitivity: 'high'
+  });
+  assert.deepEqual(normalizeSettings({ enabled: 'true', cushionSensitivity: 'unknown' }), {
+    enabled: false,
+    cushionSensitivity: 'standard'
+  });
+  assert.deepEqual(normalizeSettings({ enabled: 1 }), {
+    enabled: false,
+    cushionSensitivity: 'standard'
+  });
+  assert.deepEqual(normalizeSettings({}), {
+    enabled: false,
+    cushionSensitivity: 'standard'
+  });
+  assert.deepEqual(normalizeSettings(null), {
+    enabled: false,
+    cushionSensitivity: 'standard'
+  });
 }
 
 async function testLoadSettingsFallsBackWithoutChromeStorage() {
   await withChrome(undefined, async () => {
-    assert.deepEqual(await loadSettings(), { enabled: false });
+    assert.deepEqual(await loadSettings(), {
+      enabled: false,
+      cushionSensitivity: 'standard'
+    });
   });
 }
 
 async function testLoadSettingsNormalizesStoredValues() {
-  await withChrome(createChromeStorageMock({ enabled: true }), async () => {
-    assert.deepEqual(await loadSettings(), { enabled: true });
-  });
+  await withChrome(
+    createChromeStorageMock({ enabled: true, cushionSensitivity: 'high' }),
+    async () => {
+      assert.deepEqual(await loadSettings(), {
+        enabled: true,
+        cushionSensitivity: 'high'
+      });
+    }
+  );
 
-  await withChrome(createChromeStorageMock({ enabled: 'yes' }), async () => {
-    assert.deepEqual(await loadSettings(), { enabled: false });
-  });
+  await withChrome(
+    createChromeStorageMock({ enabled: 'yes', cushionSensitivity: 'custom' }),
+    async () => {
+      assert.deepEqual(await loadSettings(), {
+        enabled: false,
+        cushionSensitivity: 'standard'
+      });
+    }
+  );
 }
 
-async function testSaveSettingsStoresEnabledOnly() {
+async function testSaveSettingsStoresAllowedSettingsOnly() {
   const storedValues = [];
   const chromeMock = createChromeStorageMock({}, storedValues);
 
   await withChrome(chromeMock, async () => {
     const result = await saveSettings({
       enabled: true,
+      cushionSensitivity: 'high',
       postText: '保存してはいけない投稿本文',
+      result: { shouldCushion: true },
+      url: 'https://x.com/example/status/1',
+      userName: '保存してはいけないユーザー名',
+      history: ['保存してはいけない閲覧履歴'],
       score: 100,
       matchedRules: ['internal.rule'],
       categories: ['internal_category'],
       reasons: ['内部理由']
     });
 
-    assert.deepEqual(result, { enabled: true });
-    assert.deepEqual(storedValues, [{ enabled: true }]);
+    assert.deepEqual(result, {
+      enabled: true,
+      cushionSensitivity: 'high'
+    });
+    assert.deepEqual(storedValues, [
+      {
+        enabled: true,
+        cushionSensitivity: 'high'
+      }
+    ]);
+  });
+}
+
+async function testSaveSettingsNormalizesInvalidSensitivity() {
+  const storedValues = [];
+  const chromeMock = createChromeStorageMock({}, storedValues);
+
+  await withChrome(chromeMock, async () => {
+    const result = await saveSettings({
+      enabled: true,
+      cushionSensitivity: 'custom'
+    });
+
+    assert.deepEqual(result, {
+      enabled: true,
+      cushionSensitivity: 'standard'
+    });
+    assert.deepEqual(storedValues, [
+      {
+        enabled: true,
+        cushionSensitivity: 'standard'
+      }
+    ]);
   });
 }
 
 async function testSaveSettingsFallsBackWithoutChromeStorage() {
   await withChrome(undefined, async () => {
-    assert.deepEqual(await saveSettings({ enabled: true }), { enabled: true });
+    assert.deepEqual(await saveSettings({ enabled: true, cushionSensitivity: 'low' }), {
+      enabled: true,
+      cushionSensitivity: 'low'
+    });
   });
 }
 
