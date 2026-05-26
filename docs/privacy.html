@@ -12,7 +12,7 @@
         <p class="eyebrow">プライバシーポリシー</p>
         <h1>プライバシーポリシーについて</h1>
         <p class="lead">
-          「ことばうけみまもり」は、読む前のワンクッションをブラウザ内で表示するための拡張機能です。現在のMVPでは、投稿本文や判定結果を外部サーバーへ送信せず、必要最小限の設定だけを保存します。
+          「ことばうけみまもり｜Xことばに心のワンクッション」は、読む前のワンクッションをブラウザ内で表示するためのGoogle Chrome拡張機能です。現在のMVP（必要最小限の機能）では、投稿本文や判定結果を外部サーバーへ送信せず、必要最小限の設定だけを保存します。
         </p>
       </header>
 
@@ -20,18 +20,18 @@
         <section class="toc" aria-labelledby="privacy-toc-title">
           <h2 id="privacy-toc-title">目次</h2>
           <ul>
-            <li><a href="#send">送信しない情報</a></li>
-            <li><a href="#storage">保存する設定値</a></li>
-            <li><a href="#no-action">行わないこと</a></li>
-            <li><a href="#network">外部通信について</a></li>
+            <li><a href="#send">1. 送信しない情報</a></li>
+            <li><a href="#storage">2. 保存する設定値</a></li>
+            <li><a href="#no-action">3. 行わないこと</a></li>
+            <li><a href="#network">4. 外部通信について</a></li>
             <li><a href="#updates">今後の更新について</a></li>
           </ul>
         </section>
 
         <section id="send">
-          <h2>送信しない情報</h2>
+          <h2>1. 送信しない情報</h2>
           <p>
-            この拡張機能は、画面上の投稿本文をブラウザ内で判定します。投稿本文や判定結果を外部サーバーへ送信しません。
+            本拡張機能は、X（旧Twitter）画面上の投稿本文をブラウザ内で判定します。投稿本文や判定結果を外部サーバーへ送信しません。
           </p>
           <p>
             判定に用いた文章や、判定によって得られる内部情報を、サービス提供のために外部へ集める仕組みは追加していません。
@@ -39,12 +39,12 @@
         </section>
 
         <section id="storage">
-          <h2>保存する設定値</h2>
+          <h2>2. 保存する設定値</h2>
           <p>
-            現時点で <code>chrome.storage.local</code> に保存する設定値は、拡張機能を有効にするかどうかを示す <code>enabled</code> と、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code> です。
+            現時点でGoogle ChromeブラウザのlocalStorage <code>chrome.storage.local</code> に保存する設定値は、拡張機能を有効にするかどうかを示す <code>enabled</code> と、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code> です。
           </p>
           <p>
-            投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、その他のユーザー情報は保存しません。
+            X（旧Twitter）の投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、その他のユーザー情報は保存しません。
           </p>
           <p>
             内部判定の詳細である <code>score</code>、<code>matchedRules</code>、<code>categories</code>、<code>reasons</code> も保存しません。
@@ -52,38 +52,38 @@
         </section>
 
         <section id="no-action">
-          <h2>行わないこと</h2>
+          <h2>3. 行わないこと</h2>
           <ul>
-            <li>閲覧履歴を保存しません。</li>
+            <li>X（旧Twitter）の閲覧履歴を保存しません。</li>
             <li>ユーザーやアカウント単位の危険度判定を行いません。</li>
             <li>投稿の自動ブロックや自動通報を行いません。</li>
           </ul>
           <p>
-            読むか、今は読まないかをユーザー自身が選べるよう、読む前のワンクッションを表示することに役割を限定しています。
+            投稿を読むか、今は読まないかをユーザー自身が選べるよう、読む前のワンクッションを表示することに役割を限定しています。
           </p>
         </section>
 
         <section id="network">
-          <h2>外部通信について</h2>
+          <h2>4. 外部通信について</h2>
           <p>
             現時点では、ことばうけみまもり由来の外部通信は追加していません。
           </p>
           <p>
-            投稿本文や判定結果を外部サーバーへ送ることもありません。
+            X（旧Twitter）投稿本文や判定結果を外部サーバーへ送ることもありません。
           </p>
         </section>
 
         <section id="updates" class="quiet-note">
           <h2>今後の更新について</h2>
           <p>
-            このページは、現在のMVPの仕様に基づく説明です。今後、保存対象や通信などの仕様を変更する場合は、このページで説明を更新します。
+            このページは、現在のMVP（必要最小限の機能）の仕様に基づく説明です。今後、保存対象や通信などの仕様を変更する場合は、このページで説明を更新します。
           </p>
         </section>
 
         <nav class="docs-nav" aria-label="ドキュメントページ">
-          <a href="./about.html">この拡張機能について</a>
+          <a href="./about.html">本拡張機能について</a>
           <a href="./privacy.html">プライバシーポリシー</a>
-          <a href="./manual.html">使い方</a>
+          <a href="./manual.html">拡張機能の使い方</a>
         </nav>
       </main>
 
