@@ -12,7 +12,7 @@
         <p class="eyebrow">プライバシーポリシー</p>
         <h1>プライバシーポリシーについて</h1>
         <p class="lead">
-          「ことばうけみまもり｜Xことばに心のワンクッション」は、読む前のワンクッションをブラウザ内で表示するためのGoogle Chrome拡張機能です。現在のMVP（必要最小限の機能）では、投稿本文や判定結果を外部サーバーへ送信せず、必要最小限の設定だけを保存します。
+          「ことばうけみまもり｜Xことばに心のワンクッション」は、読む前のワンクッションをブラウザ内で表示し、読むか、今は読まないかをユーザー自身が選べるようにするGoogle Chrome拡張機能です。現在のMVP（必要最小限の機能）では、投稿本文や判定結果を外部サーバーへ送信せず、必要最小限の設定だけを保存します。
         </p>
       </header>
 
@@ -24,7 +24,9 @@
             <li><a href="#storage">2. 保存する設定値</a></li>
             <li><a href="#no-action">3. 行わないこと</a></li>
             <li><a href="#network">4. 外部通信について</a></li>
-            <li><a href="#updates">今後の更新について</a></li>
+            <li><a href="#developer">5. 開発者情報</a></li>
+            <li><a href="#inquiry">6. お問い合わせ先</a></li>
+            <li><a href="#updates">7. 今後の更新について</a></li>
           </ul>
         </section>
 
@@ -41,7 +43,7 @@
         <section id="storage">
           <h2>2. 保存する設定値</h2>
           <p>
-            現時点でGoogle ChromeブラウザのlocalStorage <code>chrome.storage.local</code> に保存する設定値は、拡張機能を有効にするかどうかを示す <code>enabled</code> と、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code> です。
+            現時点でGoogle Chrome拡張機能の保存領域 <code>chrome.storage.local</code> に保存する設定値は、拡張機能を有効にするかどうかを示す <code>enabled</code> と、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code> です。
           </p>
           <p>
             X（旧Twitter）の投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、その他のユーザー情報は保存しません。
@@ -59,7 +61,7 @@
             <li>投稿の自動ブロックや自動通報を行いません。</li>
           </ul>
           <p>
-            投稿を読むか、今は読まないかをユーザー自身が選べるよう、読む前のワンクッションを表示することに役割を限定しています。
+            この拡張機能は、投稿を完全に消したり、投稿者を評価したりするためのものではありません。投稿を読むか、今は読まないかをユーザー自身が選べるよう、読む前のワンクッションを表示することに役割を限定しています。
           </p>
         </section>
 
@@ -69,12 +71,80 @@
             現時点では、ことばうけみまもり由来の外部通信は追加していません。
           </p>
           <p>
-            X（旧Twitter）投稿本文や判定結果を外部サーバーへ送ることもありません。
+            X（旧Twitter）の投稿本文や判定結果を外部サーバーへ送ることもありません。
           </p>
         </section>
 
+        <section id="developer">
+          <h2>5. 開発者情報</h2>
+          <p>
+            本拡張機能は、ソフトウェアの企画・開発・運営業を営む個人事業主、フリーランスエンジニアの青木 直之（@na0AaooQ）が開発・運営しています。
+          </p>
+          <p>
+            「人が孤独で壊れにくい社会をつくる」という考えのもと、言葉やコミュニケーションの負荷を少しでもやわらげるための補助ツールとして「ことばうけみまもり」を開発しています。
+          </p>
+          <p>本拡張機能の開発者・運営者情報は以下になります。</p>
+          <ul>
+            <li>個人事業主の屋号: こころみまもり</li>
+            <li>代表者: 青木 直之（あおき なおひさ）</li>
+            <li>職種: フリーランスエンジニア</li>
+            <li>事業内容: Webサービスの企画・開発・運営、ソフトウェア開発業</li>
+            <li>
+              事業所住所: 〒160-0023<br>
+              東京都新宿区西新宿3丁目3番13号西新宿水間ビル2F
+            </li>
+            <li>
+              Qiita:
+              <a href="https://qiita.com/na0AaooQ" target="_blank" rel="noopener" class="header-link">https://qiita.com/na0AaooQ</a>
+            </li>
+            <li>
+              GitHub:
+              <a href="https://github.com/na0AaooQ" target="_blank" rel="noopener" class="header-link">https://github.com/na0AaooQ</a>
+            </li>
+            <li>
+              X（旧Twitter）:
+              <a href="https://x.com/na0AaooQ" target="_blank" rel="noopener" class="header-link">https://x.com/na0AaooQ</a>
+            </li>
+            <li>
+              ポートフォリオサイト:
+              <a href="https://portfolio.na0aaooq.com/" target="_blank" rel="noopener" class="header-link">https://portfolio.na0aaooq.com/</a>
+            </li>
+          </ul>
+        </section>
+
+        <section id="inquiry">
+          <h2>6. お問い合わせ先</h2>
+          <p>
+            本拡張機能に関するお問い合わせは、開発者のXアカウント、またはポートフォリオサイトで公開している連絡先からご連絡ください。
+          </p>
+          <ul>
+            <li>X（旧Twitter）: <a href="https://x.com/na0AaooQ" target="_blank" rel="noopener" class="header-link">@na0AaooQ</a></li>
+            <li>
+              ポートフォリオサイト:
+              <a href="https://portfolio.na0aaooq.com/contact.html" target="_blank" rel="noopener" class="header-link">https://portfolio.na0aaooq.com/contact.html</a>
+            </li>
+          </ul>
+          <div class="section-block">
+            <p>
+              お問い合わせの際は、プライバシーを守るため、センシティブな内容をXの公開コメントやリプライなど公開の場、またはお問い合わせ内容に詳しく記載しないようご注意ください。
+            </p>
+            <p>たとえば、以下のような情報は記載しないようお願いいたします。</p>
+            <ul>
+              <li>実際に傷ついた投稿本文</li>
+              <li>誹謗中傷を受けた相手のアカウント名</li>
+              <li>ご自身のアカウント情報</li>
+              <li>DMやリプライのスクリーンショット</li>
+              <li>いじめ、ハラスメント、差別、職場・学校・家庭の事情</li>
+              <li>心身の不調や希死念慮に近い内容</li>
+            </ul>
+            <p>
+              いただいたご連絡は、可能な範囲で確認します。
+            </p>
+          </div>
+        </section>
+
         <section id="updates" class="quiet-note">
-          <h2>今後の更新について</h2>
+          <h2>7. 今後の更新について</h2>
           <p>
             このページは、現在のMVP（必要最小限の機能）の仕様に基づく説明です。今後、保存対象や通信などの仕様を変更する場合は、このページで説明を更新します。
           </p>
