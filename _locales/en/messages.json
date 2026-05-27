@@ -50,6 +50,24 @@
   "reasonPotentialBurden": {
     "message": "This may contain wording that could place an emotional burden on the reader."
   },
+  "popupTitle": {
+    "message": "Kotoba Uke Mimamori"
+  },
+  "popupTagline": {
+    "message": "A gentle pause for words on X"
+  },
+  "popupStatusLabel": {
+    "message": "Status"
+  },
+  "popupStatusOn": {
+    "message": "ON"
+  },
+  "popupStatusOff": {
+    "message": "OFF"
+  },
+  "popupOpenOptions": {
+    "message": "Open detailed settings"
+  },
   "optionsTitle": {
     "message": "Kotoba Uke Mimamori Settings"
   },

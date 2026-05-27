@@ -50,6 +50,24 @@
   "reasonPotentialBurden": {
     "message": "心に負荷がかかる可能性のある表現かもしれません"
   },
+  "popupTitle": {
+    "message": "ことばうけみまもり"
+  },
+  "popupTagline": {
+    "message": "Xことばに心のワンクッション"
+  },
+  "popupStatusLabel": {
+    "message": "状態"
+  },
+  "popupStatusOn": {
+    "message": "ON"
+  },
+  "popupStatusOff": {
+    "message": "OFF"
+  },
+  "popupOpenOptions": {
+    "message": "詳細設定を開く"
+  },
   "optionsTitle": {
     "message": "ことばうけみまもりの設定"
   },
