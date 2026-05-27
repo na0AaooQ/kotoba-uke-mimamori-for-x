@@ -5,11 +5,18 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 function runTests() {
+  testPopupIsConfigured();
   testOptionsPageIsConfigured();
   testOnlyStoragePermissionIsRequested();
   testSettingsScriptLoadsBeforeContentScript();
 
   console.log('All manifest tests passed.');
+}
+
+function testPopupIsConfigured() {
+  const manifest = readManifest();
+
+  assert.equal(manifest.action.default_popup, 'popup.html');
 }
 
 function testOptionsPageIsConfigured() {

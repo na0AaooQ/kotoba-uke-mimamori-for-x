@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title></title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup-container">
+      <section class="popup-card" aria-labelledby="popup-title">
+        <header class="popup-header">
+          <h1 id="popup-title" class="popup-title" data-i18n="popupTitle"></h1>
+          <p class="popup-tagline" data-i18n="popupTagline"></p>
+        </header>
+
+        <p class="popup-status">
+          <span data-i18n="popupStatusLabel"></span>
+          <span aria-hidden="true">:</span>
+          <strong id="popup-status-value" class="popup-status-value"></strong>
+        </p>
+
+        <label class="popup-toggle-row">
+          <span data-i18n="optionEnableExtension"></span>
+          <span class="popup-switch">
+            <input id="popup-enabled" type="checkbox" />
+            <span class="popup-switch-track" aria-hidden="true"></span>
+          </span>
+        </label>
+
+        <fieldset class="popup-sensitivity">
+          <legend class="popup-sensitivity-title" data-i18n="optionCushionSensitivity"></legend>
+          <div class="popup-sensitivity-options">
+            <label class="popup-radio-label">
+              <input
+                id="popup-cushion-sensitivity-low"
+                class="popup-radio"
+                type="radio"
+                name="popup-cushion-sensitivity"
+                value="low"
+              />
+              <span class="popup-radio-copy" data-i18n="optionSensitivityLow"></span>
+            </label>
+            <label class="popup-radio-label">
+              <input
+                id="popup-cushion-sensitivity-standard"
+                class="popup-radio"
+                type="radio"
+                name="popup-cushion-sensitivity"
+                value="standard"
+              />
+              <span class="popup-radio-copy" data-i18n="optionSensitivityStandard"></span>
+            </label>
+            <label class="popup-radio-label">
+              <input
+                id="popup-cushion-sensitivity-high"
+                class="popup-radio"
+                type="radio"
+                name="popup-cushion-sensitivity"
+                value="high"
+              />
+              <span class="popup-radio-copy" data-i18n="optionSensitivityHigh"></span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="popup-note">
+          <p data-i18n="optionPrivacyNote"></p>
+          <p data-i18n="optionReloadNote"></p>
+        </div>
+
+        <p id="popup-save-status" class="popup-save-status" role="status" aria-live="polite"></p>
+
+        <button id="popup-open-options" class="popup-options-button" type="button" data-i18n="popupOpenOptions">
+        </button>
+      </section>
+    </main>
+
+    <script src="i18n.js"></script>
+    <script src="settings.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

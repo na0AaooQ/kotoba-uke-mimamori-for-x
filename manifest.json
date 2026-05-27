@@ -5,6 +5,9 @@
   "version": "0.1.0",
   "default_locale": "ja",
   "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html"
+  },
   "options_page": "options.html",
   "content_scripts": [
     {
