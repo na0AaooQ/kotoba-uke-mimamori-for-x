@@ -11,6 +11,12 @@
   "cushionBody": {
     "message": "この投稿には、心に負荷がかかる可能性のある表現が含まれているかもしれません。"
   },
+  "cushionDismissedMessage": {
+    "message": "今は読まないようにしました。"
+  },
+  "cushionDismissedBody": {
+    "message": "読みたくなったら、あとから内容を表示できます。"
+  },
   "buttonShowContent": {
     "message": "内容を表示する"
   },

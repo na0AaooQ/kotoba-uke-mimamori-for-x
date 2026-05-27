@@ -11,6 +11,8 @@ const MESSAGES = Object.freeze({
   cushionTitle: '読む前に、少しだけワンクッションを置きました',
   cushionBody: 'この投稿には、心に負荷がかかる可能性のある表現が含まれているかもしれません。',
   reasonGeneric: '心に負荷がかかる可能性のある表現を検知しました',
+  cushionDismissedMessage: '今は読まないようにしました。',
+  cushionDismissedBody: '読みたくなったら、あとから内容を表示できます。',
   buttonShowContent: '内容を表示する',
   buttonHideForNow: '今は見ない'
 });
@@ -18,6 +20,7 @@ const MESSAGES = Object.freeze({
 function runTests() {
   testCreatesGenericCushionElement();
   testCreatesButtonElements();
+  testHideButtonCollapsesCushionElement();
   testInjectsCushionStylesOnce();
   testDoesNotRenderPostTextOrInternalRiskDetails();
   testShowButtonHandler();
@@ -61,6 +64,51 @@ function testCreatesButtonElements() {
   });
 }
 
+function testHideButtonCollapsesCushionElement() {
+  withFakeDomAndI18n(() => {
+    let showCount = 0;
+    let hideCount = 0;
+    const element = createCushionElement(
+      {},
+      {
+        onShow: () => {
+          showCount += 1;
+        },
+        onHide: () => {
+          hideCount += 1;
+        }
+      }
+    );
+    const hideButton = element.children[3].children[1];
+
+    hideButton.click();
+
+    assert.equal(element.className, 'kum-cushion kum-cushion--dismissed');
+    assert.equal(element.children.length, 3);
+    assert.equal(element.children[0].className, 'kum-cushion__dismissed-message');
+    assert.equal(element.children[1].className, 'kum-cushion__dismissed-body');
+    assert.equal(element.children[2].className, 'kum-cushion__actions');
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedMessage));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedBody));
+    assert.ok(element.textContent.includes(MESSAGES.buttonShowContent));
+    assert.equal(element.textContent.includes(MESSAGES.buttonHideForNow), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionTitle), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionBody), false);
+    assert.equal(hideCount, 1);
+
+    const showButton = element.children[2].children[0];
+
+    assert.equal(showButton.tagName, 'BUTTON');
+    assert.equal(showButton.type, 'button');
+    assert.equal(showButton.className, 'kum-cushion__button');
+    assert.equal(showButton._focused, true);
+
+    showButton.click();
+
+    assert.equal(showCount, 1);
+  });
+}
+
 function testInjectsCushionStylesOnce() {
   withFakeDomAndI18n((fakeDocument) => {
     const firstResult = ensureCushionStyles();
@@ -73,6 +121,8 @@ function testInjectsCushionStylesOnce() {
     assert.ok(styleElement.textContent.includes('.kum-cushion'));
     assert.ok(styleElement.textContent.includes('.kum-content-blur'));
     assert.ok(styleElement.textContent.includes('filter: blur(5px)'));
+    assert.ok(styleElement.textContent.includes('.kum-cushion--dismissed'));
+    assert.ok(styleElement.textContent.includes('.kum-cushion__dismissed-message'));
     assert.ok(styleElement.textContent.includes('.kum-cushion__button:focus-visible'));
     assert.ok(styleElement.textContent.includes('outline-offset: 2px'));
     assert.ok(styleElement.textContent.includes('outline: 2px solid rgba(245, 158, 11, 0.85)'));
@@ -93,13 +143,22 @@ function testDoesNotRenderPostTextOrInternalRiskDetails() {
       reasons: ['存在否定に近い表現の可能性があります']
     });
 
-    assert.equal(element.textContent.includes('これはUIに出してはいけない投稿本文です'), false);
-    assert.equal(element.textContent.includes('100'), false);
-    assert.equal(element.textContent.includes('existence_denial'), false);
-    assert.equal(element.textContent.includes('existence_denial.strong_phrase'), false);
-    assert.equal(element.textContent.includes('存在否定に近い表現の可能性があります'), false);
+    assertDoesNotIncludeRiskDetails(element);
     assert.ok(element.textContent.includes(MESSAGES.reasonGeneric));
+
+    element.children[3].children[1].click();
+
+    assertDoesNotIncludeRiskDetails(element);
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedMessage));
   });
+}
+
+function assertDoesNotIncludeRiskDetails(element) {
+  assert.equal(element.textContent.includes('これはUIに出してはいけない投稿本文です'), false);
+  assert.equal(element.textContent.includes('100'), false);
+  assert.equal(element.textContent.includes('existence_denial'), false);
+  assert.equal(element.textContent.includes('existence_denial.strong_phrase'), false);
+  assert.equal(element.textContent.includes('存在否定に近い表現の可能性があります'), false);
 }
 
 function testShowButtonHandler() {
@@ -183,6 +242,7 @@ function createElement(tagName) {
     children: [],
     className: '',
     nodeType: 1,
+    _focused: false,
     tagName: String(tagName).toUpperCase(),
     _textContent: '',
     get textContent() {
@@ -210,6 +270,9 @@ function createElement(tagName) {
       if (typeof clickHandler === 'function') {
         clickHandler();
       }
+    },
+    focus() {
+      this._focused = true;
     },
     getAttribute(name) {
       return attributes.get(name) ?? null;

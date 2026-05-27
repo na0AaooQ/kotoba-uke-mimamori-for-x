@@ -20,16 +20,26 @@ const CUSHION_STYLES = `
   box-shadow: 0 2px 10px rgba(120, 53, 15, 0.08);
 }
 
+.kum-cushion--dismissed {
+  padding: 10px 14px;
+}
+
 .kum-cushion__title,
 .kum-cushion__body,
-.kum-cushion__reason {
+.kum-cushion__reason,
+.kum-cushion__dismissed-message,
+.kum-cushion__dismissed-body {
   padding: 0;
+}
+
+.kum-cushion__title,
+.kum-cushion__dismissed-message {
+  color: #7c4a03;
+  font-weight: 700;
 }
 
 .kum-cushion__title {
   margin: 0 0 6px;
-  color: #7c4a03;
-  font-weight: 700;
 }
 
 .kum-cushion__body,
@@ -37,11 +47,20 @@ const CUSHION_STYLES = `
   margin: 4px 0 0;
 }
 
+.kum-cushion__dismissed-message,
+.kum-cushion__dismissed-body {
+  margin: 0;
+}
+
 .kum-cushion__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 10px;
+}
+
+.kum-cushion--dismissed .kum-cushion__actions {
+  margin-top: 8px;
 }
 
 .kum-cushion__button {
@@ -80,7 +99,8 @@ const CUSHION_STYLES = `
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
   }
 
-  .kum-cushion__title {
+  .kum-cushion__title,
+  .kum-cushion__dismissed-message {
     color: #fde68a;
   }
 
@@ -107,7 +127,8 @@ body[data-color-scheme="dark"] .kum-cushion {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
 }
 
-body[data-color-scheme="dark"] .kum-cushion__title {
+body[data-color-scheme="dark"] .kum-cushion__title,
+body[data-color-scheme="dark"] .kum-cushion__dismissed-message {
   color: #fde68a;
 }
 
@@ -152,12 +173,43 @@ function createCushionElement(result = {}, handlers = {}) {
   actions.className = 'kum-cushion__actions';
 
   const showButton = createButton('buttonShowContent', safeHandlers.onShow);
-  const hideButton = createButton('buttonHideForNow', safeHandlers.onHide);
+  const hideButton = createButton('buttonHideForNow', () => {
+    renderDismissedCushionElement(container, safeHandlers);
+  });
 
   actions.append(showButton, hideButton);
   container.append(title, body, reason, actions);
 
   return container;
+}
+
+function renderDismissedCushionElement(container, handlers) {
+  container.className = 'kum-cushion kum-cushion--dismissed';
+  container.textContent = '';
+
+  const message = document.createElement('p');
+  message.className = 'kum-cushion__dismissed-message';
+  message.textContent = getLocalizedMessage('cushionDismissedMessage');
+
+  const body = document.createElement('p');
+  body.className = 'kum-cushion__dismissed-body';
+  body.textContent = getLocalizedMessage('cushionDismissedBody');
+
+  const actions = document.createElement('div');
+  actions.className = 'kum-cushion__actions';
+
+  const showButton = createButton('buttonShowContent', handlers.onShow);
+
+  actions.append(showButton);
+  container.append(message, body, actions);
+
+  if (typeof showButton.focus === 'function') {
+    showButton.focus();
+  }
+
+  if (typeof handlers.onHide === 'function') {
+    handlers.onHide();
+  }
 }
 
 function ensureCushionStyles() {
