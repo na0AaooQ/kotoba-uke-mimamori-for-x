@@ -237,6 +237,8 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 | `tests/risk-detector.test.js` | `threshold: 100` / `80` / `60` で `shouldCushion` の境界が意図どおりであり、`80` が現行標準のままであること |
 | `tests/content.test.js` | 感度に対応するしきい値を判定処理へ渡すこと、`enabled=false` では処理しないこと、不正値でも標準相当になること |
 | `tests/options.test.js` | 初期値 `standard` の表示、3つの選択値の保存、保存完了メッセージの表示を確認すること |
+| `tests/i18n.test.js` | 英語UI文言の必須キーが存在すること、強すぎる英語表現が含まれていないこと |
+| `tests/docs.test.js` | 日本語 / 英語docsページの存在、言語切替、`html lang`、`canonical`、`hreflang` を確認すること |
 
 加えて、privacy / manual の説明と実際の保存値・反映方法が一致していること、外部通信・投稿本文・判定結果の保存が追加されていないことを実機QAで確認します。
 
@@ -258,6 +260,10 @@ Chrome拡張機能の i18n 仕組みに合わせて、UI文言、manifest上の�
 - 英語: `en`
 
 MVPでは日本語を主言語としつつ、英語メッセージファイルも同時に用意し、将来的に他言語を追加しやすい構成にします。
+
+現在は、Chrome拡張本体の英語UI文言を確認・補強し、docsページにも英語版を追加しています。`docs/en/about.html`、`docs/en/privacy.html`、`docs/en/manual.html` を用意し、日本語 / English を切り替えられる言語選択プルダウンを各docsページに追加しています。
+
+今回の英語対応では、英語話者にも本ツールの思想、プライバシー方針、使い方が最低限伝わる状態を目指しています。一方で、英語投稿向けリスク検知ルールの本格追加は行っていません。判定ロジックや保存値、外部通信方針は変更せず、MVPの安全側の設計を維持します。
 
 ### 多言語対応の対象
 
@@ -339,16 +345,16 @@ _locales
 ```json
 {
   "extensionName": {
-    "message": "Kotoba Uke Mimamori | A Gentle Pause for Words on X"
+    "message": "Kotoba Uke Mimamori | A Gentle Cushion for Words on X"
   },
   "extensionDescription": {
-    "message": "A Chrome extension that adds a gentle pause before reading potentially harmful words on X."
+    "message": "A Chrome extension that adds a gentle cushion before reading potentially heavy wording on X."
   },
   "cushionTitle": {
-    "message": "A gentle pause before reading"
+    "message": "A gentle cushion before reading"
   },
   "cushionBody": {
-    "message": "This post may contain expressions that could place an emotional burden on the reader."
+    "message": "This post may include wording that could feel emotionally heavy."
   },
   "buttonShowContent": {
     "message": "Show content"
@@ -678,13 +684,24 @@ XのDOM変更に備えて継続確認すること:
 - [ ] `docs/about.html` が表示できる
 - [ ] `docs/privacy.html` が表示できる
 - [ ] `docs/manual.html` が表示できる
+- [ ] `docs/en/about.html` が表示できる
+- [ ] `docs/en/privacy.html` が表示できる
+- [ ] `docs/en/manual.html` が表示できる
+- [ ] 日本語ページの言語プルダウンから English ページへ移動できる
+- [ ] 英語ページの言語プルダウンから日本語ページへ移動できる
 - [ ] 各ページの目次リンクが動作する
+- [ ] 各ページの目次リンクが英語ページでも動作する
 - [ ] 下部ナビゲーションが動作する
+- [ ] 英語ページの下部ナビゲーションが動作する
+- [ ] `html lang` が日本語ページでは `ja`、英語ページでは `en` になっている
+- [ ] 各ページに `canonical` と `hreflang="ja"` / `hreflang="en"` が設定されている
 - [ ] `privacy.html` に開発者情報が表示される
 - [ ] `privacy.html` にお問い合わせ先が表示される
 - [ ] `privacy.html` にセンシティブ情報を公開の場に書かない注意が表示される
+- [ ] 英語版privacyページにも外部送信なし、保存対象、問い合わせ時のセンシティブ情報注意が説明されている
 - [ ] `manual.html` にON/OFF、感度設定、再読み込み反映の説明がある
 - [ ] `about.html` に「いきなり読ませない。でも読む自由も残す」という趣旨が反映されている
+- [ ] 本体UIの英語表示で強すぎる断定表現がない
 - [ ] PC幅で表示崩れがない
 - [ ] スマートフォン幅で横はみ出しがない
 
@@ -843,8 +860,15 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 - `docs/about.html`
 - `docs/privacy.html`
 - `docs/manual.html`
+- `docs/en/about.html`
+- `docs/en/privacy.html`
+- `docs/en/manual.html`
 
 `docs/about.html`、`docs/privacy.html`、`docs/manual.html` では、「いきなり読ませない。でも、読む自由も残す」という本ツールの位置づけを説明しています。外部送信を行わないこと、保存対象が `enabled` と `cushionSensitivity` のみであること、ON/OFFおよび表示されやすさの反映方法やワンクッションUIの動作も記載しています。
+
+英語版の `docs/en/about.html`、`docs/en/privacy.html`、`docs/en/manual.html` では、英語話者にも自然に伝わるよう、強い断定を避けながら「読む前の小さな選択肢」「投稿者を裁くためではなく読む側の心を守る補助ツール」「投稿本文や判定結果を外部送信しない」という方針を説明しています。
+
+各docsページには、日本語 / English を切り替えられる言語選択プルダウンを追加しています。日本語ページでは English を選ぶと対応する `docs/en/` ページへ移動し、英語ページでは日本語を選ぶと対応する日本語ページへ戻ります。各ページには、GitHub Pages公開URLに合わせた `canonical` と `hreflang="ja"` / `hreflang="en"` も設定しています。
 
 `docs/privacy.html` には、開発者情報とお問い合わせ先を追加し、センシティブな情報を公開の場や問い合わせ内容に記載しないよう案内しています。また、3ページの数字付き目次と見出し、共通レイアウトおよびフッター表記を整えています。
 
@@ -893,6 +917,7 @@ Chrome Extension
 └─ tests
    ├─ risk-detector.test.js
    ├─ i18n.test.js
+   ├─ docs.test.js
    ├─ manifest.test.js
    ├─ settings.test.js
    ├─ options.test.js

@@ -9,6 +9,8 @@ function runTests() {
   testFallbackWithoutChromeI18n();
   testChromeI18nMessage();
   testLocaleKeysMatch();
+  testRequiredEnglishMessagesExist();
+  testEnglishMessagesAvoidStrongPhrases();
 
   console.log('All i18n tests passed.');
 }
@@ -44,6 +46,68 @@ function testLocaleKeysMatch() {
   const enMessages = readLocaleMessages('en');
 
   assert.deepEqual(Object.keys(jaMessages).sort(), Object.keys(enMessages).sort());
+}
+
+function testRequiredEnglishMessagesExist() {
+  const enMessages = readLocaleMessages('en');
+  const requiredKeys = [
+    'extensionName',
+    'extensionDescription',
+    'cushionTitle',
+    'cushionBody',
+    'cushionDismissedMessage',
+    'cushionDismissedBody',
+    'buttonShowContent',
+    'buttonHideForNow',
+    'popupTitle',
+    'popupTagline',
+    'popupStatusLabel',
+    'popupStatusOn',
+    'popupStatusOff',
+    'popupOpenOptions',
+    'optionsTitle',
+    'optionsDescription',
+    'optionEnableExtension',
+    'optionCushionSensitivity',
+    'optionSensitivityLow',
+    'optionSensitivityLowDescription',
+    'optionSensitivityStandard',
+    'optionSensitivityStandardDescription',
+    'optionSensitivityHigh',
+    'optionSensitivityHighDescription',
+    'optionPrivacyNote',
+    'optionStorageNote',
+    'optionReloadNote',
+    'optionSaved',
+    'optionSaveError'
+  ];
+
+  for (const key of requiredKeys) {
+    assert.equal(typeof enMessages[key]?.message, 'string');
+    assert.notEqual(enMessages[key].message.trim(), '');
+  }
+}
+
+function testEnglishMessagesAvoidStrongPhrases() {
+  const enMessages = readLocaleMessages('en');
+  const messageText = Object.values(enMessages)
+    .map((entry) => entry.message)
+    .join('\n')
+    .toLowerCase();
+  const forbiddenPhrases = [
+    'we detect harmful posts',
+    'we block abusive content',
+    'we identify dangerous accounts',
+    'dangerous post detected',
+    'toxic content detected',
+    'this extension prevents harassment',
+    'this extension is better than x mute features',
+    'potentially harmful words'
+  ];
+
+  for (const phrase of forbiddenPhrases) {
+    assert.equal(messageText.includes(phrase), false);
+  }
 }
 
 function readLocaleMessages(locale) {

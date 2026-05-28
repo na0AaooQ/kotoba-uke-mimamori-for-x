@@ -3,11 +3,42 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>拡張機能の使い方</title>
+    <title>拡張機能の使い方 | ことばうけみまもり</title>
+    <meta
+      name="description"
+      content="ことばうけみまもりの使い方です。ON/OFF、ワンクッションの表示されやすさ、Xページ再読み込み後の反映、ワンクッションUIの動作を説明します。"
+    >
+    <link
+      rel="canonical"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/manual.html"
+    >
+    <link
+      rel="alternate"
+      hreflang="ja"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/manual.html"
+    >
+    <link
+      rel="alternate"
+      hreflang="en"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/manual.html"
+    >
     <link rel="stylesheet" href="./assets/css/style.css">
   </head>
   <body>
     <div class="page-shell">
+      <div class="language-switcher">
+        <label class="language-switcher__label" for="language-select">表示言語</label>
+        <select
+          id="language-select"
+          class="language-switcher__select"
+          aria-label="表示言語を選択"
+          onchange="if (this.value) window.location.href = this.value;"
+        >
+          <option value="./manual.html" selected>日本語</option>
+          <option value="./en/manual.html">English</option>
+        </select>
+      </div>
+
       <header class="site-header">
         <p class="eyebrow">拡張機能の使い方</p>
         <h1>拡張機能の使い方</h1>
@@ -75,8 +106,11 @@
           </p>
           <ul>
             <li>「内容を表示する」を押すと、投稿本文のぼかしが解除され、UIが閉じます。</li>
-            <li>「今は見ない」を押すと、その投稿本文のぼかしとUIが維持されます。</li>
+            <li>「今は見ない」を押すと、その投稿本文のぼかしが維持され、UIは折りたたみ表示になります。</li>
           </ul>
+          <p>
+            折りたたみ表示になったあとも「内容を表示する」から、必要なタイミングで内容を確認できます。
+          </p>
           <p>
             ぼかしは投稿本文にのみ適用する方針です。投稿本文を完全に消すものではなく、読むか、今は読まないかを自分で選べるようにします。
           </p>
