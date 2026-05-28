@@ -1,15 +1,15 @@
 {
   "extensionName": {
-    "message": "Kotoba Uke Mimamori | A Gentle Pause for Words on X"
+    "message": "Kotoba Uke Mimamori | A Gentle Cushion for Words on X"
   },
   "extensionDescription": {
-    "message": "A Chrome extension that adds a gentle pause before reading potentially harmful words on X."
+    "message": "A Chrome extension that adds a gentle cushion before reading potentially heavy wording on X."
   },
   "cushionTitle": {
-    "message": "A gentle pause before reading"
+    "message": "A gentle cushion before reading"
   },
   "cushionBody": {
-    "message": "This post may contain expressions that could place an emotional burden on the reader."
+    "message": "This post may include wording that could feel emotionally heavy."
   },
   "cushionDismissedMessage": {
     "message": "You chose not to read this for now."
@@ -45,7 +45,7 @@
     "message": "This may contain wording related to personal information or safety."
   },
   "reasonGeneric": {
-    "message": "Potentially emotionally burdensome wording was detected."
+    "message": "This may contain wording that could feel emotionally heavy."
   },
   "reasonPotentialBurden": {
     "message": "This may contain wording that could place an emotional burden on the reader."
@@ -54,7 +54,7 @@
     "message": "Kotoba Uke Mimamori"
   },
   "popupTagline": {
-    "message": "A gentle pause for words on X"
+    "message": "A gentle cushion for words on X"
   },
   "popupStatusLabel": {
     "message": "Status"
@@ -72,7 +72,7 @@
     "message": "Kotoba Uke Mimamori Settings"
   },
   "optionsDescription": {
-    "message": "Settings for adding a gentle pause before reading words that arrive on X."
+    "message": "Settings for adding a gentle cushion before reading words that arrive on X."
   },
   "optionEnableExtension": {
     "message": "Enable Kotoba Uke Mimamori"
@@ -96,10 +96,10 @@
     "message": "More"
   },
   "optionSensitivityHighDescription": {
-    "message": "Shows cushions more easily for slightly lighter risk expressions."
+    "message": "Shows cushions more readily for lighter-risk wording."
   },
   "optionPrivacyNote": {
-    "message": "Post text and detection results are not sent externally."
+    "message": "Post text and detection results are not sent to external servers."
   },
   "optionStorageNote": {
     "message": "Settings are stored in this browser."

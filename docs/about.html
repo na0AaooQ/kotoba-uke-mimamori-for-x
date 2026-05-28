@@ -3,11 +3,42 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ことばうけみまもりについて</title>
+    <title>ことばうけみまもりについて | ことばうけみまもり</title>
+    <meta
+      name="description"
+      content="ことばうけみまもりは、Xで届く言葉に読む前のワンクッションを置き、読むか、今は読まないかを選べるようにするGoogle Chrome拡張機能です。"
+    >
+    <link
+      rel="canonical"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/about.html"
+    >
+    <link
+      rel="alternate"
+      hreflang="ja"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/about.html"
+    >
+    <link
+      rel="alternate"
+      hreflang="en"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/about.html"
+    >
     <link rel="stylesheet" href="./assets/css/style.css">
   </head>
   <body>
     <div class="page-shell">
+      <div class="language-switcher">
+        <label class="language-switcher__label" for="language-select">表示言語</label>
+        <select
+          id="language-select"
+          class="language-switcher__select"
+          aria-label="表示言語を選択"
+          onchange="if (this.value) window.location.href = this.value;"
+        >
+          <option value="./about.html" selected>日本語</option>
+          <option value="./en/about.html">English</option>
+        </select>
+      </div>
+
       <header class="site-header">
         <p class="eyebrow">ことばうけみまもり</p>
         <h1>ことばうけみまもりについて</h1>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>How to Use Kotoba Uke Mimamori | A Gentle Cushion for Words on X</title>
+    <meta
+      name="description"
+      content="How to use Kotoba Uke Mimamori, including ON/OFF, cushion sensitivity, X page reloads, and what happens when a cushion is shown."
+    >
+    <link
+      rel="canonical"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/manual.html"
+    >
+    <link
+      rel="alternate"
+      hreflang="ja"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/manual.html"
+    >
+    <link
+      rel="alternate"
+      hreflang="en"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/manual.html"
+    >
+    <link rel="stylesheet" href="../assets/css/style.css">
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="language-switcher">
+        <label class="language-switcher__label" for="language-select">Language</label>
+        <select
+          id="language-select"
+          class="language-switcher__select"
+          aria-label="Select language"
+          onchange="if (this.value) window.location.href = this.value;"
+        >
+          <option value="../manual.html">日本語</option>
+          <option value="./manual.html" selected>English</option>
+        </select>
+      </div>
+
+      <header class="site-header">
+        <p class="eyebrow">How to use</p>
+        <h1>How to Use Kotoba Uke Mimamori</h1>
+        <p class="lead">
+          When Kotoba Uke Mimamori is enabled, it can add a gentle cushion before
+          reading wording on X that may feel emotionally heavy. You can choose
+          whether to read the content or not read it now.
+        </p>
+      </header>
+
+      <main class="content-card">
+        <section class="toc" aria-labelledby="manual-toc-title">
+          <h2 id="manual-toc-title">Contents</h2>
+          <ul>
+            <li><a href="#start">1. Getting started</a></li>
+            <li><a href="#turn-on">2. Turn the extension ON</a></li>
+            <li><a href="#sensitivity">3. Choose cushion sensitivity</a></li>
+            <li><a href="#cushion">4. When a cushion is shown</a></li>
+            <li><a href="#turn-off">5. Turn the extension OFF</a></li>
+            <li><a href="#troubleshooting">6. If it does not seem to work</a></li>
+            <li><a href="#values">7. What this tool values</a></li>
+          </ul>
+        </section>
+
+        <section id="start">
+          <h2>1. Getting started</h2>
+          <ol>
+            <li>Load Kotoba Uke Mimamori as a Google Chrome extension.</li>
+            <li>Open the extension options page.</li>
+          </ol>
+          <p>
+            The extension is OFF by default. You can turn it ON when you want to
+            start using it.
+          </p>
+        </section>
+
+        <section id="turn-on">
+          <h2>2. Turn the extension ON</h2>
+          <ol>
+            <li>In the options page, turn on &quot;Enable Kotoba Uke Mimamori&quot;.</li>
+            <li>Reload the open X page.</li>
+          </ol>
+          <p>
+            At this stage, ON/OFF changes take effect after reloading the open X
+            page.
+          </p>
+        </section>
+
+        <section id="sensitivity">
+          <h2>3. Choose cushion sensitivity</h2>
+          <p>
+            In the options page, you can choose how easily cushions are shown. The
+            default setting is Standard.
+          </p>
+          <ul>
+            <li>Less: Shows cushions mainly for stronger expressions.</li>
+            <li>Standard: Uses the standard setting.</li>
+            <li>More: Shows cushions more readily for lighter-risk wording.</li>
+          </ul>
+          <p>
+            After changing this setting, reload the open X page to apply it. Changing
+            the sensitivity does not delete posts or rate posters.
+          </p>
+        </section>
+
+        <section id="cushion">
+          <h2>4. When a cushion is shown</h2>
+          <p>
+            When the extension is ON, a cushion UI may be shown for a post that
+            contains wording that could feel emotionally heavy.
+          </p>
+          <ul>
+            <li>&quot;Show content&quot; removes the blur from the post text and closes the UI.</li>
+            <li>&quot;Not now&quot; keeps the blur and folds the cushion UI.</li>
+          </ul>
+          <p>
+            The folded UI still keeps &quot;Show content&quot;, so you can choose to
+            read the content later if you want to.
+          </p>
+          <p>
+            The blur is applied to the post text. The extension does not erase the
+            post completely, and it does not remove the post DOM.
+          </p>
+        </section>
+
+        <section id="turn-off">
+          <h2>5. Turn the extension OFF</h2>
+          <ol>
+            <li>Open the options page.</li>
+            <li>Turn off &quot;Enable Kotoba Uke Mimamori&quot;.</li>
+            <li>Reload the open X page.</li>
+          </ol>
+        </section>
+
+        <section id="troubleshooting">
+          <h2>6. If it does not seem to work</h2>
+          <ul>
+            <li>After changing ON/OFF or cushion sensitivity, reload the open X page.</li>
+            <li>If you want to stop cushions, turn the extension OFF in the options page and reload X.</li>
+          </ul>
+          <p>
+            The current MVP applies setting changes when the X page loads, so a page
+            reload is needed after changing settings.
+          </p>
+        </section>
+
+        <section id="values" class="quiet-note">
+          <h2>7. What this tool values</h2>
+          <p>
+            Kotoba Uke Mimamori adds a cushion before reading instead of erasing
+            posts completely. It leaves both the freedom to read and the freedom not
+            to read now with the user.
+          </p>
+          <p>
+            Post text and detection results are not sent externally. Detection runs
+            locally in the browser, and the only saved settings are
+            <code>enabled</code> and <code>cushionSensitivity</code>.
+          </p>
+          <p>
+            This extension does not replace X&apos;s built-in mute features. It is a
+            supplemental tool that adds a gentle pause before reading.
+          </p>
+          <p>
+            For more details, see the <a href="./privacy.html">Privacy Policy</a>.
+          </p>
+        </section>
+
+        <nav class="docs-nav" aria-label="Documentation pages">
+          <a href="./about.html">About this extension</a>
+          <a href="./privacy.html">Privacy Policy</a>
+          <a href="./manual.html">How to use</a>
+        </nav>
+      </main>
+
+      <footer class="site-footer">
+        <p>&copy; Kotoba Uke Mimamori 2026 Naohisa Aoki (@na0AaooQ) All Rights Reserved.</p>
+      </footer>
+    </div>
+  </body>
+</html>
