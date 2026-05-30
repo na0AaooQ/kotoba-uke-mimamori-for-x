@@ -220,6 +220,63 @@ section[id] {
   background: var(--surface-soft);
 }
 
+.resource-link {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border: 1px solid #f4e3cc;
+  border-radius: 14px;
+  background: #fffaf4;
+}
+
+.resource-link h2 {
+  margin-top: 0;
+}
+
+.resource-link a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.manual-figure {
+  margin: 18px 0 0;
+}
+
+.manual-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 26px rgba(98, 71, 35, 0.08);
+}
+
+.manual-figure figcaption {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.94rem;
+  text-align: center;
+}
+
+.manual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.manual-grid .manual-figure {
+  margin-top: 0;
+}
+
 .section-block h2,
 .quiet-note h2 {
   margin-top: 0;
@@ -302,6 +359,10 @@ section[id] {
 
   .section-block {
     padding: 16px;
+  }
+
+  .manual-grid {
+    grid-template-columns: 1fr;
   }
 
   .toc {

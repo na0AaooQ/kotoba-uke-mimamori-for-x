@@ -53,91 +53,103 @@
         <section class="toc" aria-labelledby="manual-toc-title">
           <h2 id="manual-toc-title">Contents</h2>
           <ul>
-            <li><a href="#start">1. Getting started</a></li>
-            <li><a href="#turn-on">2. Turn the extension ON</a></li>
-            <li><a href="#sensitivity">3. Choose cushion sensitivity</a></li>
-            <li><a href="#cushion">4. When a cushion is shown</a></li>
-            <li><a href="#turn-off">5. Turn the extension OFF</a></li>
+            <li><a href="#pre-release-load">1. Load the pre-release version</a></li>
+            <li><a href="#popup-settings">2. Change ON/OFF and sensitivity in the popup</a></li>
+            <li><a href="#cushion">3. When a cushion is shown</a></li>
+            <li><a href="#collapsed">4. After choosing Not now</a></li>
+            <li><a href="#show-content">5. After choosing Show content</a></li>
             <li><a href="#troubleshooting">6. If it does not seem to work</a></li>
             <li><a href="#values">7. What this tool values</a></li>
           </ul>
         </section>
 
-        <section id="start">
-          <h2>1. Getting started</h2>
-          <ol>
-            <li>Load Kotoba Uke Mimamori as a Google Chrome extension.</li>
-            <li>Open the extension options page.</li>
-          </ol>
+        <section id="pre-release-load">
+          <h2>1. Load the pre-release version</h2>
           <p>
-            The extension is OFF by default. You can turn it ON when you want to
-            start using it.
+            The current manual loading flow is for pre-release QA and development
+            use. After Chrome Web Store publication, this section is intended to be
+            replaced with the store installation flow.
           </p>
+          <ol>
+            <li>Open Chrome Extensions management.</li>
+            <li>Turn on Developer mode.</li>
+            <li>Choose to load an unpacked extension.</li>
+            <li>Select the <code>kotoba-uke-mimamori-for-x</code> directory.</li>
+            <li>Confirm that Kotoba Uke Mimamori appears in the extensions list.</li>
+          </ol>
         </section>
 
-        <section id="turn-on">
-          <h2>2. Turn the extension ON</h2>
-          <ol>
-            <li>In the options page, turn on &quot;Enable Kotoba Uke Mimamori&quot;.</li>
-            <li>Reload the open X page.</li>
-          </ol>
+        <section id="popup-settings">
+          <h2>2. Change ON/OFF and sensitivity in the popup</h2>
           <p>
-            At this stage, ON/OFF changes take effect after reloading the open X
-            page.
-          </p>
-        </section>
-
-        <section id="sensitivity">
-          <h2>3. Choose cushion sensitivity</h2>
-          <p>
-            In the options page, you can choose how easily cushions are shown. The
-            default setting is Standard.
+            The popup can turn the extension ON/OFF. The initial state is OFF, and
+            you can turn it ON when you want to use it.
           </p>
           <ul>
-            <li>Less: Shows cushions mainly for stronger expressions.</li>
-            <li>Standard: Uses the standard setting.</li>
-            <li>More: Shows cushions more readily for lighter-risk wording.</li>
+            <li>Cushion display sensitivity can be selected from Less, Standard, or More.</li>
+            <li>Post text and detection results are not sent to external servers.</li>
+            <li>ON/OFF and sensitivity changes take effect after reloading the open X page.</li>
           </ul>
-          <p>
-            After changing this setting, reload the open X page to apply it. Changing
-            the sensitivity does not delete posts or rate posters.
-          </p>
+          <div class="manual-grid">
+            <figure class="manual-figure">
+              <img src="../assets/img/manual/012_manual-popup-en-off.jpeg" alt="The Kotoba Uke Mimamori popup in the OFF state">
+              <figcaption>The extension starts OFF by default.</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="../assets/img/manual/013_manual-popup-en-on.jpeg" alt="The Kotoba Uke Mimamori popup for changing ON/OFF and cushion sensitivity">
+              <figcaption>Turn it ON and choose Less, Standard, or More.</figcaption>
+            </figure>
+          </div>
         </section>
 
         <section id="cushion">
-          <h2>4. When a cushion is shown</h2>
+          <h2>3. When a cushion is shown</h2>
           <p>
-            When the extension is ON, a cushion UI may be shown for a post that
-            contains wording that could feel emotionally heavy.
+            When the extension is ON, a gentle cushion may be shown before reading a
+            post that includes wording that could feel emotionally heavy.
           </p>
           <ul>
-            <li>&quot;Show content&quot; removes the blur from the post text and closes the UI.</li>
-            <li>&quot;Not now&quot; keeps the blur and folds the cushion UI.</li>
+            <li>The post text is blurred.</li>
+            <li>&quot;Show content&quot; displays the post text.</li>
+            <li>&quot;Not now&quot; keeps the post blurred and lets you show it later.</li>
+            <li>The extension does not delete the post text or post DOM.</li>
           </ul>
-          <p>
-            The folded UI still keeps &quot;Show content&quot;, so you can choose to
-            read the content later if you want to.
-          </p>
-          <p>
-            The blur is applied to the post text. The extension does not erase the
-            post completely, and it does not remove the post DOM.
-          </p>
+          <figure class="manual-figure">
+            <img src="../assets/img/manual/014_manual-cushion-en.png" alt="A gentle cushion shown before reading a post on X">
+            <figcaption>A gentle cushion gives you a moment before reading.</figcaption>
+          </figure>
         </section>
 
-        <section id="turn-off">
-          <h2>5. Turn the extension OFF</h2>
-          <ol>
-            <li>Open the options page.</li>
-            <li>Turn off &quot;Enable Kotoba Uke Mimamori&quot;.</li>
-            <li>Reload the open X page.</li>
-          </ol>
+        <section id="collapsed">
+          <h2>4. After choosing Not now</h2>
+          <p>
+            If you choose &quot;Not now&quot;, the post stays blurred for now. You
+            can still choose &quot;Show content&quot; later if you want to read it.
+          </p>
+          <figure class="manual-figure">
+            <img src="../assets/img/manual/015_manual-collapsed-en.png" alt="The collapsed cushion state after choosing Not now">
+            <figcaption>The collapsed state keeps the option to show the content later.</figcaption>
+          </figure>
+        </section>
+
+        <section id="show-content">
+          <h2>5. After choosing Show content</h2>
+          <p>
+            Choosing &quot;Show content&quot; removes the blur and shows the post
+            text normally.
+          </p>
+          <figure class="manual-figure">
+            <img src="../assets/img/manual/016_manual-show-content-en.png" alt="The post text shown after choosing Show content">
+            <figcaption>The post text is shown only after you choose to show it.</figcaption>
+          </figure>
         </section>
 
         <section id="troubleshooting">
           <h2>6. If it does not seem to work</h2>
           <ul>
             <li>After changing ON/OFF or cushion sensitivity, reload the open X page.</li>
-            <li>If you want to stop cushions, turn the extension OFF in the options page and reload X.</li>
+            <li>If you want to stop cushions, turn the extension OFF in the popup or options page and reload X.</li>
+            <li>For the pre-release version, reload the X page after reloading the extension.</li>
           </ul>
           <p>
             The current MVP applies setting changes when the X page loads, so a page

@@ -51,85 +51,150 @@
         <section class="toc" aria-labelledby="manual-toc-title">
           <h2 id="manual-toc-title">目次</h2>
           <ul>
-            <li><a href="#start">1. はじめる</a></li>
-            <li><a href="#turn-on">2. 拡張機能を有効（ON）にする</a></li>
-            <li><a href="#sensitivity">3. ワンクッションの表示されやすさを選ぶ</a></li>
-            <li><a href="#cushion">4. ワンクッションが表示されたとき</a></li>
-            <li><a href="#turn-off">5. 拡張機能を無効（OFF）にする</a></li>
-            <li><a href="#troubleshooting">6. うまく動かないとき</a></li>
-            <li><a href="#values">7. 大切にしていること</a></li>
+            <li><a href="#pre-release-load">1. 公開前の手動確認版を読み込む</a></li>
+            <li><a href="#pin-extension">2. 拡張機能アイコンを固定する</a></li>
+            <li><a href="#popup-settings">3. popupでON/OFF・表示されやすさを設定する</a></li>
+            <li><a href="#options">4. 詳細設定を確認する</a></li>
+            <li><a href="#cushion">5. ワンクッションが表示されたとき</a></li>
+            <li><a href="#collapsed">6. 今は見ないを選んだ後</a></li>
+            <li><a href="#show-content">7. 内容を表示した後</a></li>
+            <li><a href="#troubleshooting">8. うまく動かないとき</a></li>
+            <li><a href="#values">9. 大切にしていること</a></li>
           </ul>
         </section>
 
-        <section id="start">
-          <h2>1. はじめる</h2>
-          <ol>
-            <li>Google Chrome拡張機能として「ことばうけみまもり」を読み込みます。</li>
-            <li>拡張機能のオプション画面を開きます。</li>
-          </ol>
+        <section id="pre-release-load">
+          <h2>1. 公開前の手動確認版を読み込む</h2>
           <p>
-            この拡張機能は初期状態では無効（OFF）です。使い始めたいタイミングで、次の手順によりONにできます。
+            ここで紹介する読み込み手順は、Chrome Web Store公開前の手動確認版・開発版を使うためのものです。Chrome Web Store公開後は、ストアから追加する手順に差し替える予定です。
           </p>
+          <ol>
+            <li>Chrome右上メニューから「拡張機能」→「拡張機能を管理」を開きます。</li>
+            <li>拡張機能画面でデベロッパーモードをONにします。</li>
+            <li>「パッケージ化されていない拡張機能を読み込む」をクリックします。</li>
+            <li><code>kotoba-uke-mimamori-for-x</code> ディレクトリを選択します。</li>
+            <li>拡張機能一覧に「ことばうけみまもり」が表示されることを確認します。</li>
+          </ol>
+          <div class="manual-grid">
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/001_manual-load-extension.jpeg" alt="Chromeのメニューから拡張機能の管理画面を開く手順">
+              <figcaption>Chromeのメニューから拡張機能の管理画面を開きます。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/002_manual-load-extension.png" alt="Chromeの拡張機能画面でデベロッパーモードを有効にする画面">
+              <figcaption>デベロッパーモードをONにします。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/003_manual-load-extension.png" alt="パッケージ化されていない拡張機能を読み込むボタンを選ぶ画面">
+              <figcaption>パッケージ化されていない拡張機能を読み込みます。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/004_manual-load-extension.png" alt="拡張機能一覧にことばうけみまもりが表示されている画面">
+              <figcaption>一覧に表示されれば読み込み完了です。</figcaption>
+            </figure>
+          </div>
         </section>
 
-        <section id="turn-on">
-          <h2>2. 拡張機能を有効（ON）にする</h2>
-          <ol>
-            <li>オプション画面で「ことばうけみまもりを有効にする」を有効（ON）にします。</li>
-            <li>開いているX（旧Twitter）の画面ページを再読み込みします。</li>
-          </ol>
+        <section id="pin-extension">
+          <h2>2. 拡張機能アイコンを固定する</h2>
           <p>
-            現時点では、ON/OFFの変更は、X（旧Twitter）の画面ページを再読み込みした後に反映されます。
+            Chrome右上の拡張機能アイコンを開き、「ことばうけみまもり」を固定すると、ツールバーからpopupを開きやすくなります。
           </p>
+          <figure class="manual-figure">
+            <img src="./assets/img/manual/005_manual-popup-ja-off.jpeg" alt="Chrome右上の拡張機能メニューからことばうけみまもりを固定する画面">
+            <figcaption>固定すると、ことばうけみまもりのアイコンからpopupを開けます。</figcaption>
+          </figure>
         </section>
 
-        <section id="sensitivity">
-          <h2>3. ワンクッションの表示されやすさを選ぶ</h2>
+        <section id="popup-settings">
+          <h2>3. popupでON/OFF・表示されやすさを設定する</h2>
           <p>
-            オプション画面では、ワンクッションの表示されやすさを選べます。
-            初期設定は「標準」です。
+            popupから、ことばうけみまもりのON/OFFと、ワンクッションの表示されやすさを変更できます。初期状態はOFFです。使いたいタイミングでONにしてください。
           </p>
           <ul>
-            <li>少なめ: 強い表現を中心にワンクッションを表示します。</li>
-            <li>標準: 通常の設定です。</li>
-            <li>多め: 少し軽めのリスク表現にもワンクッションを表示しやすくします。</li>
+            <li>ON/OFFを切り替えられます。</li>
+            <li>「少なめ」「標準」「多め」から表示されやすさを選べます。</li>
+            <li>設定変更後は、開いているXページを再読み込みすると反映されます。</li>
+            <li>投稿本文や判定結果は外部送信されません。</li>
           </ul>
+          <div class="manual-grid">
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/006_manual-popup-ja-off.jpeg" alt="ことばうけみまもりのポップアップでOFF状態を表示している画面">
+              <figcaption>OFFの状態です。必要なときにONへ切り替えられます。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/007_manual-popup-ja-on.jpeg" alt="ことばうけみまもりのポップアップでON/OFFと表示されやすさを設定する画面">
+              <figcaption>ONにすると、表示されやすさも選べます。</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section id="options">
+          <h2>4. 詳細設定を確認する</h2>
           <p>
-            設定を変更したあと、開いているXページを再読み込みすると反映されます。ワンクッションの表示されやすさを変えても、投稿を自動で削除したり、投稿者を評価したりするものではありません。
+            popupの「詳細設定を開く」から、オプション画面を開けます。保存するのは、拡張機能のON/OFFと、ワンクッションの表示されやすさの設定だけです。
           </p>
+          <figure class="manual-figure">
+            <img src="./assets/img/manual/008_manual-popup-ja-on-more.png" alt="ことばうけみまもりの詳細設定画面でON/OFFと多め設定を確認する画面">
+            <figcaption>詳細設定でも、ON/OFFと表示されやすさを確認できます。</figcaption>
+          </figure>
         </section>
 
         <section id="cushion">
-          <h2>4. ワンクッションが表示されたとき</h2>
+          <h2>5. ワンクッションが表示されたとき</h2>
           <p>
-            ONの状態で、心に負荷がかかる可能性のある表現を判定した投稿には、読む前のワンクッションUIが表示されます。
+            ONの状態で、心に負荷がかかる可能性のある表現を判定した投稿には、読む前のワンクッションが表示されます。
           </p>
           <ul>
-            <li>「内容を表示する」を押すと、投稿本文のぼかしが解除され、UIが閉じます。</li>
-            <li>「今は見ない」を押すと、その投稿本文のぼかしが維持され、UIは折りたたみ表示になります。</li>
+            <li>投稿本文はぼかされます。</li>
+            <li>「内容を表示する」を押すと本文を読めます。</li>
+            <li>「今は見ない」を押すと、本文ぼかしを維持したまま折りたたまれます。</li>
+            <li>投稿本文や投稿DOMを削除するものではありません。</li>
           </ul>
-          <p>
-            折りたたみ表示になったあとも「内容を表示する」から、必要なタイミングで内容を確認できます。
-          </p>
-          <p>
-            ぼかしは投稿本文にのみ適用する方針です。投稿本文を完全に消すものではなく、読むか、今は読まないかを自分で選べるようにします。
-          </p>
+          <figure class="manual-figure">
+            <img src="./assets/img/manual/009_manual-cushion-ja.png" alt="Xの投稿に読む前のワンクッションが表示されている画面">
+            <figcaption>読む前に、内容を表示するか、今は見ないかを選べます。</figcaption>
+          </figure>
+          <div class="manual-grid">
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/017_manual-cushion-ja-bigsize.png" alt="Xの投稿に表示された日本語ワンクッションUIの拡大画面">
+              <figcaption>ワンクッションUIを大きく確認できる画面です。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/018_manual-cushion-ja-bigsize.png" alt="日本語ワンクッションUIで内容を表示するボタンと今は見ないボタンが見える拡大画面">
+              <figcaption>本文はぼかしたまま、読むかどうかを選べます。</figcaption>
+            </figure>
+          </div>
         </section>
 
-        <section id="turn-off">
-          <h2>5. 拡張機能を無効（OFF）にする</h2>
-          <ol>
-            <li>オプション画面を開きます。</li>
-            <li>「ことばうけみまもりを有効にする」を無効（OFF）にします。</li>
-            <li>開いているX（旧Twitter）の画面ページを再読み込みします。</li>
-          </ol>
+        <section id="collapsed">
+          <h2>6. 今は見ないを選んだ後</h2>
+          <p>
+            「今は見ない」を選ぶと、今は読まない状態にできます。あとから読みたくなった場合は「内容を表示する」から確認できます。
+          </p>
+          <figure class="manual-figure">
+            <img src="./assets/img/manual/010_manual-collapsed-ja.png" alt="今は見ないを選んだ後、あとから内容を表示できる状態の画面">
+            <figcaption>今は読まない選択をした後も、あとから表示できます。</figcaption>
+          </figure>
+        </section>
+
+        <section id="show-content">
+          <h2>7. 内容を表示した後</h2>
+          <p>
+            「内容を表示する」を押すと、ぼかしが解除され、投稿本文が通常表示されます。
+          </p>
+          <figure class="manual-figure">
+            <img src="./assets/img/manual/011_manual-show-content-ja.png" alt="内容を表示するを押して投稿本文が表示された画面">
+            <figcaption>ユーザー自身の選択で投稿本文を表示できます。</figcaption>
+          </figure>
         </section>
 
         <section id="troubleshooting">
-          <h2>6. うまく動かないとき</h2>
+          <h2>8. うまく動かないとき</h2>
           <ul>
             <li>ON/OFFまたは表示されやすさを変更した後は、開いているX（旧Twitter）の画面ページを再読み込みしてください。</li>
-            <li>ワンクッションを止めたい場合は、オプション画面でOFFにしてから、X（旧Twitter）の画面ページを再読み込みしてください。</li>
+            <li>ワンクッションを止めたい場合は、popupまたはオプション画面でOFFにしてから、X（旧Twitter）の画面ページを再読み込みしてください。</li>
+            <li>公開前の手動確認版では、拡張機能を読み込み直した後にXページも再読み込みしてください。</li>
           </ul>
           <p>
             現時点では、設定をXの画面へ反映するタイミングをページの読み込み時としているため、設定変更後に再読み込みが必要です。
@@ -137,7 +202,7 @@
         </section>
 
         <section id="values" class="quiet-note">
-          <h2>7. 大切にしていること</h2>
+          <h2>9. 大切にしていること</h2>
           <p>
             「ことばうけみまもり」は、投稿を完全に消すのではなく、読む前に一度立ち止まるためのワンクッションを置きます。いきなり読ませない一方で、読む自由と、今は読まない自由をユーザー自身に残すための補助ツールです。
           </p>
