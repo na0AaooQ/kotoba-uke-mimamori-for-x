@@ -61,6 +61,14 @@
           </ul>
         </section>
 
+        <section class="resource-link" aria-labelledby="service-pdf-title">
+          <h2 id="service-pdf-title">サービス説明資料</h2>
+          <p>
+            ことばうけみまもりの考え方、主な機能、プライバシー面の安心設計をPDFでも確認できます。
+          </p>
+          <a href="./assets/pdf/kotoba-uke-mimamori-introduction.pdf" target="_blank" rel="noopener" class="header-link">サービス説明資料PDFを見る</a>
+        </section>
+
         <section id="send">
           <h2>1. 送信しない情報</h2>
           <p>
@@ -69,10 +77,23 @@
           <p>
             判定に用いた文章や、判定によって得られる内部情報を、サービス提供のために外部へ集める仕組みは追加していません。
           </p>
+          <ul>
+            <li>投稿本文を外部サーバーへ送信しません。</li>
+            <li>判定結果を外部サーバーへ送信しません。</li>
+            <li>投稿本文を保存しません。</li>
+            <li>判定結果を保存しません。</li>
+            <li>閲覧履歴を保存しません。</li>
+            <li>投稿URLを保存しません。</li>
+            <li>ユーザー名やアカウントIDを保存しません。</li>
+            <li>内部判定詳細を保存しません。</li>
+          </ul>
         </section>
 
         <section id="storage">
           <h2>2. 保存する設定値</h2>
+          <p>
+            保存するのは、拡張機能のON/OFFと、ワンクッションの表示されやすさの設定だけです。
+          </p>
           <p>
             現時点でGoogle Chrome拡張機能の保存領域 <code>chrome.storage.local</code> に保存する設定値は、拡張機能を有効にするかどうかを示す <code>enabled</code> と、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code> です。
           </p>
@@ -90,6 +111,10 @@
             <li>X（旧Twitter）の閲覧履歴を保存しません。</li>
             <li>ユーザーやアカウント単位の危険度判定を行いません。</li>
             <li>投稿の自動ブロックや自動通報を行いません。</li>
+            <li>投稿者を評価しません。</li>
+            <li>投稿本文や投稿DOMを削除しません。</li>
+            <li>投稿内容を外部システムへ送って監視・評価しません。</li>
+            <li>ことばうけみまもり由来の外部通信を追加しません。</li>
           </ul>
           <p>
             この拡張機能は、投稿を完全に消したり、投稿者を評価したりするためのものではありません。投稿を読むか、今は読まないかをユーザー自身が選べるよう、読む前のワンクッションを表示することに役割を限定しています。
