@@ -1,7 +1,7 @@
 # ことばうけみまもり｜Xことばに心のワンクッション
 Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」のソースコード管理リポジトリです。
 
-- リポジトリURL: https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/
+- GitHubリポジトリURL: https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/
 
 ## 概要
 
@@ -19,6 +19,34 @@ X（旧Twitter）で届く言葉のなかで、人格否定・存在否定・差
 SNSには、人と人をつなぎ、孤独を和らげ、励ましや対話を生む力があります。
 一方で、人格否定・存在否定・差別的表現・執拗な攻撃などの投稿により、受け手の心に大きな負荷がかかることがあります。
 この拡張機能は、X上で受け取る言葉に対して、読む前のワンクッションを置くことで、ユーザーが自分の心の状態に合わせて「読む / 今は読まない」を選べるようにすることを目的とします。
+
+## 本機能の紹介資料
+
+以下の資料をご覧ください。
+
+- [ことばうけみまもり サービス紹介資料](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/assets/pdf/kotoba-uke-mimamori-introduction.pdf)
+
+## 本機能のサービス説明ページ
+
+サービス説明ページは日本語・英語で公開しています。英語版は docs/en/ 配下に配置しています。
+
+- [ことばうけみまもり サービス説明](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/about.html)
+- [Kotoba Uke Mimamori About Page (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/privacy.html)
+
+## 本機能のプライバシーポリシーページ
+
+プライバシーポリシーは日本語・英語で公開しています。英語版は docs/en/ 配下に配置しています。
+
+- [ことばうけみまもり プライバシーポリシー](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/privacy.html)
+- [Kotoba Uke Mimamori Privacy Policy (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/privacy.html)
+
+## 本機能の操作マニュアルページ
+
+操作マニュアルは日本語・英語で公開しています。英語版は docs/en/ 配下に配置しています。
+
+- [ことばうけみまもり 操作マニュアル](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/privacy.html)
+- [Kotoba Uke Mimamori User Manual (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/manual.html)
+
 
 ## MVP方針
 
