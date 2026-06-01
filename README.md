@@ -1,7 +1,7 @@
 # ことばうけみまもり｜Xことばに心のワンクッション
 Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」のソースコード管理リポジトリです。
 
-- GitHubリポジトリURL: https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/
+- GitHubリポジトリURL: [https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/](https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/)
 
 ## 概要
 
@@ -28,25 +28,27 @@ SNSには、人と人をつなぎ、孤独を和らげ、励ましや対話を�
 
 ## 本機能のサービス説明ページ
 
-サービス説明ページは日本語・英語で公開しています。英語版は docs/en/ 配下に配置しています。
-
-- [ことばうけみまもり サービス説明](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/about.html)
-- [Kotoba Uke Mimamori About Page (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/privacy.html)
+- サービス説明ページは以下になります。
+  - サービス説明ページは日本語・英語で公開しています。
+    - [ことばうけみまもり サービス説明](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/about.html)
+    - [Kotoba Uke Mimamori About Page (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/privacy.html)
+  - 各言語のページは docs/**/ 配下に配置しています。
 
 ## 本機能のプライバシーポリシーページ
 
-プライバシーポリシーは日本語・英語で公開しています。英語版は docs/en/ 配下に配置しています。
-
-- [ことばうけみまもり プライバシーポリシー](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/privacy.html)
-- [Kotoba Uke Mimamori Privacy Policy (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/privacy.html)
+- プライバシーポリシーページは以下になります。
+  - プライバシーポリシーページは日本語・英語で公開しています。
+    - [ことばうけみまもり プライバシーポリシー](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/privacy.html)
+    - [Kotoba Uke Mimamori Privacy Policy (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/privacy.html)
+  - 各言語のページは docs/**/ 配下に配置しています。
 
 ## 本機能の操作マニュアルページ
 
-操作マニュアルは日本語・英語で公開しています。英語版は docs/en/ 配下に配置しています。
-
-- [ことばうけみまもり 操作マニュアル](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/privacy.html)
-- [Kotoba Uke Mimamori User Manual (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/manual.html)
-
+- 操作マニュアルページは以下になります。
+  - 操作マニュアルページはは日本語・英語で公開しています。
+    - [ことばうけみまもり 操作マニュアル](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/privacy.html)
+    - [Kotoba Uke Mimamori User Manual (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/manual.html)
+  - 各言語のページは docs/**/ 配下に配置しています。
 
 ## MVP方針
 
