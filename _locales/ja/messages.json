@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "ことばうけみまもり｜Xことばに心のワンクッション"
+    "message": "ことばうけみまもり｜Xことばに心のワンクッション BETA"
   },
   "extensionDescription": {
-    "message": "Xで届く言葉に、読む前のワンクッションを置くためのChrome拡張機能です。"
+    "message": "THIS EXTENSION IS FOR BETA TESTING（この拡張機能はベータ版テスト用です）。Xで届く強い言葉に、読む前のワンクッションを置くChrome拡張機能です。投稿本文や判定結果は外部送信しません。"
   },
   "cushionTitle": {
     "message": "読む前に、少しだけワンクッションを置きました"

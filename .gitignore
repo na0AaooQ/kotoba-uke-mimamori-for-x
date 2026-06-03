@@ -144,3 +144,4 @@ vite.config.ts.timestamp-*
 
 # kotoba-uke-mimamori-for-x gitignore settings
 .DS_Store
+*.zip
