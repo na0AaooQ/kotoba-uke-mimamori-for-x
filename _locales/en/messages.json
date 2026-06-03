@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "Kotoba Uke Mimamori | A Gentle Cushion for Words on X"
+    "message": "Kotoba Uke Mimamori BETA"
   },
   "extensionDescription": {
-    "message": "A Chrome extension that adds a gentle cushion before reading potentially heavy wording on X."
+    "message": "THIS EXTENSION IS FOR BETA TESTING. Adds a gentle cushion before reading emotionally heavy wording on X. Post text and detection results are not sent externally."
   },
   "cushionTitle": {
     "message": "A gentle cushion before reading"

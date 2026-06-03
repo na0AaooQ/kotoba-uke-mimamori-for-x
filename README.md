@@ -7,7 +7,7 @@ Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワ
 
 「ことばうけみまもり｜Xことばに心のワンクッション」は、X（旧Twitter）で届く言葉のなかで、受け手の心に大きな負荷を与える可能性のある投稿に、そっとワンクッションを置くための補助ツールです。
 人格否定・存在否定・差別的表現・執拗な攻撃など、心に大きな負荷を与える可能性のある投稿を、すぐに読まなくてもよい形にし、ユーザーが「表示する / 今は見ない」を選べるようにすることを目指します。
-本リポジトリは、現在設計・MVP開発準備段階です。
+本リポジトリは、現在MVP開発およびベータ版Chrome Web Store提出準備段階です。
 
 ## コンセプト
 
@@ -296,6 +296,148 @@ Chrome Web Store掲載準備の前段階として、ユーザー向けdocsにサ
 - 保存する設定値は `enabled` と `cushionSensitivity` のみに限定すること
 
 ユーザー向けdocsでは、具体的な判定語句や `risk-detector.js` 内の具体的な文字列・正規表現を直接掲載しない方針です。説明は、強い侮辱表現、存在否定に近い表現、暴力的・脅迫的に読める表現、心に大きな負荷がかかりやすい表現などのカテゴリ表現に留めます。
+
+### ベータ版Chrome Web Store提出準備
+
+ベータ版Chrome Web Store提出準備として、以下を反映しています。
+
+- 専用アイコンを `icons/` 配下に追加しています。
+- `manifest.json` の `icons` と `action.default_icon` に `16` / `32` / `48` / `128` px のアイコンを設定しています。
+- `manifest.json` の `version` を `0.1.1` に更新しています。
+- ベータ版表記として、拡張機能名の末尾に `BETA`、説明文に `THIS EXTENSION IS FOR BETA TESTING` を追加しています。
+- `manifest.json` の `name` / `description` は `__MSG_extensionName__` / `__MSG_extensionDescription__` のまま維持し、実際の文言は `_locales/ja/messages.json` と `_locales/en/messages.json` で管理しています。
+- Chrome Web Store掲載用の日本語 / 英語文案、権限説明、審査向け補足説明、スクリーンショット候補を `docs/store-listing-draft.md` に整理しています。
+
+提出準備時点でも、使用権限は `storage` のみに限定します。`host_permissions` は使用しません。投稿本文や判定結果は外部送信せず、保存する設定値も `enabled` と `cushionSensitivity` のみに限定します。自動ブロック、自動通報、アカウント危険度判定は行いません。
+
+### Chrome Web Store掲載用アイコン画像生成スクリプト
+
+Chrome Web Store掲載用および拡張機能manifest用のアイコン画像は、`tools/make_webstore_upload_image.sh` で生成できます。
+
+このスクリプトは、`tools/kotoba-uke-mimamori-icon.png` を元画像として使用し、リポジトリ直下の `icons/` 配下に以下のPNGを生成します。
+
+- `icons/icon16.png`
+- `icons/icon32.png`
+- `icons/icon48.png`
+- `icons/icon128.png`
+- `icons/icon256.png`
+- `icons/icon512.png`
+- `icons/icon1024.png`
+
+実行例:
+
+```sh
+cd /Users/aokinaohisa/GitHub/kotoba-uke-mimamori-for-x/tools
+
+# 生成元画像 tools/kotoba-uke-mimamori-icon.png を配置してから実行します。
+# 例: cp /path/to/kotoba-uke-mimamori-icon.png ./kotoba-uke-mimamori-icon.png
+
+./make_webstore_upload_image.sh
+```
+
+生成後は、以下で画像サイズを確認できます。
+
+```sh
+file ../icons/icon16.png
+file ../icons/icon32.png
+file ../icons/icon48.png
+file ../icons/icon128.png
+file ../icons/icon256.png
+file ../icons/icon512.png
+file ../icons/icon1024.png
+```
+
+`manifest.json` では `16` / `32` / `48` / `128` px のアイコンを使用します。`256` / `512` / `1024` px は、Chrome Web Store掲載素材や将来利用のために保持します。
+
+### Google Developers DashboardでChrome ウェブストアへ審査申請をする時のZIPパッケージ作成手順
+
+Chrome Web StoreへアップロードするZIPには、拡張機能本体として必要なファイルのみを含めます。`.git/`、`.github/`、`node_modules/`、`tests/`、`docs/`、`tools/`、`README.md`、`package.json`、`package-lock.json`、生成元画像、開発用設定ファイル、ローカル確認用ファイル、スクリーンショット素材、サービス説明PDFなどは同梱しません。
+
+作業前に、以下を実行して静的確認とテストを通します。
+
+```sh
+npm test
+npm run lint
+npm run format:check
+npm run check
+git diff --check
+```
+
+あわせて、`manifest.json` について以下を確認します。
+
+- `version` が `0.1.1` であること
+- `name` が `__MSG_extensionName__` のままであること
+- `description` が `__MSG_extensionDescription__` のままであること
+- `_locales/ja/messages.json` と `_locales/en/messages.json` の拡張機能名に `BETA` が含まれること
+- `_locales/ja/messages.json` と `_locales/en/messages.json` の説明文に `THIS EXTENSION IS FOR BETA TESTING` が含まれること
+- `icons/` 配下のアイコンが存在すること
+- `permissions` が `["storage"]` のみであること
+- `host_permissions` が存在しないこと
+
+ZIP作成用の一時ディレクトリ作成、拡張機能本体ファイルのコピー、ZIP作成、ZIP内容確認は、`tools/make_webstore_package.sh` で実行できます。
+
+リポジトリをgit cloneして、cloneしたディレクトリへ移動します。
+
+```sh
+git clone git@github.com:na0AaooQ/kotoba-uke-mimamori-for-x.git
+
+cd kotoba-uke-mimamori-for-x
+```
+
+リポジトリ直下から実行する場合:
+
+```sh
+./tools/make_webstore_package.sh
+```
+
+`tools/` 配下から実行する場合:
+
+```sh
+cd tools
+./make_webstore_package.sh
+```
+
+スクリプトは、自身の場所からリポジトリ直下を自動判定します。既定では、ZIPはリポジトリ直下に `kotoba-uke-mimamori-for-x-0.1.1-beta.zip` として作成されます。ZIP作成用の一時ディレクトリは `/tmp/kotoba-uke-mimamori-cws-package` です。
+
+出力先を変えたい場合は、`ZIP_PATH` を指定して実行できます。
+
+```sh
+ZIP_PATH="$PWD/dist/kotoba-uke-mimamori-for-x-0.1.1-beta.zip" ./tools/make_webstore_package.sh
+```
+
+一覧に以下が含まれていることを確認します。
+
+- `manifest.json`
+- `_locales/`
+- `icons/`
+- `popup.html`
+- `popup.css`
+- `popup.js`
+- `options.html`
+- `options.js`
+- `settings.js`
+- `risk-detector.js`
+- `i18n.js`
+- `overlay.js`
+- `content.js`
+
+一覧に以下が含まれていないことを確認します。
+
+- `.git/`
+- `.github/`
+- `node_modules/`
+- `tests/`
+- `docs/`
+- `tools/`
+- `README.md`
+- `package.json`
+- `package-lock.json`
+- `biome.json`
+- `LICENSE`
+- `kotoba-uke-mimamori-icon.png`
+- `.DS_Store`
+
+ZIP作成後、Chrome拡張機能として手動読み込み確認を行い、問題がなければChrome Web Store Developer Dashboardへアップロードします。アップロード後も、Dashboard上で権限、説明文、スクリーンショット、プライバシー説明が意図どおり表示されることを確認します。
 
 ### 公開前QAチェックリスト
 

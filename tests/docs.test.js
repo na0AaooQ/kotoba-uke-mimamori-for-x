@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const DOCS_BASE_URL = 'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x';
 const SERVICE_PDF_PATH = 'assets/pdf/kotoba-uke-mimamori-introduction.pdf';
+const STORE_LISTING_DRAFT_PATH = 'store-listing-draft.md';
 const JA_MANUAL_IMAGES = Object.freeze([
   './assets/img/manual/001_manual-load-extension.jpeg',
   './assets/img/manual/002_manual-load-extension.png',
@@ -48,6 +49,13 @@ const MANUAL_ASSET_FILES = Object.freeze([
   'assets/img/manual/017_manual-cushion-ja-bigsize.png',
   'assets/img/manual/018_manual-cushion-ja-bigsize.png'
 ]);
+const STORE_LISTING_SCREENSHOT_CANDIDATES = Object.freeze([
+  'docs/assets/img/manual/017_manual-cushion-ja-bigsize.png',
+  'docs/assets/img/manual/010_manual-collapsed-ja.png',
+  'docs/assets/img/manual/007_manual-popup-ja-on.jpeg',
+  'docs/assets/img/manual/008_manual-popup-ja-on-more.png',
+  'docs/assets/img/manual/014_manual-cushion-en.png'
+]);
 const PAGE_PAIRS = Object.freeze([
   {
     name: 'about',
@@ -81,6 +89,7 @@ function runTests() {
   testServicePdfLinks();
   testManualImagesAndAltText();
   testManualAssetsExist();
+  testStoreListingDraft();
   testRuleBasedExplanation();
   testNotPurposeStatements();
   testDocsDoNotExposeInternalRuleIds();
@@ -165,6 +174,26 @@ function testManualAssetsExist() {
   }
 }
 
+function testStoreListingDraft() {
+  const draft = readDoc(STORE_LISTING_DRAFT_PATH);
+
+  assert.ok(draft.includes('ことばうけみまもり｜Xことばに心のワンクッション BETA'));
+  assert.ok(draft.includes('Kotoba Uke Mimamori BETA'));
+  assert.ok(draft.includes('THIS EXTENSION IS FOR BETA TESTING'));
+  assert.ok(draft.includes('権限説明'));
+  assert.ok(draft.includes('Permission explanation'));
+  assert.ok(draft.includes('審査向け補足説明'));
+  assert.ok(draft.includes('Review notes'));
+  assert.ok(draft.includes('スクリーンショット候補'));
+  assert.ok(draft.includes('storage'));
+  assert.ok(draft.includes('enabled'));
+  assert.ok(draft.includes('cushionSensitivity'));
+
+  for (const screenshotPath of STORE_LISTING_SCREENSHOT_CANDIDATES) {
+    assert.ok(draft.includes(screenshotPath));
+  }
+}
+
 function testRuleBasedExplanation() {
   const jaAbout = readDoc('about.html');
   const enAbout = readDoc('en/about.html');
@@ -194,7 +223,10 @@ function testNotPurposeStatements() {
 }
 
 function testDocsDoNotExposeInternalRuleIds() {
-  const allDocs = PAGE_PAIRS.flatMap((page) => [page.jaPath, page.enPath])
+  const allDocs = [
+    ...PAGE_PAIRS.flatMap((page) => [page.jaPath, page.enPath]),
+    STORE_LISTING_DRAFT_PATH
+  ]
     .map(readDoc)
     .join('\n');
   const forbiddenInternalSnippets = [
