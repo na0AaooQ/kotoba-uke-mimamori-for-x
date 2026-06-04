@@ -312,7 +312,7 @@ Chrome Web Store掲載準備の前段階として、ユーザー向けdocsにサ
 
 ### Chrome Web Store掲載用アイコン画像生成スクリプト
 
-Chrome Web Store掲載用および拡張機能manifest用のアイコン画像は、`tools/make_webstore_upload_image.sh` で生成できます。
+Chrome Web Store掲載用および拡張機能manifest用のアイコン画像は、`tools/make_webstore_upload_images.sh` で生成できます。
 
 このスクリプトは、`tools/kotoba-uke-mimamori-icon.png` を元画像として使用し、リポジトリ直下の `icons/` 配下に以下のPNGを生成します。
 
@@ -332,7 +332,7 @@ cd /Users/aokinaohisa/GitHub/kotoba-uke-mimamori-for-x/tools
 # 生成元画像 tools/kotoba-uke-mimamori-icon.png を配置してから実行します。
 # 例: cp /path/to/kotoba-uke-mimamori-icon.png ./kotoba-uke-mimamori-icon.png
 
-./make_webstore_upload_image.sh
+./make_webstore_upload_images.sh
 ```
 
 生成後は、以下で画像サイズを確認できます。
