@@ -349,6 +349,48 @@ file ../icons/icon1024.png
 
 `manifest.json` では `16` / `32` / `48` / `128` px のアイコンを使用します。`256` / `512` / `1024` px は、Chrome Web Store掲載素材や将来利用のために保持します。
 
+### Chrome Web Store掲載用画像生成スクリプト
+
+Chrome Web Store掲載用のスクリーンショット画像やプロモーション画像は、`tools/` 配下のスクリプトで生成できます。
+
+使用する主な入力ディレクトリ:
+
+- `tools/webstore_screenshot_sources/`
+  - 640x400 のストア掲載用スクリーンショット元画像を配置します。
+- `tools/webstore_icons_sources/`
+  - 440x280 / 1400x560 の掲載用画像元素材を配置します。
+
+出力先:
+
+- `tools/webstore_screenshot_outputs/`
+
+実行例:
+
+```sh
+# 640x400 のストア掲載用スクリーンショットを生成します。
+./tools/make_webstore_screenshots_640_400.sh
+
+# 440x280 の掲載用画像を生成します。
+./tools/make_webstore_screenshots_440_280.sh
+
+# 1400x560 の掲載用画像を生成します。
+./tools/make_webstore_screenshots_1400_560.sh
+```
+
+`tools/` 配下から実行する場合:
+
+```sh
+cd tools
+
+./make_webstore_screenshots_640_400.sh
+./make_webstore_screenshots_440_280.sh
+./make_webstore_screenshots_1400_560.sh
+```
+
+各スクリプトは、自身の場所から入力元と出力先を判定します。生成後は `file` コマンドで画像サイズと形式が表示されます。
+
+これらのスクリプトは、macOS標準の `sips` と、Pythonの `PIL` / `Pillow` を使用してPNG画像を生成し、RGB形式へ変換します。
+
 ### Google Developers DashboardでChrome ウェブストアへ審査申請をする時のZIPパッケージ作成手順
 
 Chrome Web StoreへアップロードするZIPには、拡張機能本体として必要なファイルのみを含めます。`.git/`、`.github/`、`node_modules/`、`tests/`、`docs/`、`tools/`、`README.md`、`package.json`、`package-lock.json`、生成元画像、開発用設定ファイル、ローカル確認用ファイル、スクリーンショット素材、サービス説明PDFなどは同梱しません。
