@@ -1,8 +1,18 @@
 #!/bin/bash
 
+#######################################
+# Google Chrome拡張機能 [ことばうけみまもり｜Xことばに心のワンクッション] 用のアイコン画像生成スクリプト
+#
+# Scripts:
+#   make_webstore_upload_images.sh
+#
+# Uages:
+#   https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/blob/main/README.md
+#
+#######################################
 set -eu
 
-SOURCE_IMAGE="kotoba-uke-mimamori-icon.png"
+SOURCE_IMAGE="./webstore_icons_sources/kotoba-uke-mimamori-icon.png"
 OUTPUT_DIR="../icons"
 
 if [ ! -f "${SOURCE_IMAGE}" ]; then
@@ -10,7 +20,9 @@ if [ ! -f "${SOURCE_IMAGE}" ]; then
   exit 1
 fi
 
-mkdir -p "${OUTPUT_DIR}"
+if [ ! -d "${OUTPUT_DIR}" ] ; then
+  mkdir -p "${OUTPUT_DIR}"
+fi
 
 # Chrome extension manifest icons
 sips -z 16 16 "${SOURCE_IMAGE}" --setProperty format png --out "${OUTPUT_DIR}/icon16.png"
