@@ -2,12 +2,15 @@
 Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」のソースコード管理リポジトリです。
 
 - GitHubリポジトリURL: [https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/](https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/)
+- Chrome Web Store: [ことばうけみまもり｜Xことばに心のワンクッション](https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb)
+- 現在のステータス: Chrome Web Store 限定公開ベータ版公開済み
+- バージョン: `0.1.1`
 
 ## 概要
 
 「ことばうけみまもり｜Xことばに心のワンクッション」は、X（旧Twitter）で届く言葉のなかで、受け手の心に大きな負荷を与える可能性のある投稿に、そっとワンクッションを置くための補助ツールです。
 人格否定・存在否定・差別的表現・執拗な攻撃など、心に大きな負荷を与える可能性のある投稿を、すぐに読まなくてもよい形にし、ユーザーが「表示する / 今は見ない」を選べるようにすることを目指します。
-本リポジトリは、現在MVP開発およびベータ版Chrome Web Store提出準備段階です。
+現在は、Chrome Web Storeで限定公開ベータ版を公開しており、Chrome Web Storeから拡張機能を追加できます。
 
 ## コンセプト
 
@@ -31,7 +34,7 @@ SNSには、人と人をつなぎ、孤独を和らげ、励ましや対話を�
 - サービス説明ページは以下になります。
   - サービス説明ページは日本語・英語で公開しています。
     - [ことばうけみまもり サービス説明](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/about.html)
-    - [Kotoba Uke Mimamori About Page (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/privacy.html)
+    - [Kotoba Uke Mimamori About Page (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/about.html)
   - 各言語のページは docs/**/ 配下に配置しています。
 
 ## 本機能のプライバシーポリシーページ
@@ -45,9 +48,17 @@ SNSには、人と人をつなぎ、孤独を和らげ、励ましや対話を�
 ## 本機能の操作マニュアルページ
 
 - 操作マニュアルページは以下になります。
-  - 操作マニュアルページはは日本語・英語で公開しています。
-    - [ことばうけみまもり 操作マニュアル](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/privacy.html)
+  - 操作マニュアルページは日本語・英語で公開しています。
+    - [ことばうけみまもり 操作マニュアル](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/manual.html)
     - [Kotoba Uke Mimamori User Manual (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/manual.html)
+  - 各言語のページは docs/**/ 配下に配置しています。
+
+## 本機能の免責事項ページ
+
+- 免責事項ページは以下になります。
+  - 免責事項ページは日本語・英語で公開しています。
+    - [ことばうけみまもり 免責事項](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/disclaimer.html)
+    - [Kotoba Uke Mimamori Disclaimer (English)](https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/disclaimer.html)
   - 各言語のページは docs/**/ 配下に配置しています。
 
 ## MVP方針
@@ -56,7 +67,7 @@ MVPでは、高信頼性を優先します。
 
 健全な批判・異論・反対意見を広く検知するのではなく、人格否定・存在否定・差別的表現・強い罵倒など、受け手の心に大きな負荷を与える可能性が高い表現に限定して、読む前のワンクッションを置きます。
 
-初期判定は、AI判定ではなく、ローカル処理によるルールベース + スコアリング方式を想定します。
+判定は、外部AIではなく、Chromeブラウザ内の固定的なルールベース + スコアリング方式で行います。判定は完全ではなく、誤判定や未検出が生じる場合があります。
 
 ## MVPでやること
 
@@ -123,7 +134,7 @@ MVPでは、以下のカテゴリを中心に判定します。
 
 ## スコアリング方針
 
-内部的には、投稿本文に対して 0〜100 のリスクスコアを算出する想定です。
+内部的には、投稿本文に対して 0〜100 のリスクスコアを算出します。
 
 | スコア | 内部判定 | MVPでの扱い |
 |---:|---|---|
@@ -185,9 +196,9 @@ MVPでは、以下のカテゴリを中心に判定します。
 
 ON/OFFおよび表示されやすさの変更は、現時点では開いているXページを再読み込みすると反映されます。リアルタイム反映は今後検討予定です。投稿本文・判定結果・URL・ユーザー情報は保存しません。
 
-## フィルター感度設定の設計メモ（実装前）
+## フィルター感度設定の設計
 
-自己常時ON試用で得た「ワンクッションUIの表示されやすさを自分で変更したい」という改善候補について、MVPに追加する前に整理した設計メモです。本節の方針に基づき、オプション画面で `少なめ` / `標準` / `多め` を選択できるフィルター感度設定を実装しました。標準しきい値 `DEFAULT_CUSHION_THRESHOLD = 80`、初期設定 `enabled=false`、開発用フラグがいずれも `false` である状態は維持します。
+自己常時ON試用で得た「ワンクッションUIの表示されやすさを自分で変更したい」という改善候補をもとに、オプション画面で `少なめ` / `標準` / `多め` を選択できるフィルター感度設定を実装しています。標準しきい値 `DEFAULT_CUSHION_THRESHOLD = 80`、初期設定 `enabled=false`、開発用フラグがいずれも `false` である状態は維持します。
 
 ### 3段階の表示設定
 
@@ -201,7 +212,7 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 
 `high` は心に負荷がかかる可能性のある表現へ反応する範囲を広げる設定であり、健全な批判・異論・反対意見を対象にする方針への変更ではありません。初期値は `standard` とし、未設定時にも従来の標準挙動が変わらないようにします。
 
-### 保存する設定値案
+### 保存する設定値
 
 保存キーは、何の感度かが読み取れる `cushionSensitivity` を採用しています。`sensitivity` よりも、将来ほかの設定が増えた際に意味が明確です。
 
@@ -214,7 +225,7 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 
 `chrome.storage.local` に保存する対象は、この2つのユーザー設定値だけに限定します。`cushionSensitivity` が未設定または不正値の場合は `standard` に正規化します。
 
-### 実装の接続方針
+### 実装構成
 
 `risk-detector.js`:
 
@@ -251,7 +262,7 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 ( ) 多め    少し軽めの表現にも表示されやすくします。
 ```
 
-### privacy / manual ページへの影響
+### privacy / manual ページへの反映
 
 `docs/privacy.html` に、保存する設定値が `enabled` と `cushionSensitivity` であること、および投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、`score`、`matchedRules`、`categories`、`reasons` を保存しないことを明記しています。投稿本文や判定結果を外部送信しない方針も維持します。文言は現在のMVPの説明であり、法務文言を最終確定するものではありません。
 
@@ -278,15 +289,15 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 
 初期案としては正規表現ではなく、1行1語の部分一致から検討します。外部送信は行いません。MVP向けのフィルター感度設定では、ユーザー追加ワードの入力UI、保存処理、判定処理は実装しません。
 
-## Chrome Web Store 掲載準備向け docs 整備
+## Chrome Web Store 公開向け docs 整備
 
-Chrome Web Store掲載準備の前段階として、ユーザー向けdocsにサービス説明資料PDFとスクリーンショット付きマニュアルを追加しています。
+Chrome Web Store限定公開ベータ版の公開にあわせて、ユーザー向けdocsにサービス説明資料PDFとスクリーンショット付きマニュアルを追加しています。
 
 - サービス説明PDF: `docs/assets/pdf/kotoba-uke-mimamori-introduction.pdf`
 - 日本語マニュアル画像: `docs/assets/img/manual/001_manual-load-extension.jpeg` から `018_manual-cushion-ja-bigsize.png`
 - 英語マニュアル画像: 英語UIのpopup、ワンクッション、折りたたみ、内容表示のスクリーンショット
 
-`docs/about.html`、`docs/privacy.html`、`docs/manual.html` と英語版 `docs/en/*.html` では、以下をユーザー向けに説明しています。
+`docs/about.html`、`docs/privacy.html`、`docs/disclaimer.html`、`docs/manual.html` と英語版 `docs/en/*.html` では、以下をユーザー向けに説明しています。
 
 - ワンクッションは投稿を完全に消すものではなく、「内容を表示する / 今は見ない」をユーザーが選べる補助ツールであること
 - 判定はブラウザ内の固定的なルールベースで行い、外部AIサーバーへ投稿本文を送らないこと
@@ -297,9 +308,9 @@ Chrome Web Store掲載準備の前段階として、ユーザー向けdocsにサ
 
 ユーザー向けdocsでは、具体的な判定語句や `risk-detector.js` 内の具体的な文字列・正規表現を直接掲載しない方針です。説明は、強い侮辱表現、存在否定に近い表現、暴力的・脅迫的に読める表現、心に大きな負荷がかかりやすい表現などのカテゴリ表現に留めます。
 
-### ベータ版Chrome Web Store提出準備
+### ベータ版Chrome Web Store掲載内容
 
-ベータ版Chrome Web Store提出準備として、以下を反映しています。
+Chrome Web Store限定公開ベータ版の掲載にあたり、以下を反映しています。
 
 - 専用アイコンを `icons/` 配下に追加しています。
 - `manifest.json` の `icons` と `action.default_icon` に `16` / `32` / `48` / `128` px のアイコンを設定しています。
@@ -308,7 +319,7 @@ Chrome Web Store掲載準備の前段階として、ユーザー向けdocsにサ
 - `manifest.json` の `name` / `description` は `__MSG_extensionName__` / `__MSG_extensionDescription__` のまま維持し、実際の文言は `_locales/ja/messages.json` と `_locales/en/messages.json` で管理しています。
 - Chrome Web Store掲載用の日本語 / 英語文案、権限説明、審査向け補足説明、スクリーンショット候補を `docs/store-listing-draft.md` に整理しています。
 
-提出準備時点でも、使用権限は `storage` のみに限定します。`host_permissions` は使用しません。投稿本文や判定結果は外部送信せず、保存する設定値も `enabled` と `cushionSensitivity` のみに限定します。自動ブロック、自動通報、アカウント危険度判定は行いません。
+公開中のバージョン `0.1.1` でも、使用権限は `storage` のみに限定しています。`host_permissions` は使用しません。投稿本文や判定結果は外部送信せず、保存する設定値も `enabled` と `cushionSensitivity` のみに限定します。自動ブロック、自動通報、投稿削除、アカウント危険度判定は行いません。X公式機能を置き換えるものではありません。
 
 ### Chrome Web Store掲載用アイコン画像生成スクリプト
 
@@ -391,7 +402,7 @@ cd tools
 
 これらのスクリプトは、macOS標準の `sips` と、Pythonの `PIL` / `Pillow` を使用してPNG画像を生成し、RGB形式へ変換します。
 
-### Google Developers DashboardでChrome ウェブストアへ審査申請をする時のZIPパッケージ作成手順
+### Chrome Web Storeへの申請・更新時のZIPパッケージ作成手順
 
 Chrome Web StoreへアップロードするZIPには、拡張機能本体として必要なファイルのみを含めます。`.git/`、`.github/`、`node_modules/`、`tests/`、`docs/`、`tools/`、`README.md`、`package.json`、`package-lock.json`、生成元画像、開発用設定ファイル、ローカル確認用ファイル、スクリーンショット素材、サービス説明PDFなどは同梱しません。
 
@@ -479,14 +490,14 @@ ZIP_PATH="$PWD/dist/kotoba-uke-mimamori-for-x-0.1.1-beta.zip" ./tools/make_webst
 - `kotoba-uke-mimamori-icon.png`
 - `.DS_Store`
 
-ZIP作成後、Chrome拡張機能として手動読み込み確認を行い、問題がなければChrome Web Store Developer Dashboardへアップロードします。アップロード後も、Dashboard上で権限、説明文、スクリーンショット、プライバシー説明が意図どおり表示されることを確認します。
+ZIP作成後は内容を確認し、Chrome Web Storeの申請・更新時にDeveloper Dashboardへアップロードします。アップロード後も、Dashboard上で権限、説明文、スクリーンショット、プライバシー説明が意図どおり表示されることを確認します。
 
-### 公開前QAチェックリスト
+### 公開・更新時QAチェックリスト
 
 - PDFリンクが日本語 / 英語のaboutページとprivacyページから開けること
 - manual画像が日本語 / 英語ページで表示されること
 - 主要画像に適切な `alt` 属性があること
-- 公開前の手動確認版の読み込み手順と、Chrome Web Store公開後の一般利用手順が混同されていないこと
+- Chrome Web Storeから追加する一般利用手順が、日本語 / 英語のマニュアルで正しく案内されていること
 - ルールベース判定、外部送信なし、保存値限定の説明が実装と一致していること
 - 具体的な酷い語句や攻撃的な語句がユーザー向けdocsに直接出ていないこと
 - 投稿者を裁く説明、自動ブロックや自動通報を行うように見える説明がないこと
@@ -504,7 +515,7 @@ Chrome拡張機能の i18n 仕組みに合わせて、UI文言、manifest上の�
 
 MVPでは日本語を主言語としつつ、英語メッセージファイルも同時に用意し、将来的に他言語を追加しやすい構成にします。
 
-現在は、Chrome拡張本体の英語UI文言を確認・補強し、docsページにも英語版を追加しています。`docs/en/about.html`、`docs/en/privacy.html`、`docs/en/manual.html` を用意し、日本語 / English を切り替えられる言語選択プルダウンを各docsページに追加しています。
+Chrome拡張本体の英語UI文言を確認・補強し、docsページにも英語版を追加しています。`docs/en/about.html`、`docs/en/privacy.html`、`docs/en/disclaimer.html`、`docs/en/manual.html` を用意し、日本語 / English を切り替えられる言語選択プルダウンを各docsページに追加しています。
 
 今回の英語対応では、英語話者にも本ツールの思想、プライバシー方針、使い方が最低限伝わる状態を目指しています。一方で、英語投稿向けリスク検知ルールの本格追加は行っていません。判定ロジックや保存値、外部通信方針は変更せず、MVPの安全側の設計を維持します。
 
@@ -806,9 +817,9 @@ Chrome拡張を再読み込みし、この文言を含むテスト投稿また�
 - OFFへ切り替えた時点で処理途中の投稿があっても、表示を壊さず安全側に倒す
 - リアルタイム反映は、既存DOM状態・ぼかし状態・ワンクッションUI状態の扱いが複雑になるため、別PRで慎重に検討する
 
-## 公開前QAチェックリスト
+## 公開・更新時QAチェックリスト
 
-Chrome Web Store での公開前には、Chrome拡張を再読み込みしたうえで、設定変更後に開いているXページを再読み込みして確認します。`shouldCushion=true` の表示確認には、実在の攻撃的な投稿を用意するのではなく、安全なテスト導線またはテスト用DOMを使用します。
+Chrome Web Storeでの公開・更新時には、開発環境でChrome拡張を再読み込みしたうえで、設定変更後に開いているXページを再読み込みして確認します。`shouldCushion=true` の表示確認には、実在の攻撃的な投稿を用意するのではなく、安全なテスト導線またはテスト用DOMを使用します。
 
 ### 1. 基本状態・初期設定
 
@@ -926,9 +937,11 @@ XのDOM変更に備えて継続確認すること:
 
 - [ ] `docs/about.html` が表示できる
 - [ ] `docs/privacy.html` が表示できる
+- [ ] `docs/disclaimer.html` が表示できる
 - [ ] `docs/manual.html` が表示できる
 - [ ] `docs/en/about.html` が表示できる
 - [ ] `docs/en/privacy.html` が表示できる
+- [ ] `docs/en/disclaimer.html` が表示できる
 - [ ] `docs/en/manual.html` が表示できる
 - [ ] 日本語ページの言語プルダウンから English ページへ移動できる
 - [ ] 英語ページの言語プルダウンから日本語ページへ移動できる
@@ -972,7 +985,7 @@ XのDOM変更に備えて継続確認すること:
 - [ ] `npm run check` が成功する
 - [ ] `git diff --check` が成功する
 
-### 12. 公開前QA実施記録
+### 12. 公開・更新時QA実施記録
 
 QA実施後は、必要に応じて以下をPR本文や確認メモに転記します。
 
@@ -1007,7 +1020,7 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 
 ## 自己常時ON試用
 
-自己常時ON試用は、本番公開やベータテストの前に、開発者本人のPC・ブラウザのみで `enabled=true` の状態を一定期間維持し、Xの通常利用に支障がないかを確認するためのものです。
+自己常時ON試用は、限定公開ベータ版の継続改善に向けて、開発者本人のPC・ブラウザのみで `enabled=true` の状態を一定期間維持し、Xの通常利用に支障がないかを確認するためのものです。
 
 通常のQAでは見えにくい、スクロール時の違和感、表示崩れ、過検知、心理的な負担、ライト/ダークモードでの見え方、Xの各画面での挙動を確認します。
 
@@ -1102,24 +1115,26 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 
 - `docs/about.html`
 - `docs/privacy.html`
+- `docs/disclaimer.html`
 - `docs/manual.html`
 - `docs/en/about.html`
 - `docs/en/privacy.html`
+- `docs/en/disclaimer.html`
 - `docs/en/manual.html`
 
-`docs/about.html`、`docs/privacy.html`、`docs/manual.html` では、「いきなり読ませない。でも、読む自由も残す」という本ツールの位置づけを説明しています。外部送信を行わないこと、保存対象が `enabled` と `cushionSensitivity` のみであること、ON/OFFおよび表示されやすさの反映方法やワンクッションUIの動作も記載しています。
+`docs/about.html`、`docs/privacy.html`、`docs/disclaimer.html`、`docs/manual.html` では、「いきなり読ませない。でも、読む自由も残す」という本ツールの位置づけを説明しています。外部送信を行わないこと、保存対象が `enabled` と `cushionSensitivity` のみであること、ON/OFFおよび表示されやすさの反映方法やワンクッションUIの動作も記載しています。
 
-英語版の `docs/en/about.html`、`docs/en/privacy.html`、`docs/en/manual.html` では、英語話者にも自然に伝わるよう、強い断定を避けながら「読む前の小さな選択肢」「投稿者を裁くためではなく読む側の心を守る補助ツール」「投稿本文や判定結果を外部送信しない」という方針を説明しています。
+英語版の `docs/en/about.html`、`docs/en/privacy.html`、`docs/en/disclaimer.html`、`docs/en/manual.html` では、英語話者にも自然に伝わるよう、強い断定を避けながら「読む前の小さな選択肢」「投稿者を裁くためではなく読む側の心を守る補助ツール」「投稿本文や判定結果を外部送信しない」という方針を説明しています。
 
 各docsページには、日本語 / English を切り替えられる言語選択プルダウンを追加しています。日本語ページでは English を選ぶと対応する `docs/en/` ページへ移動し、英語ページでは日本語を選ぶと対応する日本語ページへ戻ります。各ページには、GitHub Pages公開URLに合わせた `canonical` と `hreflang="ja"` / `hreflang="en"` も設定しています。
 
-`docs/privacy.html` には、開発者情報とお問い合わせ先を追加し、センシティブな情報を公開の場や問い合わせ内容に記載しないよう案内しています。また、3ページの数字付き目次と見出し、共通レイアウトおよびフッター表記を整えています。
+`docs/privacy.html` には、開発者情報とお問い合わせ先を追加し、センシティブな情報を公開の場や問い合わせ内容に記載しないよう案内しています。また、日本語 / 英語の各4ページに数字付き目次と見出し、共通レイアウトおよびフッター表記を整えています。
 
 内容は今後、自己常時ON試用やベータテストで得た気づきを反映しながら更新していきます。
 
 ## 技術方針
 
-初期MVPでは、以下の構成を想定します。
+現在のMVPは、以下の構成です。
 
 ```
 Chrome Extension
@@ -1208,15 +1223,21 @@ npm run check
 
 ## 開発ステータス
 
-現在のステータス: Chrome拡張として読み込むための最小構成に加え、X上の投稿DOM候補検出、投稿本文抽出関数、`risk-detector.js` とのドライラン接続、件数のみの安全なログ出力、`shouldCushion=true` 候補への内部マーキング、開発用フラグ配下でのワンクッションUI試験挿入を追加済みです。本格的なワンクッション適用は今後実装予定です。
+現在のステータス: Chrome Web Store 限定公開ベータ版公開済みです。
+
+Chrome拡張機能として、X上の投稿DOM候補検出、投稿本文抽出、固定的なルールベース判定、ワンクッションUI表示、ぼかし表示、「内容を表示する」「今は見ない」の導線、ON/OFF設定、ワンクッションの表示されやすさ設定、ポップアップ、オプション画面、日本語・英語UI、公開ドキュメント整備まで実装済みです。
+
+バージョン `0.1.1` をChrome Web Storeから追加して、基本動作確認済みです。日本語 / 英語のサービス説明、プライバシーポリシー、免責事項、操作マニュアルを公開し、マニュアルはChrome Web Store公開後の追加手順へ更新済みです。マニュアル画像の拡大モーダルも追加済みです。
 
 ## 今後の予定
 
-- X上のDOM抽出方式の継続確認
-- 投稿本文抽出とDOM監視の調整
-- 開発用フラグ配下での `overlay.js` 実画面接続確認
-- ワンクッションUIの実画面への適用
-- Chrome拡張機能としての手動読み込み確認
+- ベータ版利用者からのフィードバック確認
+- XのDOM変更に対する継続確認
+- 誤判定・未検出の傾向確認
+- UI文言や表示タイミングの改善検討
+- 必要に応じたルールベース判定の慎重な調整
+- ユーザー追加ワード機能など次フェーズ候補の検討
+- README / docs / Chrome Web Store掲載情報の継続更新
 
 ## 関連プロジェクト
 
