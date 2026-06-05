@@ -10,6 +10,7 @@ const STORE_LISTING_DRAFT_PATH = 'store-listing-draft.md';
 const MANUAL_MODAL_SCRIPT_PATH = 'assets/js/manual-image-modal.js';
 const CHROME_WEB_STORE_URL =
   'https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb';
+const GITHUB_REPOSITORY_URL = 'https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x';
 const JA_MANUAL_IMAGES = Object.freeze([
   './assets/img/manual/005_manual-popup-ja-off.jpeg',
   './assets/img/manual/006_manual-popup-ja-off.jpeg',
@@ -129,6 +130,7 @@ function runTests() {
   testChromeWebStoreManual();
   testDisclaimers();
   testDocsNavigation();
+  testGitHubRepositoryLinks();
   testStoreListingDraft();
   testRuleBasedExplanation();
   testNotPurposeStatements();
@@ -189,6 +191,28 @@ function testServicePdfLinks() {
   assertPdfLink(jaPrivacy, `./${SERVICE_PDF_PATH}`, 'サービス説明資料PDFを見る');
   assertPdfLink(enAbout, `../${SERVICE_PDF_PATH}`, 'View the service introduction PDF');
   assertPdfLink(enPrivacy, `../${SERVICE_PDF_PATH}`, 'View the service introduction PDF');
+}
+
+function testGitHubRepositoryLinks() {
+  for (const page of PAGE_PAIRS) {
+    assertGitHubRepositoryLink(
+      readDoc(page.jaPath),
+      'ことばうけみまもりのGitHubリポジトリを表示する'
+    );
+    assertGitHubRepositoryLink(readDoc(page.enPath), 'View source code on GitHub');
+  }
+
+  const sharedStyles = readDoc('assets/css/style.css');
+  assert.ok(sharedStyles.includes('.github-repository-link'));
+}
+
+function assertGitHubRepositoryLink(html, label) {
+  assert.ok(html.includes('class="github-repository-link"'));
+  assert.ok(
+    html.includes(
+      `<a href="${GITHUB_REPOSITORY_URL}" target="_blank" rel="noopener noreferrer">${label}</a>`
+    )
+  );
 }
 
 function testManualImagesAndAltText() {
