@@ -7,11 +7,10 @@ const path = require('node:path');
 const DOCS_BASE_URL = 'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x';
 const SERVICE_PDF_PATH = 'assets/pdf/kotoba-uke-mimamori-introduction.pdf';
 const STORE_LISTING_DRAFT_PATH = 'store-listing-draft.md';
+const MANUAL_MODAL_SCRIPT_PATH = 'assets/js/manual-image-modal.js';
+const CHROME_WEB_STORE_URL =
+  'https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb';
 const JA_MANUAL_IMAGES = Object.freeze([
-  './assets/img/manual/001_manual-load-extension.jpeg',
-  './assets/img/manual/002_manual-load-extension.png',
-  './assets/img/manual/003_manual-load-extension.png',
-  './assets/img/manual/004_manual-load-extension.png',
   './assets/img/manual/005_manual-popup-ja-off.jpeg',
   './assets/img/manual/006_manual-popup-ja-off.jpeg',
   './assets/img/manual/007_manual-popup-ja-on.jpeg',
@@ -20,14 +19,34 @@ const JA_MANUAL_IMAGES = Object.freeze([
   './assets/img/manual/010_manual-collapsed-ja.png',
   './assets/img/manual/011_manual-show-content-ja.png',
   './assets/img/manual/017_manual-cushion-ja-bigsize.png',
-  './assets/img/manual/018_manual-cushion-ja-bigsize.png'
+  './assets/img/manual/018_manual-cushion-ja-bigsize.png',
+  './assets/img/manual/019_manual-add-extensions-ja.png',
+  './assets/img/manual/020_manual-add-extensions-ja.png',
+  './assets/img/manual/021_manual-add-extensions-ja.png',
+  './assets/img/manual/022_manual-add-extensions-ja.png',
+  './assets/img/manual/023_manual-add-extensions-ja.png',
+  './assets/img/manual/024_manual-add-extensions-ja.png',
+  './assets/img/manual/025_manual-add-extensions-ja.png',
+  './assets/img/manual/026_manual-add-extensions-ja.png',
+  './assets/img/manual/027_manual-add-extensions-ja.png',
+  './assets/img/manual/028_manual-add-extensions-ja.png'
 ]);
 const EN_MANUAL_IMAGES = Object.freeze([
   '../assets/img/manual/012_manual-popup-en-off.jpeg',
   '../assets/img/manual/013_manual-popup-en-on.jpeg',
   '../assets/img/manual/014_manual-cushion-en.png',
   '../assets/img/manual/015_manual-collapsed-en.png',
-  '../assets/img/manual/016_manual-show-content-en.png'
+  '../assets/img/manual/016_manual-show-content-en.png',
+  '../assets/img/manual/019_manual-add-extensions-ja.png',
+  '../assets/img/manual/020_manual-add-extensions-ja.png',
+  '../assets/img/manual/021_manual-add-extensions-ja.png',
+  '../assets/img/manual/022_manual-add-extensions-ja.png',
+  '../assets/img/manual/023_manual-add-extensions-ja.png',
+  '../assets/img/manual/024_manual-add-extensions-ja.png',
+  '../assets/img/manual/025_manual-add-extensions-ja.png',
+  '../assets/img/manual/026_manual-add-extensions-ja.png',
+  '../assets/img/manual/027_manual-add-extensions-ja.png',
+  '../assets/img/manual/028_manual-add-extensions-ja.png'
 ]);
 const MANUAL_ASSET_FILES = Object.freeze([
   'assets/img/manual/001_manual-load-extension.jpeg',
@@ -47,7 +66,17 @@ const MANUAL_ASSET_FILES = Object.freeze([
   'assets/img/manual/015_manual-collapsed-en.png',
   'assets/img/manual/016_manual-show-content-en.png',
   'assets/img/manual/017_manual-cushion-ja-bigsize.png',
-  'assets/img/manual/018_manual-cushion-ja-bigsize.png'
+  'assets/img/manual/018_manual-cushion-ja-bigsize.png',
+  'assets/img/manual/019_manual-add-extensions-ja.png',
+  'assets/img/manual/020_manual-add-extensions-ja.png',
+  'assets/img/manual/021_manual-add-extensions-ja.png',
+  'assets/img/manual/022_manual-add-extensions-ja.png',
+  'assets/img/manual/023_manual-add-extensions-ja.png',
+  'assets/img/manual/024_manual-add-extensions-ja.png',
+  'assets/img/manual/025_manual-add-extensions-ja.png',
+  'assets/img/manual/026_manual-add-extensions-ja.png',
+  'assets/img/manual/027_manual-add-extensions-ja.png',
+  'assets/img/manual/028_manual-add-extensions-ja.png'
 ]);
 const STORE_LISTING_SCREENSHOT_CANDIDATES = Object.freeze([
   'docs/assets/img/manual/017_manual-cushion-ja-bigsize.png',
@@ -77,6 +106,13 @@ const PAGE_PAIRS = Object.freeze([
     enPath: 'en/manual.html',
     jaToEn: './en/manual.html',
     enToJa: '../manual.html'
+  },
+  {
+    name: 'disclaimer',
+    jaPath: 'disclaimer.html',
+    enPath: 'en/disclaimer.html',
+    jaToEn: './en/disclaimer.html',
+    enToJa: '../disclaimer.html'
   }
 ]);
 
@@ -89,6 +125,10 @@ function runTests() {
   testServicePdfLinks();
   testManualImagesAndAltText();
   testManualAssetsExist();
+  testManualImageModal();
+  testChromeWebStoreManual();
+  testDisclaimers();
+  testDocsNavigation();
   testStoreListingDraft();
   testRuleBasedExplanation();
   testNotPurposeStatements();
@@ -171,6 +211,170 @@ function testManualAssetsExist() {
   for (const assetPath of MANUAL_ASSET_FILES) {
     const filePath = path.join(__dirname, '..', 'docs', assetPath);
     assert.equal(fs.existsSync(filePath), true);
+  }
+}
+
+function testManualImageModal() {
+  const jaManual = readDoc('manual.html');
+  const enManual = readDoc('en/manual.html');
+  const modalScript = readDoc(MANUAL_MODAL_SCRIPT_PATH);
+  const sharedStyles = readDoc('assets/css/style.css');
+
+  assert.ok(jaManual.includes(`<script src="./${MANUAL_MODAL_SCRIPT_PATH}"></script>`));
+  assert.ok(enManual.includes(`<script src="../${MANUAL_MODAL_SCRIPT_PATH}"></script>`));
+
+  assert.ok(modalScript.includes("document.querySelectorAll('.manual-figure img')"));
+  assert.ok(modalScript.includes("document.createElement('dialog')"));
+  assert.ok(modalScript.includes('dialog.showModal()'));
+  assert.ok(modalScript.includes('dialog.close()'));
+  assert.ok(modalScript.includes("closeButton.textContent = '×'"));
+  assert.ok(modalScript.includes("dialog.addEventListener('click', closeModal)"));
+  assert.ok(modalScript.includes("dialog.addEventListener('cancel'"));
+  assert.ok(modalScript.includes("event.key !== 'Enter'"));
+  assert.ok(modalScript.includes("event.key !== ' '"));
+  assert.ok(modalScript.includes("event.key === 'Escape'"));
+
+  assert.ok(sharedStyles.includes('.image-modal'));
+  assert.ok(sharedStyles.includes('.image-modal::backdrop'));
+  assert.ok(sharedStyles.includes('.image-modal__close'));
+  assert.ok(sharedStyles.includes('.image-modal__image'));
+}
+
+function testChromeWebStoreManual() {
+  const jaManual = readDoc('manual.html');
+  const enManual = readDoc('en/manual.html');
+
+  assert.ok(jaManual.includes(CHROME_WEB_STORE_URL));
+  assert.ok(jaManual.includes('1. Chrome ウェブストアから拡張機能を追加する'));
+  assert.ok(jaManual.includes('「Chrome に追加」'));
+  assert.ok(jaManual.includes('「インストールに進む」'));
+  assert.ok(jaManual.includes('「拡張機能を追加」'));
+  assert.equal(jaManual.includes('公開前の手動確認版'), false);
+  assert.equal(jaManual.includes('パッケージ化されていない拡張機能'), false);
+
+  assert.ok(enManual.includes(CHROME_WEB_STORE_URL));
+  assert.ok(enManual.includes('1. Add the extension from the Chrome Web Store'));
+  assert.ok(enManual.includes('&quot;Add to Chrome&quot;'));
+  assert.ok(enManual.includes('&quot;Continue to install&quot;'));
+  assert.ok(enManual.includes('&quot;Add extension&quot;'));
+  assert.equal(/pre-release/iu.test(enManual), false);
+  assert.equal(/Load unpacked/iu.test(enManual), false);
+  assert.equal(/Developer mode/iu.test(enManual), false);
+
+  const jaStoreFigures = [
+    ['./assets/img/manual/019_manual-add-extensions-ja.png', '「Chrome に追加」をクリックします。'],
+    [
+      './assets/img/manual/020_manual-add-extensions-ja.png',
+      '「インストールに進む」をクリックします。'
+    ],
+    [
+      './assets/img/manual/021_manual-add-extensions-ja.png',
+      '「拡張機能を追加」をクリックします。'
+    ],
+    [
+      './assets/img/manual/022_manual-add-extensions-ja.png',
+      'ことばうけみまもりが追加されたことを確認します。'
+    ],
+    [
+      './assets/img/manual/025_manual-add-extensions-ja.png',
+      'ことばうけみまもりをピン留めします。'
+    ],
+    [
+      './assets/img/manual/023_manual-add-extensions-ja.png',
+      '初期状態のOFFと表示されやすさの設定を確認します。'
+    ],
+    [
+      './assets/img/manual/024_manual-add-extensions-ja.png',
+      '拡張機能をONにし、必要な表示されやすさを選びます。'
+    ],
+    [
+      './assets/img/manual/026_manual-add-extensions-ja.png',
+      '読むか、今は見ないかを選べることを確認します。'
+    ],
+    [
+      './assets/img/manual/027_manual-add-extensions-ja.png',
+      '「今は見ない」を選んだ後も、あとから内容を表示できます。'
+    ],
+    [
+      './assets/img/manual/028_manual-add-extensions-ja.png',
+      '「内容を表示する」をクリックすると、投稿本文を確認できます。'
+    ]
+  ];
+  const enStoreFigures = [
+    ['../assets/img/manual/019_manual-add-extensions-ja.png', 'Click &quot;Add to Chrome&quot;.'],
+    [
+      '../assets/img/manual/020_manual-add-extensions-ja.png',
+      'click &quot;Continue to install&quot;.'
+    ],
+    ['../assets/img/manual/021_manual-add-extensions-ja.png', 'click &quot;Add extension&quot;.'],
+    [
+      '../assets/img/manual/022_manual-add-extensions-ja.png',
+      'Confirm that the extension was added to Chrome.'
+    ],
+    [
+      '../assets/img/manual/025_manual-add-extensions-ja.png',
+      'pin Kotoba Uke Mimamori to the toolbar.'
+    ],
+    [
+      '../assets/img/manual/023_manual-add-extensions-ja.png',
+      'review the initial OFF state and sensitivity options.'
+    ],
+    [
+      '../assets/img/manual/024_manual-add-extensions-ja.png',
+      'Turn the extension ON and choose the sensitivity you prefer.'
+    ],
+    [
+      '../assets/img/manual/026_manual-add-extensions-ja.png',
+      'choose whether to read the post or not read it now.'
+    ],
+    [
+      '../assets/img/manual/027_manual-add-extensions-ja.png',
+      'you can still show the content later.'
+    ],
+    [
+      '../assets/img/manual/028_manual-add-extensions-ja.png',
+      'Choose &quot;Show content&quot; to view the post text.'
+    ]
+  ];
+
+  assertStoreFigureOrderAndCaptions(jaManual, jaStoreFigures);
+  assertStoreFigureOrderAndCaptions(enManual, enStoreFigures);
+}
+
+function testDisclaimers() {
+  const jaDisclaimer = readDoc('disclaimer.html');
+  const enDisclaimer = readDoc('en/disclaimer.html');
+
+  assert.ok(jaDisclaimer.includes('最終更新：2026年6月'));
+  assert.ok(jaDisclaimer.includes('ブラウザ内の固定的なルールベース'));
+  assert.ok(jaDisclaimer.includes('正確性、完全性、有用性を保証するものではありません'));
+  assert.ok(jaDisclaimer.includes('法令上責任を免れない場合を除きます'));
+  assert.ok(jaDisclaimer.includes('X Corp.または関連会社が提供、承認、保証するものではありません'));
+
+  assert.ok(enDisclaimer.includes('Last updated: June 2026'));
+  assert.ok(enDisclaimer.includes('fixed rule-based checks'));
+  assert.ok(enDisclaimer.includes('does not guarantee the accuracy, completeness, or usefulness'));
+  assert.ok(enDisclaimer.includes('except where liability cannot be'));
+  assert.ok(enDisclaimer.includes('not provided, approved, or'));
+}
+
+function testDocsNavigation() {
+  const japaneseLinks = [
+    '<a href="./about.html">本拡張機能について</a>',
+    '<a href="./privacy.html">プライバシーポリシー</a>',
+    '<a href="./disclaimer.html">免責事項</a>',
+    '<a href="./manual.html">拡張機能の使い方</a>'
+  ];
+  const englishLinks = [
+    '<a href="./about.html">About this extension</a>',
+    '<a href="./privacy.html">Privacy Policy</a>',
+    '<a href="./disclaimer.html">Disclaimer</a>',
+    '<a href="./manual.html">How to Use</a>'
+  ];
+
+  for (const page of PAGE_PAIRS) {
+    assertOrderedIncludes(readDoc(page.jaPath), japaneseLinks);
+    assertOrderedIncludes(readDoc(page.enPath), englishLinks);
   }
 }
 
@@ -261,6 +465,33 @@ function assertPdfLink(html, href, text) {
   );
 
   assert.match(html, linkPattern);
+}
+
+function assertOrderedIncludes(html, snippets) {
+  let previousIndex = -1;
+
+  for (const snippet of snippets) {
+    const currentIndex = html.indexOf(snippet, previousIndex + 1);
+
+    assert.ok(currentIndex > previousIndex);
+    previousIndex = currentIndex;
+  }
+}
+
+function assertStoreFigureOrderAndCaptions(html, figures) {
+  let previousIndex = -1;
+
+  for (const [src, captionSnippet] of figures) {
+    const figurePattern = new RegExp(
+      `<figure class="manual-figure">\\s*<img\\s+[^>]*src="${escapeRegExp(src)}"[^>]*>\\s*<figcaption>[^<]*${escapeRegExp(captionSnippet)}[^<]*</figcaption>`,
+      'u'
+    );
+    const figureMatch = figurePattern.exec(html);
+
+    assert.ok(figureMatch);
+    assert.ok(figureMatch.index > previousIndex);
+    previousIndex = figureMatch.index;
+  }
 }
 
 function escapeRegExp(value) {

@@ -257,6 +257,12 @@ section[id] {
   border-radius: 12px;
   background: #ffffff;
   box-shadow: 0 10px 26px rgba(98, 71, 35, 0.08);
+  cursor: zoom-in;
+}
+
+.manual-figure img:focus-visible {
+  outline: 3px solid rgba(147, 98, 20, 0.75);
+  outline-offset: 4px;
 }
 
 .manual-figure figcaption {
@@ -275,6 +281,70 @@ section[id] {
 
 .manual-grid .manual-figure {
   margin-top: 0;
+}
+
+.image-modal {
+  width: min(calc(100% - 24px), 1680px);
+  max-width: none;
+  max-height: calc(100% - 24px);
+  margin: auto;
+  padding: 54px 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 24px 70px rgba(52, 42, 32, 0.3);
+  overflow: auto;
+  cursor: zoom-out;
+}
+
+.image-modal::backdrop {
+  background: rgba(52, 42, 32, 0.72);
+  backdrop-filter: blur(2px);
+}
+
+.image-modal__close {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--text);
+  box-shadow: 0 8px 22px rgba(52, 42, 32, 0.22);
+  font: inherit;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.image-modal__close:hover {
+  background: var(--surface-soft);
+}
+
+.image-modal__close:focus-visible {
+  outline: 3px solid rgba(147, 98, 20, 0.75);
+  outline-offset: 3px;
+}
+
+.image-modal__image {
+  display: block;
+  width: min(100%, 1600px);
+  height: auto;
+  margin: 0 auto;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.image-modal__caption {
+  margin: 12px auto 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  text-align: center;
 }
 
 .section-block h2,
@@ -363,6 +433,18 @@ section[id] {
 
   .manual-grid {
     grid-template-columns: 1fr;
+  }
+
+  .image-modal {
+    width: calc(100% - 12px);
+    max-height: calc(100% - 12px);
+    padding: 54px 8px 14px;
+    border-radius: 12px;
+  }
+
+  .image-modal__close {
+    top: 10px;
+    right: 10px;
   }
 
   .toc {

@@ -51,7 +51,7 @@
         <section class="toc" aria-labelledby="manual-toc-title">
           <h2 id="manual-toc-title">目次</h2>
           <ul>
-            <li><a href="#pre-release-load">1. 公開前の手動確認版を読み込む</a></li>
+            <li><a href="#store-install">1. Chrome ウェブストアから拡張機能を追加する</a></li>
             <li><a href="#pin-extension">2. 拡張機能アイコンを固定する</a></li>
             <li><a href="#popup-settings">3. popupでON/OFF・表示されやすさを設定する</a></li>
             <li><a href="#options">4. 詳細設定を確認する</a></li>
@@ -71,39 +71,64 @@
           <a href="./assets/pdf/kotoba-uke-mimamori-introduction.pdf" target="_blank" rel="noopener" class="header-link">サービス説明資料PDFを見る</a>
         </section>
 
-        <section id="pre-release-load">
-          <h2>1. 公開前の手動確認版を読み込む</h2>
+        <section id="store-install">
+          <h2>1. Chrome ウェブストアから拡張機能を追加する</h2>
           <p>
-            ここで紹介する読み込み手順は、Chrome Web Store公開前の手動確認版・開発版を使うためのものです。Chrome Web Store公開後は、ストアから拡張機能を追加する手順に差し替える予定です。
+            Chrome ウェブストアで公開中のベータ版を追加し、ポップアップから有効にして、X（旧Twitter）上でワンクッションの動作を確認します。
           </p>
           <ol>
-            <li>拡張機能 <code>kotoba-uke-mimamori-for-x</code> をダウンロードします。</li>
-            <li>拡張機能 <code>kotoba-uke-mimamori-for-x</code> は <a href="https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x" target="_blank" rel="noopener"><strong>拡張機能のGitHubリポジトリ</strong></a> を表示して、画面右上の「Code」->「Download ZIP」でダウンロードします。</li>
-            <li><code>kotoba-uke-mimamori-for-x-main.zip</code> というZIPファイルがダウンロードされます。</li>
-            <li>任意のディレクトリで、<code>kotoba-uke-mimamori-for-x-main.zip</code> を展開します。</li>
-            <li><code>kotoba-uke-mimamori-for-x-main</code> というディレクトリが展開されるので、<code>kotoba-uke-mimamori-for-x</code> というディレクトリ名に名称変更します。</li>
-            <li>Chrome右上メニューから「拡張機能」→「拡張機能を管理」を開きます。</li>
-            <li>拡張機能画面でデベロッパーモードをONにします。</li>
-            <li>「パッケージ化されていない拡張機能を読み込む」をクリックします。</li>            
-            <li><code>kotoba-uke-mimamori-for-x</code> ディレクトリを選択します。</li>
-            <li>拡張機能一覧に「ことばうけみまもり」が表示されることを確認します。</li>
+            <li><a href="https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb" target="_blank" rel="noopener"><strong>Chrome ウェブストアの「ことばうけみまもり」ページ</strong></a>を開きます。</li>
+            <li>「Chrome に追加」をクリックします。</li>
+            <li>注意画面が表示された場合は、内容を確認して「インストールに進む」をクリックします。</li>
+            <li>権限確認画面で「拡張機能を追加」をクリックします。</li>
+            <li>「ことばうけみまもり」がChromeに追加されたことを確認します。</li>
+            <li>Chrome右上の拡張機能メニューを開き、「ことばうけみまもり」をピン留めします。</li>
+            <li>ツールバーの「ことばうけみまもり」アイコンをクリックし、ポップアップを開きます。</li>
+            <li>必要に応じて拡張機能をONにし、ワンクッションの表示されやすさを「少なめ」「標準」「多め」から選びます。</li>
+            <li>X（旧Twitter）の画面を開き、対象の投稿でワンクッションが表示されることを確認します。</li>
+            <li>「今は見ない」をクリックすると、ぼかしを維持したまま、あとから内容を表示できる状態になります。</li>
+            <li>「内容を表示する」をクリックすると、ぼかしが解除され、投稿本文を確認できます。</li>
           </ol>
           <div class="manual-grid">
             <figure class="manual-figure">
-              <img src="./assets/img/manual/001_manual-load-extension.jpeg" alt="Chromeのメニューから拡張機能の管理画面を開く手順">
-              <figcaption>Chromeのメニューから拡張機能の管理画面を開きます。</figcaption>
+              <img src="./assets/img/manual/019_manual-add-extensions-ja.png" alt="Chrome ウェブストアのことばうけみまもりページでChromeに追加ボタンが表示されている画面">
+              <figcaption>「Chrome に追加」をクリックします。</figcaption>
             </figure>
             <figure class="manual-figure">
-              <img src="./assets/img/manual/002_manual-load-extension.png" alt="Chromeの拡張機能画面でデベロッパーモードを有効にする画面">
-              <figcaption>デベロッパーモードをONにします。</figcaption>
+              <img src="./assets/img/manual/020_manual-add-extensions-ja.png" alt="Chromeの注意画面でインストールに進むボタンが表示されている画面">
+              <figcaption>注意画面が表示された場合は、内容を確認して「インストールに進む」をクリックします。</figcaption>
             </figure>
             <figure class="manual-figure">
-              <img src="./assets/img/manual/003_manual-load-extension.png" alt="パッケージ化されていない拡張機能を読み込むボタンを選ぶ画面">
-              <figcaption>パッケージ化されていない拡張機能を読み込みます。</figcaption>
+              <img src="./assets/img/manual/021_manual-add-extensions-ja.png" alt="Chromeの権限確認画面で拡張機能を追加ボタンが表示されている画面">
+              <figcaption>権限を確認して「拡張機能を追加」をクリックします。</figcaption>
             </figure>
             <figure class="manual-figure">
-              <img src="./assets/img/manual/004_manual-load-extension.png" alt="拡張機能一覧にことばうけみまもりが表示されている画面">
-              <figcaption>一覧に表示されれば読み込み完了です。</figcaption>
+              <img src="./assets/img/manual/022_manual-add-extensions-ja.png" alt="ことばうけみまもりがChromeに追加されたことを知らせるメッセージ">
+              <figcaption>ことばうけみまもりが追加されたことを確認します。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/025_manual-add-extensions-ja.png" alt="Chrome右上の拡張機能メニューでことばうけみまもりのピン留めボタンが示されている画面">
+              <figcaption>Chrome右上の拡張機能メニューを開き、ことばうけみまもりをピン留めします。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/023_manual-add-extensions-ja.png" alt="ことばうけみまもりのポップアップで初期状態がOFFになっている画面">
+              <figcaption>ポップアップを開き、初期状態のOFFと表示されやすさの設定を確認します。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/024_manual-add-extensions-ja.png" alt="ことばうけみまもりのポップアップでONにして標準を選択した画面">
+              <figcaption>拡張機能をONにし、必要な表示されやすさを選びます。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/026_manual-add-extensions-ja.png" alt="Xの投稿にワンクッションが表示され、内容を表示するか今は見ないかを選べる画面">
+              <figcaption>X上でワンクッションが表示され、読むか、今は見ないかを選べることを確認します。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/027_manual-add-extensions-ja.png" alt="今は見ないをクリックした後、あとから内容を表示できる状態の画面">
+              <figcaption>「今は見ない」を選んだ後も、あとから内容を表示できます。</figcaption>
+            </figure>
+            <figure class="manual-figure">
+              <img src="./assets/img/manual/028_manual-add-extensions-ja.png" alt="内容を表示するをクリックしてXの投稿本文が表示された画面">
+              <figcaption>「内容を表示する」をクリックすると、投稿本文を確認できます。</figcaption>
             </figure>
           </div>
         </section>
@@ -207,7 +232,7 @@
           <ul>
             <li>ON/OFFまたは表示されやすさを変更した後は、開いているX（旧Twitter）の画面ページを再読み込みしてください。</li>
             <li>ワンクッションを止めたい場合は、popupまたはオプション画面でOFFにしてから、X（旧Twitter）の画面ページを再読み込みしてください。</li>
-            <li>公開前の手動確認版では、拡張機能を読み込み直した後にXページも再読み込みしてください。</li>
+            <li>拡張機能を追加・更新した後にXページを開いていた場合は、Xページを再読み込みしてください。</li>
           </ul>
           <p>
             現時点では、設定をXの画面へ反映するタイミングをページの読み込み時としているため、設定変更後に再読み込みが必要です。
@@ -233,6 +258,7 @@
         <nav class="docs-nav" aria-label="ドキュメントページ">
           <a href="./about.html">本拡張機能について</a>
           <a href="./privacy.html">プライバシーポリシー</a>
+          <a href="./disclaimer.html">免責事項</a>
           <a href="./manual.html">拡張機能の使い方</a>
         </nav>
       </main>
@@ -241,5 +267,6 @@
         <p>© ことばうけみまもり 2026 青木直之 (@na0AaooQ) All Rights Reserved.</p>
       </footer>
     </div>
+    <script src="./assets/js/manual-image-modal.js"></script>
   </body>
 </html>
