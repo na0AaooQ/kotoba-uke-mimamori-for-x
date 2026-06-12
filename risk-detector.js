@@ -58,7 +58,7 @@ const RISK_RULES = Object.freeze([
   {
     id: 'severe_insult.strong_word',
     category: 'severe_insult',
-    score: 70,
+    score: 80,
     reason: '強い侮辱表現に近い内容の可能性があります',
     patterns: [
       /クズ/u,
@@ -84,7 +84,7 @@ const RISK_RULES = Object.freeze([
       /親がいないせい/u,
       /片親/u,
       /バカ女/u,
-      /バカ男/
+      /バカ男/u
     ]
   },
   {
@@ -174,11 +174,12 @@ const BOOST_RULES = Object.freeze([
 const DEDUCTION_RULES = Object.freeze([
   {
     id: 'context.quoted_experience',
-    score: -30,
+    score: -50,
     patterns: [
       /と言われた/u,
       /って言われた/u,
       /と言われて/u,
+      /と言われることがある/u,
       /言われてつらかった/u,
       /言われて傷ついた/u
     ]

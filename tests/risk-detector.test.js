@@ -22,6 +22,7 @@ function runTests() {
   testHealthyCriticismShouldNotCushion();
   testQuotedOrContextualTextShouldNotCushion();
   testHighRiskTextShouldCushion();
+  testSevereInsultStrongWordsShouldCushionAtStandardSensitivity();
   testThresholdBehavior();
   testSensitivityThresholdBoundaries();
   testPressurePhraseActsAsSupportingSignal();
@@ -60,7 +61,11 @@ function testQuotedOrContextualTextShouldNotCushion() {
     'こういう表現はやめよう',
     '人格否定はやめよう',
     '誹謗中傷はやめよう',
-    '「お前は無能」と言われた'
+    '「お前は無能」と言われた',
+    '「バカ」と言われてつらかった',
+    '「クズ」と言われてつらかった',
+    'こういう言葉を使うのはよくない',
+    '誹謗中傷として「バカ」と言われることがある'
   ];
 
   for (const text of cases) {
@@ -120,6 +125,42 @@ function testHighRiskTextShouldCushion() {
     assert.ok(result.categories.includes(category), `期待カテゴリ ${category} を含める: ${text}`);
 
     assert.ok(result.reasons.length > 0, `高リスク表現には理由を含める: ${text}`);
+  }
+}
+
+function testSevereInsultStrongWordsShouldCushionAtStandardSensitivity() {
+  const cases = [
+    'バカ女',
+    'バカ男',
+    '欠陥品がよ',
+    '親がいないせい',
+    '片親',
+    'クズ',
+    'ゴミ',
+    'カス',
+    '無能',
+    '馬鹿',
+    'バカ'
+  ];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      true,
+      `標準感度でも強い侮辱表現はワンクッション対象にする: ${text}`
+    );
+
+    assert.ok(
+      result.matchedRules.includes('severe_insult.strong_word'),
+      `強い侮辱表現ルールに一致させる: ${text}`
+    );
+
+    assert.ok(
+      result.categories.includes('severe_insult'),
+      `severe_insult カテゴリを含める: ${text}`
+    );
   }
 }
 
