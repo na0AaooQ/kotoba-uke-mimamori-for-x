@@ -43,6 +43,9 @@ async function runTests() {
   testDoesNotBlurContentWhenDevFlagIsOff();
   testAppliesContentBlurWhenDevFlagIsOn();
   testAppliesContentBlurWhenEnabledIsOn();
+  testProcessesQuotedPostSourceTextSeparately();
+  testDoesNotInsertDuplicateCushionForQuotedSource();
+  testShowButtonRevealsQuotedSourceOnly();
   testShowButtonRevealsContentAndRemovesOverlay();
   testHideButtonKeepsContentBlurAndOverlay();
   testDefaultFeatureFlagsAreOff();
@@ -390,6 +393,148 @@ function testAppliesContentBlurWhenEnabledIsOn() {
           assert.equal(textNode.className.includes(CLASSES.contentBlur), true);
           assert.equal(textNode.getAttribute(ATTRIBUTES.contentBlurred), 'true');
           assert.equal(createCount, 1);
+        }
+      );
+    }
+  );
+}
+
+function testProcessesQuotedPostSourceTextSeparately() {
+  const receivedTexts = [];
+  let createCount = 0;
+  const { mainBodyNode, mainTextNode, postNode, quoteBodyNode, quoteTextNode } =
+    createQuotedPostNodeWithNestedTexts('引用している側の通常本文です', 'お前なんか存在価値がない');
+
+  withRiskDetector(
+    {
+      detectTextRisk(text) {
+        receivedTexts.push(text);
+
+        return {
+          shouldCushion: text === 'お前なんか存在価値がない'
+        };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            createCount += 1;
+
+            return createElement('section');
+          }
+        },
+        () => {
+          const result = processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+
+          assert.deepEqual(result, {
+            processed: true,
+            riskChecked: true,
+            shouldCushion: true
+          });
+          assert.deepEqual(receivedTexts, [
+            '引用している側の通常本文です',
+            'お前なんか存在価値がない'
+          ]);
+          assert.equal(postNode.getAttribute(ATTRIBUTES.processed), null);
+          assert.equal(mainTextNode.getAttribute(ATTRIBUTES.processed), 'true');
+          assert.equal(mainTextNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+          assert.equal(mainTextNode.className.includes(CLASSES.contentBlur), false);
+          assert.equal(quoteTextNode.getAttribute(ATTRIBUTES.processed), 'true');
+          assert.equal(quoteTextNode.getAttribute(ATTRIBUTES.cushionCandidate), 'true');
+          assert.equal(quoteTextNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+          assert.equal(quoteTextNode.className.includes(CLASSES.contentBlur), true);
+          assert.equal(quoteTextNode.getAttribute(ATTRIBUTES.contentBlurred), 'true');
+          assert.equal(mainBodyNode.children.length, 1);
+          assert.equal(mainBodyNode.children[0], mainTextNode);
+          assert.equal(quoteBodyNode.children[0].tagName, 'SECTION');
+          assert.equal(quoteBodyNode.children[1], quoteTextNode);
+          assert.equal(createCount, 1);
+        }
+      );
+    }
+  );
+}
+
+function testDoesNotInsertDuplicateCushionForQuotedSource() {
+  let createCount = 0;
+  let riskDetectorCallCount = 0;
+  const { postNode, quoteBodyNode, quoteTextNode } = createQuotedPostNodeWithNestedTexts(
+    '引用している側の通常本文です',
+    'お前なんか存在価値がない'
+  );
+
+  withRiskDetector(
+    {
+      detectTextRisk(text) {
+        riskDetectorCallCount += 1;
+
+        return {
+          shouldCushion: text === 'お前なんか存在価値がない'
+        };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            createCount += 1;
+
+            return createElement('section');
+          }
+        },
+        () => {
+          processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+          processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+
+          assert.equal(riskDetectorCallCount, 2);
+          assert.equal(createCount, 1);
+          assert.equal(quoteBodyNode.children.length, 2);
+          assert.equal(quoteBodyNode.children[0].tagName, 'SECTION');
+          assert.equal(quoteBodyNode.children[1], quoteTextNode);
+        }
+      );
+    }
+  );
+}
+
+function testShowButtonRevealsQuotedSourceOnly() {
+  let onShow = null;
+  const { mainTextNode, postNode, quoteBodyNode, quoteTextNode } =
+    createQuotedPostNodeWithNestedTexts('引用している側の通常本文です', 'お前なんか存在価値がない');
+
+  withRiskDetector(
+    {
+      detectTextRisk(text) {
+        return {
+          shouldCushion: text === 'お前なんか存在価値がない'
+        };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement(_result, handlers) {
+            onShow = handlers.onShow;
+
+            return createElement('section');
+          }
+        },
+        () => {
+          processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+
+          assert.equal(quoteTextNode.className.includes(CLASSES.contentBlur), true);
+          assert.equal(mainTextNode.className.includes(CLASSES.contentBlur), false);
+          assert.equal(quoteBodyNode.children.length, 2);
+
+          onShow();
+
+          assert.equal(quoteTextNode.className.includes(CLASSES.contentBlur), false);
+          assert.equal(quoteTextNode.getAttribute(ATTRIBUTES.contentBlurred), null);
+          assert.equal(quoteTextNode.getAttribute(ATTRIBUTES.contentRevealed), 'true');
+          assert.equal(mainTextNode.getAttribute(ATTRIBUTES.contentRevealed), null);
+          assert.equal(quoteBodyNode.children.length, 1);
+          assert.equal(quoteBodyNode.children[0], quoteTextNode);
         }
       );
     }
@@ -784,6 +929,7 @@ function createPostNodeWithNestedText(textContent = '') {
   const textNode = createElement('div');
 
   textNode.textContent = textContent;
+  textNode.matches = (selector) => selector === SELECTORS.text;
   postNode.insertBefore(bodyNode, null);
   bodyNode.insertBefore(textNode, null);
 
@@ -806,6 +952,50 @@ function createPostNodeWithNestedText(textContent = '') {
     bodyNode,
     postNode,
     textNode
+  };
+}
+
+function createQuotedPostNodeWithNestedTexts(mainText, quoteText) {
+  const postNode = createElement('article');
+  const mainBodyNode = createElement('div');
+  const quoteCardNode = createElement('div');
+  const quoteBodyNode = createElement('div');
+  const mainTextNode = createElement('div');
+  const quoteTextNode = createElement('div');
+
+  mainTextNode.textContent = mainText;
+  mainTextNode.matches = (selector) => selector === SELECTORS.text;
+  quoteTextNode.textContent = quoteText;
+  quoteTextNode.matches = (selector) => selector === SELECTORS.text;
+
+  postNode.insertBefore(mainBodyNode, null);
+  mainBodyNode.insertBefore(mainTextNode, null);
+  postNode.insertBefore(quoteCardNode, null);
+  quoteCardNode.insertBefore(quoteBodyNode, null);
+  quoteBodyNode.insertBefore(quoteTextNode, null);
+
+  postNode.querySelector = (selector) => {
+    if (selector !== SELECTORS.text) {
+      return null;
+    }
+
+    return mainTextNode;
+  };
+  postNode.querySelectorAll = (selector) => {
+    if (selector !== SELECTORS.text) {
+      return [];
+    }
+
+    return [mainTextNode, quoteTextNode];
+  };
+
+  return {
+    mainBodyNode,
+    mainTextNode,
+    postNode,
+    quoteBodyNode,
+    quoteCardNode,
+    quoteTextNode
   };
 }
 
