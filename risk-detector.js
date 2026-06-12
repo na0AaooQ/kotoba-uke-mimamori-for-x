@@ -58,13 +58,16 @@ const RISK_RULES = Object.freeze([
   {
     id: 'severe_insult.strong_word',
     category: 'severe_insult',
-    score: 50,
+    score: 70,
     reason: '強い侮辱表現に近い内容の可能性があります',
     patterns: [
       /クズ/u,
       /ゴミ/u,
       /カス/u,
       /無能/u,
+      /欠陥品がよ/u,
+      /バカ/u,
+      /馬鹿/u,
       /役立たず/u,
       /気持ち悪い/u,
       /きしょい/u,
@@ -76,7 +79,12 @@ const RISK_RULES = Object.freeze([
       /音の鳴るおもちゃ/u,
       /音の鳴るオモチャ/u,
       /音のなるおもちゃ/u,
-      /音のなるオモチャ/u
+      /音のなるオモチャ/u,
+      /精神が未熟なんだろ/u,
+      /親がいないせい/u,
+      /片親/u,
+      /バカ女/u,
+      /バカ男/
     ]
   },
   {
@@ -101,7 +109,8 @@ const RISK_RULES = Object.freeze([
       /まだ分からないの/u,
       /何回言えば分かる/u,
       /何度でも言う/u,
-      /何度でも繰り返しますが/u
+      /何度でも繰り返しますが/u,
+      /秘密をばらす/u
     ]
   },
   {
@@ -300,7 +309,7 @@ function resolveRiskLevel(score) {
     return RISK_LEVELS.HIGH;
   }
 
-  if (score >= 60) {
+  if (score >= 50) {
     return RISK_LEVELS.MEDIUM;
   }
 

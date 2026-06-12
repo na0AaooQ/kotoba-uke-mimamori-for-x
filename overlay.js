@@ -255,7 +255,17 @@ function createButton(messageKey, onClick) {
   button.textContent = getLocalizedMessage(messageKey);
 
   if (typeof onClick === 'function') {
-    button.addEventListener('click', onClick);
+    button.addEventListener('click', (event) => {
+      if (typeof event?.preventDefault === 'function') {
+        event.preventDefault();
+      }
+
+      if (typeof event?.stopPropagation === 'function') {
+        event.stopPropagation();
+      }
+
+      onClick(event);
+    });
   }
 
   return button;

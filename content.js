@@ -134,7 +134,7 @@ function extractPostText(postNode) {
     return '';
   }
 
-  const textNodes = Array.from(postNode.querySelectorAll(SELECTORS.text));
+  const textNodes = findPostTextNodes(postNode);
 
   return textNodes
     .map((textNode) => normalizeExtractedText(textNode.textContent))
@@ -152,16 +152,74 @@ function processCandidatePost(
     return SKIPPED_PROCESS_RESULT;
   }
 
-  if (!isElement(postNode) || isProcessed(postNode)) {
+  if (!isElement(postNode)) {
+    return SKIPPED_PROCESS_RESULT;
+  }
+
+  if (isProcessed(postNode)) {
     maybeRenderCushionOverlay(postNode, featureFlags, settings);
 
     return SKIPPED_PROCESS_RESULT;
   }
 
-  const postText = extractPostText(postNode);
+  const textTargets = findPostTextTargets(postNode);
+
+  if (textTargets.length === 0) {
+    markProcessed(postNode);
+
+    return {
+      processed: true,
+      riskChecked: false,
+      shouldCushion: false
+    };
+  }
+
+  if (!textTargets.some((textTarget) => normalizeExtractedText(textTarget.textNode?.textContent))) {
+    markProcessed(postNode);
+
+    return {
+      processed: true,
+      riskChecked: false,
+      shouldCushion: false
+    };
+  }
+
+  let processed = false;
+  let riskChecked = false;
+  let shouldCushion = false;
+
+  for (const textTarget of textTargets) {
+    const processResult = processPostTextTarget(textTarget, featureFlags, settings);
+
+    processed ||= processResult.processed;
+    riskChecked ||= processResult.riskChecked;
+    shouldCushion ||= processResult.shouldCushion;
+  }
+
+  return {
+    processed,
+    riskChecked,
+    shouldCushion
+  };
+}
+
+function processPostTextTarget(
+  textTarget,
+  featureFlags = FEATURE_FLAGS,
+  settings = getDefaultSettings()
+) {
+  const { targetNode, textNode } = textTarget;
+
+  if (!isElement(targetNode) || isProcessed(targetNode)) {
+    maybeRenderCushionOverlay(targetNode, featureFlags, settings);
+
+    return SKIPPED_PROCESS_RESULT;
+  }
+
+  const postText = normalizeExtractedText(textNode?.textContent);
 
   if (!postText) {
-    markProcessed(postNode);
+    markProcessed(targetNode);
 
     return {
       processed: true,
@@ -177,15 +235,15 @@ function processCandidatePost(
   );
 
   if (riskChecked) {
-    markRiskChecked(postNode);
+    markRiskChecked(targetNode);
   }
 
   if (shouldCushion) {
-    markCushionCandidate(postNode);
-    maybeRenderCushionOverlay(postNode, featureFlags, settings);
+    markCushionCandidate(targetNode);
+    maybeRenderCushionOverlay(targetNode, featureFlags, settings);
   }
 
-  markProcessed(postNode);
+  markProcessed(targetNode);
 
   return {
     processed: true,
@@ -358,6 +416,10 @@ function findFirstPostTextNode(postNode) {
     return null;
   }
 
+  if (matchesSelector(postNode, SELECTORS.text)) {
+    return postNode;
+  }
+
   if (typeof postNode.querySelector === 'function') {
     return postNode.querySelector(SELECTORS.text);
   }
@@ -367,6 +429,38 @@ function findFirstPostTextNode(postNode) {
   }
 
   return null;
+}
+
+function findPostTextNodes(postNode) {
+  if (!isElement(postNode)) {
+    return [];
+  }
+
+  if (matchesSelector(postNode, SELECTORS.text)) {
+    return [postNode];
+  }
+
+  if (typeof postNode.querySelectorAll !== 'function') {
+    return [];
+  }
+
+  return Array.from(postNode.querySelectorAll(SELECTORS.text));
+}
+
+function findPostTextTargets(postNode) {
+  const textNodes = findPostTextNodes(postNode);
+
+  if (textNodes.length <= 1) {
+    return textNodes.map((textNode) => ({
+      targetNode: postNode,
+      textNode
+    }));
+  }
+
+  return textNodes.map((textNode) => ({
+    targetNode: textNode,
+    textNode
+  }));
 }
 
 function isContentRevealed(postNode) {

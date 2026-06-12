@@ -24,6 +24,7 @@ function runTests() {
   testInjectsCushionStylesOnce();
   testDoesNotRenderPostTextOrInternalRiskDetails();
   testShowButtonHandler();
+  testButtonClickStopsDefaultAndPropagation();
 
   console.log('All overlay tests passed.');
 }
@@ -180,6 +181,36 @@ function testShowButtonHandler() {
   });
 }
 
+function testButtonClickStopsDefaultAndPropagation() {
+  withFakeDomAndI18n(() => {
+    let preventDefaultCount = 0;
+    let stopPropagationCount = 0;
+    let receivedEvent = null;
+    const element = createCushionElement(
+      {},
+      {
+        onShow: (event) => {
+          receivedEvent = event;
+        }
+      }
+    );
+    const event = {
+      preventDefault() {
+        preventDefaultCount += 1;
+      },
+      stopPropagation() {
+        stopPropagationCount += 1;
+      }
+    };
+
+    element.children[3].children[0].click(event);
+
+    assert.equal(preventDefaultCount, 1);
+    assert.equal(stopPropagationCount, 1);
+    assert.equal(receivedEvent, event);
+  });
+}
+
 function withFakeDomAndI18n(callback) {
   const previousDocument = globalThis.document;
   const previousI18n = globalThis.kotobaUkeMimamoriI18n;
@@ -264,11 +295,11 @@ function createElement(tagName) {
       this.children.push(childNode);
       return childNode;
     },
-    click() {
+    click(event) {
       const clickHandler = listeners.get('click');
 
       if (typeof clickHandler === 'function') {
-        clickHandler();
+        clickHandler(event);
       }
     },
     focus() {
