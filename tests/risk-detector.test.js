@@ -22,7 +22,9 @@ function runTests() {
   testHealthyCriticismShouldNotCushion();
   testQuotedOrContextualTextShouldNotCushion();
   testHighRiskTextShouldCushion();
+  testCustomizeShouldNotBeDetectedAsSevereInsult();
   testSevereInsultStrongWordsShouldCushionAtStandardSensitivity();
+  testCasInsultsShouldStillCushionAtStandardSensitivity();
   testThresholdBehavior();
   testSensitivityThresholdBoundaries();
   testPressurePhraseActsAsSupportingSignal();
@@ -128,6 +130,29 @@ function testHighRiskTextShouldCushion() {
   }
 }
 
+function testCustomizeShouldNotBeDetectedAsSevereInsult() {
+  const cases = [
+    'カスタマイズ',
+    'カスタマイズが盛り盛り',
+    'ポストで紹介しきれない機能、カスタマイズが盛り盛りです。マーケティング的には特定ニーズに特化した方が良いんでしょうけどね'
+  ];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      false,
+      `通常語の「カスタマイズ」は標準感度でワンクッション対象外にする: ${text}`
+    );
+
+    assert.ok(
+      !result.matchedRules.includes('severe_insult.strong_word'),
+      `通常語の「カスタマイズ」は強い侮辱表現ルールに一致させない: ${text}`
+    );
+  }
+}
+
 function testSevereInsultStrongWordsShouldCushionAtStandardSensitivity() {
   const cases = [
     'バカ女',
@@ -160,6 +185,25 @@ function testSevereInsultStrongWordsShouldCushionAtStandardSensitivity() {
     assert.ok(
       result.categories.includes('severe_insult'),
       `severe_insult カテゴリを含める: ${text}`
+    );
+  }
+}
+
+function testCasInsultsShouldStillCushionAtStandardSensitivity() {
+  const cases = ['カス', 'カスだな', 'カスが', 'お前はカス'];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      true,
+      `侮辱表現としての「カス」は標準感度でもワンクッション対象にする: ${text}`
+    );
+
+    assert.ok(
+      result.matchedRules.includes('severe_insult.strong_word'),
+      `侮辱表現としての「カス」は強い侮辱表現ルールに一致させる: ${text}`
     );
   }
 }
