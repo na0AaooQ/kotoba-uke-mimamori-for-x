@@ -132,6 +132,7 @@ function runTests() {
   testDocsNavigation();
   testGitHubRepositoryLinks();
   testStoreListingDraft();
+  testManualSensitivityDescriptions();
   testRuleBasedExplanation();
   testNotPurposeStatements();
   testDocsDoNotExposeInternalRuleIds();
@@ -420,6 +421,27 @@ function testStoreListingDraft() {
   for (const screenshotPath of STORE_LISTING_SCREENSHOT_CANDIDATES) {
     assert.ok(draft.includes(screenshotPath));
   }
+}
+
+function testManualSensitivityDescriptions() {
+  const jaManual = readDoc('manual.html');
+  const enManual = readDoc('en/manual.html');
+
+  assertOrderedIncludes(jaManual, [
+    '「少なめ」「標準」「多め」からワンクッションの表示されやすさを選べます。',
+    'class="manual-sensitivity-list"',
+    '少なめ: 強い表現を中心に表示します。',
+    '標準: 通常の設定です。',
+    '多め: 少し軽めのリスク表現にも表示されやすくします。'
+  ]);
+
+  assertOrderedIncludes(enManual, [
+    'You can choose the cushion display sensitivity from Low, Standard, or High.',
+    'class="manual-sensitivity-list"',
+    'Low: Shows cushions mainly for stronger expressions.',
+    'Standard: The usual setting.',
+    'High: Shows cushions more easily, including for slightly lighter risk expressions.'
+  ]);
 }
 
 function testRuleBasedExplanation() {

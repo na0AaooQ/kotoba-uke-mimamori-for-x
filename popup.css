@@ -193,6 +193,17 @@ body {
   outline-offset: 2px;
 }
 
+.popup-sensitivity-descriptions {
+  display: grid;
+  gap: 3px;
+  margin: 10px 0 0;
+  padding: 0;
+  color: #57534e;
+  font-size: 11px;
+  line-height: 1.45;
+  list-style: none;
+}
+
 .popup-note {
   margin-top: 16px;
   padding: 11px 12px;
@@ -268,6 +279,7 @@ body {
   .popup-tagline,
   .popup-status,
   .popup-toggle-row,
+  .popup-sensitivity-descriptions,
   .popup-note {
     color: #f8efd7;
   }

@@ -113,7 +113,7 @@ If you choose “Not now,” the post remains blurred and the cushion is collaps
 - Blurs only the post text
 - Lets you choose “Show content” or “Not now”
 - Lets you turn the extension ON/OFF from the popup
-- Lets you choose cushion sensitivity: Less, Standard, or More
+- Lets you choose cushion sensitivity: Low, Standard, or High
 - Saves settings locally in your browser
 
 ### Privacy

@@ -81,22 +81,31 @@
     "message": "Cushion display sensitivity"
   },
   "optionSensitivityLow": {
-    "message": "Less"
+    "message": "Low"
   },
   "optionSensitivityLowDescription": {
     "message": "Shows cushions mainly for stronger expressions."
+  },
+  "optionSensitivityLowSummary": {
+    "message": "Low: Shows cushions mainly for stronger expressions."
   },
   "optionSensitivityStandard": {
     "message": "Standard"
   },
   "optionSensitivityStandardDescription": {
-    "message": "Uses the standard setting."
+    "message": "The usual setting."
+  },
+  "optionSensitivityStandardSummary": {
+    "message": "Standard: The usual setting."
   },
   "optionSensitivityHigh": {
-    "message": "More"
+    "message": "High"
   },
   "optionSensitivityHighDescription": {
-    "message": "Shows cushions more readily for lighter-risk wording."
+    "message": "Shows cushions more easily, including for slightly lighter risk expressions."
+  },
+  "optionSensitivityHighSummary": {
+    "message": "High: Shows cushions more easily, including for slightly lighter risk expressions."
   },
   "optionPrivacyNote": {
     "message": "Post text and detection results are not sent to external servers."
