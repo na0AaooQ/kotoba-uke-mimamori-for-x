@@ -63,7 +63,7 @@ const RISK_RULES = Object.freeze([
     patterns: [
       /クズ/u,
       /ゴミ/u,
-      /カス/u,
+      /カス(?!タマイズ)/u,
       /無能/u,
       /欠陥品がよ/u,
       /バカ/u,

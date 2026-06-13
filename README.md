@@ -153,6 +153,25 @@ MVPでは、以下のカテゴリを中心に判定します。
 - 強い侮辱表現に近い内容の可能性があります
 - 追い詰めるような表現を含む可能性があります
 
+### ローカルで判定結果を確認する
+
+任意の文章がワンクッション表示対象になるか、`risk-detector.js` の判定結果をローカルで確認できます。`threshold: 80` は、標準感度相当の確認に使う値です。
+
+```sh
+node - <<'NODE'
+const { detectTextRisk } = require('./risk-detector.js');
+
+const result = detectTextRisk(
+  'ワンクッション表示対象になるか、確認したい文章を記載する',
+  { threshold: 80 }
+);
+
+console.log(JSON.stringify(result, null, 2));
+NODE
+```
+
+`matchedRules`、`score`、`shouldCushion`、`reasons` を確認することで、誤検知や検知漏れの調査に利用できます。
+
 ## UI/UX方針
 
 ワンクッション表示では、ユーザーを不安にさせすぎない表現を使います。
