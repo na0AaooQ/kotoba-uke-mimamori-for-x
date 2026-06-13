@@ -20,8 +20,11 @@ const MESSAGES = Object.freeze({
   optionEnableExtension: 'ことばうけみまもりを有効にする',
   optionCushionSensitivity: 'ワンクッションの表示されやすさ',
   optionSensitivityLow: '少なめ',
+  optionSensitivityLowSummary: '少なめ: 強い表現を中心に表示します。',
   optionSensitivityStandard: '標準',
+  optionSensitivityStandardSummary: '標準: 通常の設定です。',
   optionSensitivityHigh: '多め',
+  optionSensitivityHighSummary: '多め: 少し軽めのリスク表現にも表示されやすくします。',
   optionPrivacyNote: '投稿本文や判定結果は外部送信されません。',
   optionReloadNote:
     'ON/OFFや表示されやすさの変更は、開いているXのページを再読み込みすると反映されます。',
@@ -47,6 +50,9 @@ function testPopupHtmlContainsRequiredControlsOnly() {
   assert.match(popupHtml, /value="standard"/);
   assert.match(popupHtml, /value="high"/);
   assert.match(popupHtml, /id="popup-open-options"/);
+  assert.match(popupHtml, /data-i18n="optionSensitivityLowSummary"/);
+  assert.match(popupHtml, /data-i18n="optionSensitivityStandardSummary"/);
+  assert.match(popupHtml, /data-i18n="optionSensitivityHighSummary"/);
   assert.match(popupHtml, /data-i18n="optionPrivacyNote"/);
   assert.match(popupHtml, /data-i18n="optionReloadNote"/);
   assert.doesNotMatch(popupHtml, /textarea|postText|matchedRules|categories|reasons/);
@@ -56,9 +62,19 @@ async function testApplyLocalizedMessages() {
   await withI18n(() => {
     const titleElement = createLocalizedElement('h1', 'popupTitle');
     const taglineElement = createLocalizedElement('p', 'popupTagline');
+    const lowSummaryElement = createLocalizedElement('li', 'optionSensitivityLowSummary');
+    const standardSummaryElement = createLocalizedElement('li', 'optionSensitivityStandardSummary');
+    const highSummaryElement = createLocalizedElement('li', 'optionSensitivityHighSummary');
     const optionsButton = createLocalizedElement('button', 'popupOpenOptions');
     const fakeDocument = createFakeDocument({
-      localizedElements: [titleElement, taglineElement, optionsButton]
+      localizedElements: [
+        titleElement,
+        taglineElement,
+        lowSummaryElement,
+        standardSummaryElement,
+        highSummaryElement,
+        optionsButton
+      ]
     });
 
     applyLocalizedMessages(fakeDocument);
@@ -66,6 +82,9 @@ async function testApplyLocalizedMessages() {
     assert.equal(fakeDocument.title, MESSAGES.popupTitle);
     assert.equal(titleElement.textContent, MESSAGES.popupTitle);
     assert.equal(taglineElement.textContent, MESSAGES.popupTagline);
+    assert.equal(lowSummaryElement.textContent, MESSAGES.optionSensitivityLowSummary);
+    assert.equal(standardSummaryElement.textContent, MESSAGES.optionSensitivityStandardSummary);
+    assert.equal(highSummaryElement.textContent, MESSAGES.optionSensitivityHighSummary);
     assert.equal(optionsButton.textContent, MESSAGES.popupOpenOptions);
   });
 }

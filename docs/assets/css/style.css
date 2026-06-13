@@ -153,6 +153,15 @@ li + li {
   margin-top: 6px;
 }
 
+.manual-sensitivity-list {
+  margin-top: 6px;
+  padding-left: 1.2rem;
+}
+
+.manual-sensitivity-list li + li {
+  margin-top: 4px;
+}
+
 .lead {
   max-width: 760px;
   margin: 14px auto 0;
