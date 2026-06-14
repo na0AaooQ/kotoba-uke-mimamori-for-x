@@ -1,12 +1,12 @@
 # Chrome Web Store 掲載文案ドラフト
 
-Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション BETA」を、Chrome Web Storeへベータ版として提出するための掲載文案ドラフトです。
+Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」を、Chrome Web Storeへ正式版として提出するための掲載文案ドラフトです。
 
 ## 日本語
 
 ### 拡張機能名
 
-ことばうけみまもり｜Xことばに心のワンクッション BETA
+ことばうけみまもり｜Xことばに心のワンクッション
 
 ### 短い説明
 
@@ -14,9 +14,7 @@ Xで届く強い言葉に、読む前のワンクッションを。投稿本文�
 
 ### 詳細説明
 
-ことばうけみまもり｜Xことばに心のワンクッション BETA は、X（旧Twitter）上で届く強い言葉や、心に負荷がかかる可能性のある投稿に対して、読む前にワンクッションを置くChrome拡張機能です。
-
-THIS EXTENSION IS FOR BETA TESTING（この拡張機能はベータ版テスト用です）。
+ことばうけみまもり｜Xことばに心のワンクッションは、X（旧Twitter）上で届く強い言葉や、心に負荷がかかる可能性のある投稿に対して、読む前にワンクッションを置くChrome拡張機能です。
 
 いきなり読ませない。
 でも、読む自由も残す。
@@ -32,6 +30,7 @@ THIS EXTENSION IS FOR BETA TESTING（この拡張機能はベータ版テスト�
 ### 主な機能
 
 - X上の投稿に、読む前のワンクッションを表示
+- 引用ポスト内の引用元本文にも対応
 - 投稿本文のみをぼかし表示
 - 「内容を表示する / 今は見ない」を選択可能
 - ポップアップからON/OFFを切り替え
@@ -84,7 +83,7 @@ THIS EXTENSION IS FOR BETA TESTING（この拡張機能はベータ版テスト�
 
 ### Extension name
 
-Kotoba Uke Mimamori BETA
+Kotoba Uke Mimamori
 
 ### Short description
 
@@ -92,9 +91,7 @@ Add a gentle cushion before reading emotionally heavy wording on X. Post text an
 
 ### Detailed description
 
-THIS EXTENSION IS FOR BETA TESTING.
-
-Kotoba Uke Mimamori BETA is a Chrome extension that adds a gentle cushion before reading posts on X that may include emotionally heavy wording.
+Kotoba Uke Mimamori is a Chrome extension that adds a gentle cushion before reading posts on X that may include emotionally heavy wording.
 
 It does not force you to read immediately.
 It also leaves you the freedom to read.
@@ -110,6 +107,7 @@ If you choose “Not now,” the post remains blurred and the cushion is collaps
 ### Main features
 
 - Shows a gentle cushion before reading posts on X
+- Also supports quoted post text inside quote posts
 - Blurs only the post text
 - Lets you choose “Show content” or “Not now”
 - Lets you turn the extension ON/OFF from the popup

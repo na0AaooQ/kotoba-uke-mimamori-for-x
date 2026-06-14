@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "Kotoba Uke Mimamori BETA"
+    "message": "Kotoba Uke Mimamori"
   },
   "extensionDescription": {
-    "message": "THIS EXTENSION IS FOR BETA TESTING. Adds a gentle cushion before reading emotionally heavy wording on X. Post text and detection results are not sent externally."
+    "message": "Adds a gentle cushion before reading emotionally heavy wording on X. Post text and detection results are not sent externally."
   },
   "cushionTitle": {
     "message": "A gentle cushion before reading"

@@ -46,14 +46,31 @@
         box-shadow: 0 8px 24px rgba(120, 53, 15, 0.08);
       }
 
+      .options-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 4px 18px;
+        align-items: start;
+      }
+
       .options-title {
-        margin: 0 0 8px;
+        margin: 0;
         color: #7c4a03;
         font-size: 24px;
         line-height: 1.4;
       }
 
+      .options-version {
+        justify-self: end;
+        padding-top: 5px;
+        color: #78716c;
+        font-size: 14px;
+        line-height: 1.4;
+        white-space: nowrap;
+      }
+
       .options-description {
+        grid-column: 1 / -1;
         margin: 0 0 20px;
         color: #57534e;
       }
@@ -171,6 +188,7 @@
         }
 
         .options-title,
+        .options-version,
         .options-status,
         .options-sensitivity-title {
           color: #fde68a;
@@ -198,8 +216,11 @@
   <body>
     <main class="options-container">
       <section class="options-card" aria-labelledby="options-title">
-        <h1 id="options-title" class="options-title" data-i18n="optionsTitle"></h1>
-        <p class="options-description" data-i18n="optionsDescription"></p>
+        <header class="options-header">
+          <h1 id="options-title" class="options-title" data-i18n="optionsTitle"></h1>
+          <span id="options-version" class="options-version" aria-label="version"></span>
+          <p class="options-description" data-i18n="optionsDescription"></p>
+        </header>
 
         <label class="options-setting-row">
           <input id="option-enabled" class="options-checkbox" type="checkbox" />

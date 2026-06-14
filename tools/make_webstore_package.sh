@@ -24,7 +24,7 @@ if [ -z "${VERSION}" ]; then
   exit 1
 fi
 
-ZIP_PATH="${ZIP_PATH:-${REPO_ROOT}/${PACKAGE_NAME}-${VERSION}-beta.zip}"
+ZIP_PATH="${ZIP_PATH:-${REPO_ROOT}/${PACKAGE_NAME}-v${VERSION}.zip}"
 
 case "${ZIP_PATH}" in
   /*) ;;

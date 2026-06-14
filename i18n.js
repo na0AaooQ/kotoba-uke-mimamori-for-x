@@ -10,7 +10,11 @@ function getMessage(key, substitutions) {
   const chromeI18n = globalThis.chrome?.i18n;
 
   if (typeof chromeI18n?.getMessage === 'function') {
-    return chromeI18n.getMessage(messageKey, substitutions) || messageKey;
+    try {
+      return chromeI18n.getMessage(messageKey, substitutions) || messageKey;
+    } catch (_error) {
+      return messageKey;
+    }
   }
 
   return messageKey;
