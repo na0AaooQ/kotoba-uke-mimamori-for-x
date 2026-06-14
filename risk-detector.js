@@ -196,6 +196,14 @@ const DEDUCTION_RULES = Object.freeze([
     ]
   },
   {
+    id: 'context.physical_waste_warning',
+    score: -50,
+    patterns: [
+      /ゴミ.{0,30}(捨てない|捨てる|捨てて|ポイ捨て|拾って|拾う|用水路|田んぼ|水(?:も|を|が)?汚れ|汚して|詰まる|詰まらせ|ビニール|缶|ペットボトル)/u,
+      /(用水路|田んぼ|ポイ捨て|ビニール|缶|ペットボトル|水(?:も|を|が)?汚れ|汚して|詰まる|詰まらせ|誰が拾|誰かの手間|草刈り|お米|苗).{0,30}ゴミ/u
+    ]
+  },
+  {
     id: 'context.healthy_criticism',
     score: -20,
     patterns: [

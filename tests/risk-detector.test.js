@@ -23,6 +23,8 @@ function runTests() {
   testQuotedOrContextualTextShouldNotCushion();
   testHighRiskTextShouldCushion();
   testCustomizeShouldNotBeDetectedAsSevereInsult();
+  testPhysicalWasteWarningShouldNotCushionAtStandardSensitivity();
+  testGomiInsultsShouldStillCushionAtStandardSensitivity();
   testSevereInsultStrongWordsShouldCushionAtStandardSensitivity();
   testCasInsultsShouldStillCushionAtStandardSensitivity();
   testThresholdBehavior();
@@ -149,6 +151,140 @@ function testCustomizeShouldNotBeDetectedAsSevereInsult() {
     assert.ok(
       !result.matchedRules.includes('severe_insult.strong_word'),
       `通常語の「カスタマイズ」は強い侮辱表現ルールに一致させない: ${text}`
+    );
+  }
+}
+
+function testPhysicalWasteWarningShouldNotCushionAtStandardSensitivity() {
+  const cases = [
+    {
+      label: '対象ポスト1全文',
+      text: `皆さんにお願いがあります。
+
+田んぼの用水路にゴミを捨てないで下さい。
+
+ビニール、缶、ペットボトル…。
+
+用水路が詰まるし、水も汚れる。
+
+そして、そのゴミは誰が拾ってると思いますか？
+
+オラです❗️❗️❗️
+
+美味しいお米を食べたいなら、どうかゴミは捨てないで下さい🙏
+
+今日は朝から田んぼの草刈り。
+
+雨が降ってきたので途中で終了。
+
+苗を植えてから約3週間。
+
+だいぶ伸びたっしょ？🌾
+
+順調です😊
+
+帰りに一本松の地蔵へ。
+
+じいちゃんが建てた鳥居と地蔵なんだけど…
+
+地蔵の絵、ほとんど消えてらわw
+
+今度やっぴ画伯が描いておくか。
+
+それともオラのスマイル写真でも貼っとくか🤣
+それで充分だろ。
+
+賽銭をあげようと財布を見たら94円しか入ってなかった。
+
+たぶん財布に穴空いてる。
+
+94円を置いて、
+
+「じいちゃん、稼がせてくれよ🙏」
+
+とお願いしてきた。
+
+さて、少し休んだら次はトラックの仕事。
+
+疲れたな…。
+
+コツコツ頑張るべ🌾🚚`
+    },
+    {
+      label: '対象ポスト2全文',
+      text: `用水路のゴミって、ただのポイ捨てじゃない。
+
+田んぼの水を汚して、詰まらせて、最後は誰かの手間になる。
+
+その「誰か」が、朝から草刈りして、そのあとトラック仕事に行く人だったりする。
+
+お米って、苗を植えたら勝手に育つわけじゃない。
+
+そんな現場にゴミを捨てるのは、本当にやめてほしい。
+
+おじいちゃん、94円でもきっと助けてくれるよ🤣`
+    },
+    {
+      label: '短めの注意喚起文1',
+      text: '田んぼの用水路にゴミを捨てないで下さい。'
+    },
+    {
+      label: '短めの注意喚起文2',
+      text: '用水路のゴミって、ただのポイ捨てじゃない。'
+    },
+    {
+      label: '廃棄物例を含む文',
+      text: 'ビニール、缶、ペットボトルなどのゴミを捨てないでください。'
+    }
+  ];
+
+  for (const { label, text } of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      false,
+      `物理的なゴミ・ポイ捨て注意喚起文脈は標準感度で対象外にする: ${label}`
+    );
+
+    assert.ok(
+      result.matchedRules.includes('context.physical_waste_warning'),
+      `物理的なゴミ・ポイ捨て注意喚起文脈の控除ルールを適用する: ${label}`
+    );
+  }
+}
+
+function testGomiInsultsShouldStillCushionAtStandardSensitivity() {
+  const cases = [
+    'ゴミ',
+    'お前はゴミ',
+    '人間のゴミ',
+    'こいつはゴミだ',
+    'ゴミが',
+    'ゴミみたいな人間',
+    'あいつはゴミ',
+    'こんなやつはゴミだ',
+    '人のことを考えないゴミ',
+    'こいつゴミすぎる'
+  ];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      true,
+      `人への侮辱としての「ゴミ」は標準感度でもワンクッション対象にする: ${text}`
+    );
+
+    assert.ok(
+      result.matchedRules.includes('severe_insult.strong_word'),
+      `人への侮辱としての「ゴミ」は強い侮辱表現ルールに一致させる: ${text}`
+    );
+
+    assert.ok(
+      !result.matchedRules.includes('context.physical_waste_warning'),
+      `人への侮辱としての「ゴミ」には物理的なゴミ文脈の控除を適用しない: ${text}`
     );
   }
 }
