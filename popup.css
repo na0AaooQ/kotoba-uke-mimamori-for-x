@@ -34,6 +34,10 @@ body {
 }
 
 .popup-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: start;
   padding-bottom: 14px;
   border-bottom: 1px solid rgba(245, 158, 11, 0.2);
 }
@@ -46,8 +50,18 @@ body {
 }
 
 .popup-tagline {
+  grid-column: 1 / -1;
   margin: 4px 0 0;
   color: #57534e;
+}
+
+.popup-version {
+  justify-self: end;
+  padding-top: 3px;
+  color: #78716c;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .popup-status {
@@ -277,6 +291,7 @@ body {
   }
 
   .popup-tagline,
+  .popup-version,
   .popup-status,
   .popup-toggle-row,
   .popup-sensitivity-descriptions,

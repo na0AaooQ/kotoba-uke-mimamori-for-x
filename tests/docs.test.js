@@ -406,9 +406,10 @@ function testDocsNavigation() {
 function testStoreListingDraft() {
   const draft = readDoc(STORE_LISTING_DRAFT_PATH);
 
-  assert.ok(draft.includes('ことばうけみまもり｜Xことばに心のワンクッション BETA'));
-  assert.ok(draft.includes('Kotoba Uke Mimamori BETA'));
-  assert.ok(draft.includes('THIS EXTENSION IS FOR BETA TESTING'));
+  assert.ok(draft.includes('ことばうけみまもり｜Xことばに心のワンクッション'));
+  assert.ok(draft.includes('Kotoba Uke Mimamori'));
+  assert.ok(!draft.includes('THIS EXTENSION IS FOR BETA TESTING'));
+  assert.ok(!draft.includes('BETA'));
   assert.ok(draft.includes('権限説明'));
   assert.ok(draft.includes('Permission explanation'));
   assert.ok(draft.includes('審査向け補足説明'));

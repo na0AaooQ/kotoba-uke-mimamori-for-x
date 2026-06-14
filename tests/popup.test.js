@@ -4,7 +4,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {
+  applyExtensionVersion,
   applyLocalizedMessages,
+  getExtensionVersion,
   initializePopup,
   openDetailedSettings,
   savePopupSettings
@@ -35,6 +37,8 @@ const MESSAGES = Object.freeze({
 async function runTests() {
   testPopupHtmlContainsRequiredControlsOnly();
   await testApplyLocalizedMessages();
+  testApplyExtensionVersion();
+  testGetExtensionVersionFallsBackWhenUnavailable();
   await testInitializePopupLoadsCurrentState();
   await testSavePopupSettingsStoresAllowedSettingsOnly();
   await testOpenDetailedSettingsUsesChromeRuntime();
@@ -46,6 +50,7 @@ function testPopupHtmlContainsRequiredControlsOnly() {
   const popupHtml = fs.readFileSync(path.join(__dirname, '..', 'popup.html'), 'utf8');
 
   assert.match(popupHtml, /id="popup-enabled"/);
+  assert.match(popupHtml, /id="popup-version"/);
   assert.match(popupHtml, /value="low"/);
   assert.match(popupHtml, /value="standard"/);
   assert.match(popupHtml, /value="high"/);
@@ -56,6 +61,28 @@ function testPopupHtmlContainsRequiredControlsOnly() {
   assert.match(popupHtml, /data-i18n="optionPrivacyNote"/);
   assert.match(popupHtml, /data-i18n="optionReloadNote"/);
   assert.doesNotMatch(popupHtml, /textarea|postText|matchedRules|categories|reasons/);
+}
+
+function testApplyExtensionVersion() {
+  const fakeDocument = createFakeDocument();
+  const version = applyExtensionVersion(fakeDocument, {
+    getManifest: () => ({ version: '1.0.0' })
+  });
+
+  assert.equal(version, '1.0.0');
+  assert.equal(fakeDocument.versionLabel.textContent, 'v1.0.0');
+}
+
+function testGetExtensionVersionFallsBackWhenUnavailable() {
+  assert.equal(getExtensionVersion(undefined), '');
+  assert.equal(
+    getExtensionVersion({
+      getManifest: () => {
+        throw new Error('Extension context invalidated.');
+      }
+    }),
+    ''
+  );
 }
 
 async function testApplyLocalizedMessages() {
@@ -151,6 +178,7 @@ function createFakeDocument({ localizedElements = [] } = {}) {
     return input;
   });
   const statusValue = createElement('strong');
+  const versionLabel = createElement('span');
   const saveStatus = createElement('p');
   const openOptionsButton = createElement('button');
 
@@ -158,6 +186,7 @@ function createFakeDocument({ localizedElements = [] } = {}) {
     enabledCheckbox,
     sensitivityInputs,
     statusValue,
+    versionLabel,
     saveStatus,
     openOptionsButton,
     title: '',
@@ -168,6 +197,10 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 
       if (id === 'popup-status-value') {
         return statusValue;
+      }
+
+      if (id === 'popup-version') {
+        return versionLabel;
       }
 
       if (id === 'popup-save-status') {
@@ -199,6 +232,7 @@ function getInteractiveElements(fakeDocument) {
     enabledCheckbox: fakeDocument.enabledCheckbox,
     sensitivityInputs: fakeDocument.sensitivityInputs,
     statusValue: fakeDocument.statusValue,
+    versionLabel: fakeDocument.versionLabel,
     saveStatus: fakeDocument.saveStatus,
     openOptionsButton: fakeDocument.openOptionsButton
   };

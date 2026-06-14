@@ -3,6 +3,7 @@
 const OPTION_ELEMENTS = Object.freeze({
   enabledCheckbox: 'option-enabled',
   sensitivityInputSelector: 'input[name="option-cushion-sensitivity"]',
+  versionLabel: 'options-version',
   statusMessage: 'options-status'
 });
 
@@ -10,13 +11,15 @@ const DEFAULT_CUSHION_SENSITIVITY = 'standard';
 
 function initializeOptionsPage(
   currentDocument = globalThis.document,
-  settingsApi = getSettingsApi()
+  settingsApi = getSettingsApi(),
+  runtimeApi = globalThis.chrome?.runtime
 ) {
   if (!currentDocument) {
     return Promise.resolve(false);
   }
 
   applyLocalizedMessages(currentDocument);
+  applyExtensionVersion(currentDocument, runtimeApi);
 
   const elements = getOptionElements(currentDocument);
 
@@ -74,8 +77,26 @@ function getOptionElements(currentDocument) {
     sensitivityInputs: Array.from(
       currentDocument.querySelectorAll(OPTION_ELEMENTS.sensitivityInputSelector)
     ),
+    versionLabel: currentDocument.getElementById(OPTION_ELEMENTS.versionLabel),
     statusMessage: currentDocument.getElementById(OPTION_ELEMENTS.statusMessage)
   };
+}
+
+function applyExtensionVersion(
+  currentDocument = globalThis.document,
+  runtimeApi = globalThis.chrome?.runtime
+) {
+  const versionLabel = currentDocument?.getElementById?.(OPTION_ELEMENTS.versionLabel);
+
+  if (!versionLabel) {
+    return '';
+  }
+
+  const version = getExtensionVersion(runtimeApi);
+
+  versionLabel.textContent = version ? `v${version}` : '';
+
+  return version;
 }
 
 function applySettingsToElements(elements, settings) {
@@ -160,6 +181,18 @@ function getLocalizedMessage(key) {
   return key;
 }
 
+function getExtensionVersion(runtimeApi = globalThis.chrome?.runtime) {
+  if (typeof runtimeApi?.getManifest !== 'function') {
+    return '';
+  }
+
+  try {
+    return String(runtimeApi.getManifest()?.version ?? '');
+  } catch (_error) {
+    return '';
+  }
+}
+
 if (globalThis.document) {
   if (globalThis.document.readyState === 'loading') {
     globalThis.document.addEventListener('DOMContentLoaded', () => {
@@ -173,7 +206,9 @@ if (globalThis.document) {
 if (typeof module !== 'undefined') {
   module.exports = {
     applyLocalizedMessages,
+    applyExtensionVersion,
     applySettingsToElements,
+    getExtensionVersion,
     getSelectedCushionSensitivity,
     getOptionElements,
     initializeOptionsPage,

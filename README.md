@@ -3,14 +3,14 @@ Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワ
 
 - GitHubリポジトリURL: [https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/](https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/)
 - Chrome Web Store: [ことばうけみまもり｜Xことばに心のワンクッション](https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb)
-- 現在のステータス: Chrome Web Store 限定公開ベータ版公開済み
-- バージョン: `0.1.1`
+- 現在のステータス: Chrome Web Store 正式版 v1.0.0 リリース準備中
+- バージョン: `1.0.0`
 
 ## 概要
 
 「ことばうけみまもり｜Xことばに心のワンクッション」は、X（旧Twitter）で届く言葉のなかで、受け手の心に大きな負荷を与える可能性のある投稿に、そっとワンクッションを置くための補助ツールです。
 人格否定・存在否定・差別的表現・執拗な攻撃など、心に大きな負荷を与える可能性のある投稿を、すぐに読まなくてもよい形にし、ユーザーが「表示する / 今は見ない」を選べるようにすることを目指します。
-現在は、Chrome Web Storeで限定公開のベータ版を公開しており、Chrome Web Storeから拡張機能「ことばうけみまもり」を追加できます。
+現在は、Chrome Web Store正式版 v1.0.0 のリリース準備中です。公開後は、Chrome Web Storeから拡張機能「ことばうけみまもり」を追加できます。
 
 ## コンセプト
 
@@ -73,6 +73,7 @@ MVPでは、高信頼性を優先します。
 
 - X上の表示済みテキストを対象にする
 - リプライ、通知、引用ポスト、検索結果、タイムライン上の投稿を候補にする
+- 引用ポストでは、引用元本文もワンクッション表示の候補にする
 - 人格否定・存在否定・差別的表現・強い罵倒に近い投稿にワンクッションを置く
 - 高リスク投稿をぼかす
 - ユーザーが「表示する / 今は見ない」を選べるようにする
@@ -310,7 +311,7 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 
 ## Chrome Web Store 公開向け docs 整備
 
-Chrome Web Store限定公開ベータ版の公開にあわせて、ユーザー向けdocsにサービス説明資料PDFとスクリーンショット付きマニュアルを追加しています。
+Chrome Web Store正式版の公開に向けて、ユーザー向けdocsにサービス説明資料PDFとスクリーンショット付きマニュアルを追加しています。
 
 - サービス説明PDF: `docs/assets/pdf/kotoba-uke-mimamori-introduction.pdf`
 - 日本語マニュアル画像: `docs/assets/img/manual/001_manual-load-extension.jpeg` から `018_manual-cushion-ja-bigsize.png`
@@ -327,18 +328,18 @@ Chrome Web Store限定公開ベータ版の公開にあわせて、ユーザー�
 
 ユーザー向けdocsでは、具体的な判定語句や `risk-detector.js` 内の具体的な文字列・正規表現を直接掲載しない方針です。説明は、強い侮辱表現、存在否定に近い表現、暴力的・脅迫的に読める表現、心に大きな負荷がかかりやすい表現などのカテゴリ表現に留めます。
 
-### ベータ版Chrome Web Store掲載内容
+### 正式版Chrome Web Store掲載内容
 
-Chrome Web Store限定公開ベータ版の掲載にあたり、以下を反映しています。
+Chrome Web Store正式版 v1.0.0 の掲載に向けて、以下を反映しています。
 
 - 専用アイコンを `icons/` 配下に追加しています。
 - `manifest.json` の `icons` と `action.default_icon` に `16` / `32` / `48` / `128` px のアイコンを設定しています。
-- `manifest.json` の `version` を `0.1.1` に更新しています。
-- ベータ版表記として、拡張機能名の末尾に `BETA`、説明文に `THIS EXTENSION IS FOR BETA TESTING` を追加しています。
+- `manifest.json` の `version` を `1.0.0` に更新しています。
+- 拡張機能名と説明文から正式版前の注意表記を外し、正式版向けの文言に整理しています。
 - `manifest.json` の `name` / `description` は `__MSG_extensionName__` / `__MSG_extensionDescription__` のまま維持し、実際の文言は `_locales/ja/messages.json` と `_locales/en/messages.json` で管理しています。
 - Chrome Web Store掲載用の日本語 / 英語文案、権限説明、審査向け補足説明、スクリーンショット候補を `docs/store-listing-draft.md` に整理しています。
 
-公開中のバージョン `0.1.1` でも、使用権限は `storage` のみに限定しています。`host_permissions` は使用しません。投稿本文や判定結果は外部送信せず、保存する設定値も `enabled` と `cushionSensitivity` のみに限定します。自動ブロック、自動通報、投稿削除、アカウント危険度判定は行いません。X公式機能を置き換えるものではありません。
+正式版 v1.0.0 でも、使用権限は `storage` のみに限定しています。`host_permissions` は使用しません。投稿本文や判定結果は外部送信せず、保存する設定値も `enabled` と `cushionSensitivity` のみに限定します。自動ブロック、自動通報、投稿削除、アカウント危険度判定は行いません。X公式機能を置き換えるものではありません。
 
 ### Chrome Web Store掲載用アイコン画像生成スクリプト
 
@@ -437,11 +438,10 @@ git diff --check
 
 あわせて、`manifest.json` について以下を確認します。
 
-- `version` が `0.1.1` であること
+- `version` が `1.0.0` であること
 - `name` が `__MSG_extensionName__` のままであること
 - `description` が `__MSG_extensionDescription__` のままであること
-- `_locales/ja/messages.json` と `_locales/en/messages.json` の拡張機能名に `BETA` が含まれること
-- `_locales/ja/messages.json` と `_locales/en/messages.json` の説明文に `THIS EXTENSION IS FOR BETA TESTING` が含まれること
+- `_locales/ja/messages.json` と `_locales/en/messages.json` の拡張機能名・説明文が正式版向けであること
 - `icons/` 配下のアイコンが存在すること
 - `permissions` が `["storage"]` のみであること
 - `host_permissions` が存在しないこと
@@ -469,12 +469,12 @@ cd tools
 ./make_webstore_package.sh
 ```
 
-スクリプトは、自身の場所からリポジトリ直下を自動判定します。既定では、ZIPはリポジトリ直下に `kotoba-uke-mimamori-for-x-0.1.1-beta.zip` として作成されます。ZIP作成用の一時ディレクトリは `/tmp/kotoba-uke-mimamori-cws-package` です。
+スクリプトは、自身の場所からリポジトリ直下を自動判定します。既定では、ZIPはリポジトリ直下に `kotoba-uke-mimamori-for-x-v1.0.0.zip` として作成されます。ZIP作成用の一時ディレクトリは `/tmp/kotoba-uke-mimamori-cws-package` です。
 
 出力先を変えたい場合は、`ZIP_PATH` を指定して実行できます。
 
 ```sh
-ZIP_PATH="$PWD/dist/kotoba-uke-mimamori-for-x-0.1.1-beta.zip" ./tools/make_webstore_package.sh
+ZIP_PATH="$PWD/dist/kotoba-uke-mimamori-for-x-v1.0.0.zip" ./tools/make_webstore_package.sh
 ```
 
 一覧に以下が含まれていることを確認します。
@@ -1039,7 +1039,7 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 
 ## 自己常時ON試用
 
-自己常時ON試用は、限定公開ベータ版の継続改善に向けて、開発者本人のPC・ブラウザのみで `enabled=true` の状態を一定期間維持し、Xの通常利用に支障がないかを確認するためのものです。
+自己常時ON試用は、正式版の継続改善に向けて、開発者本人のPC・ブラウザのみで `enabled=true` の状態を一定期間維持し、Xの通常利用に支障がないかを確認するためのものです。
 
 通常のQAでは見えにくい、スクロール時の違和感、表示崩れ、過検知、心理的な負担、ライト/ダークモードでの見え方、Xの各画面での挙動を確認します。
 
@@ -1149,7 +1149,7 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 
 `docs/privacy.html` には、開発者情報とお問い合わせ先を追加し、センシティブな情報を公開の場や問い合わせ内容に記載しないよう案内しています。また、日本語 / 英語の各4ページに数字付き目次と見出し、共通レイアウトおよびフッター表記を整えています。
 
-内容は今後、自己常時ON試用やベータテストで得た気づきを反映しながら更新していきます。
+内容は今後、自己常時ON試用や正式版公開後のフィードバックで得た気づきを反映しながら更新していきます。
 
 ## 技術方針
 
@@ -1242,15 +1242,15 @@ npm run check
 
 ## 開発ステータス
 
-現在のステータス: Chrome Web Store 限定公開ベータ版公開済みです。
+現在のステータス: Chrome Web Store 正式版 v1.0.0 リリース準備中です。
 
 Chrome拡張機能として、X上の投稿DOM候補検出、投稿本文抽出、固定的なルールベース判定、ワンクッションUI表示、ぼかし表示、「内容を表示する」「今は見ない」の導線、ON/OFF設定、ワンクッションの表示されやすさ設定、ポップアップ、オプション画面、日本語・英語UI、公開ドキュメント整備まで実装済みです。
 
-バージョン `0.1.1` をChrome Web Storeから追加して、基本動作確認済みです。日本語 / 英語のサービス説明、プライバシーポリシー、免責事項、操作マニュアルを公開し、マニュアルはChrome Web Store公開後の追加手順へ更新済みです。マニュアル画像の拡大モーダルも追加済みです。
+バージョン `1.0.0` として、Chrome Web Store正式版リリースに向けた準備を進めています。日本語 / 英語のサービス説明、プライバシーポリシー、免責事項、操作マニュアルを公開し、マニュアルはChrome Web Storeから追加する手順へ更新済みです。マニュアル画像の拡大モーダルも追加済みです。
 
 ## 今後の予定
 
-- ベータ版利用者からのフィードバック確認
+- 正式版公開後のフィードバック確認
 - XのDOM変更に対する継続確認
 - 誤判定・未検出の傾向確認
 - UI文言や表示タイミングの改善検討

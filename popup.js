@@ -4,6 +4,7 @@ const POPUP_ELEMENTS = Object.freeze({
   enabledCheckbox: 'popup-enabled',
   sensitivityInputSelector: 'input[name="popup-cushion-sensitivity"]',
   statusValue: 'popup-status-value',
+  versionLabel: 'popup-version',
   saveStatus: 'popup-save-status',
   openOptionsButton: 'popup-open-options'
 });
@@ -20,6 +21,7 @@ function initializePopup(
   }
 
   applyLocalizedMessages(currentDocument);
+  applyExtensionVersion(currentDocument, runtimeApi);
 
   const elements = getPopupElements(currentDocument);
 
@@ -83,9 +85,27 @@ function getPopupElements(currentDocument) {
       currentDocument.querySelectorAll(POPUP_ELEMENTS.sensitivityInputSelector)
     ),
     statusValue: currentDocument.getElementById(POPUP_ELEMENTS.statusValue),
+    versionLabel: currentDocument.getElementById(POPUP_ELEMENTS.versionLabel),
     saveStatus: currentDocument.getElementById(POPUP_ELEMENTS.saveStatus),
     openOptionsButton: currentDocument.getElementById(POPUP_ELEMENTS.openOptionsButton)
   };
+}
+
+function applyExtensionVersion(
+  currentDocument = globalThis.document,
+  runtimeApi = globalThis.chrome?.runtime
+) {
+  const versionLabel = currentDocument?.getElementById?.(POPUP_ELEMENTS.versionLabel);
+
+  if (!versionLabel) {
+    return '';
+  }
+
+  const version = getExtensionVersion(runtimeApi);
+
+  versionLabel.textContent = version ? `v${version}` : '';
+
+  return version;
 }
 
 function applySettingsToElements(elements, settings) {
@@ -189,6 +209,18 @@ function getLocalizedMessage(key) {
   return key;
 }
 
+function getExtensionVersion(runtimeApi = globalThis.chrome?.runtime) {
+  if (typeof runtimeApi?.getManifest !== 'function') {
+    return '';
+  }
+
+  try {
+    return String(runtimeApi.getManifest()?.version ?? '');
+  } catch (_error) {
+    return '';
+  }
+}
+
 if (globalThis.document) {
   if (globalThis.document.readyState === 'loading') {
     globalThis.document.addEventListener('DOMContentLoaded', () => {
@@ -202,7 +234,9 @@ if (globalThis.document) {
 if (typeof module !== 'undefined') {
   module.exports = {
     applyLocalizedMessages,
+    applyExtensionVersion,
     applySettingsToElements,
+    getExtensionVersion,
     getPopupElements,
     initializePopup,
     openDetailedSettings,

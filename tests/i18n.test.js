@@ -8,11 +8,27 @@ const { getMessage } = require('../i18n');
 function runTests() {
   testFallbackWithoutChromeI18n();
   testChromeI18nMessage();
+  testChromeI18nInvalidatedContextFallsBack();
   testLocaleKeysMatch();
   testRequiredEnglishMessagesExist();
   testEnglishMessagesAvoidStrongPhrases();
 
   console.log('All i18n tests passed.');
+}
+
+function testChromeI18nInvalidatedContextFallsBack() {
+  withChrome(
+    {
+      i18n: {
+        getMessage: () => {
+          throw new Error('Extension context invalidated.');
+        }
+      }
+    },
+    () => {
+      assert.equal(getMessage('knownKey'), 'knownKey');
+    }
+  );
 }
 
 function testFallbackWithoutChromeI18n() {

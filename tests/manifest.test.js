@@ -17,7 +17,7 @@ const STORE_ASSET_ICON_PATHS = Object.freeze([
 ]);
 
 function runTests() {
-  testManifestVersionIsBetaSubmissionVersion();
+  testManifestVersionIsOfficialReleaseVersion();
   testLocalizedNameAndDescriptionAreConfigured();
   testPopupIsConfigured();
   testExtensionIconsAreConfigured();
@@ -27,15 +27,15 @@ function runTests() {
   testOnlyStoragePermissionIsRequested();
   testHostPermissionsAreNotRequested();
   testSettingsScriptLoadsBeforeContentScript();
-  testLocaleMessagesIncludeBetaNotice();
+  testLocaleMessagesDoNotIncludeBetaNotice();
 
   console.log('All manifest tests passed.');
 }
 
-function testManifestVersionIsBetaSubmissionVersion() {
+function testManifestVersionIsOfficialReleaseVersion() {
   const manifest = readManifest();
 
-  assert.equal(manifest.version, '0.1.1');
+  assert.equal(manifest.version, '1.0.0');
 }
 
 function testLocalizedNameAndDescriptionAreConfigured() {
@@ -98,17 +98,23 @@ function testSettingsScriptLoadsBeforeContentScript() {
   assert.ok(scripts.indexOf('settings.js') < scripts.indexOf('content.js'));
 }
 
-function testLocaleMessagesIncludeBetaNotice() {
+function testLocaleMessagesDoNotIncludeBetaNotice() {
   const japaneseMessages = readMessages('ja');
   const englishMessages = readMessages('en');
 
-  assert.ok(japaneseMessages.extensionName.message.includes('BETA'));
-  assert.ok(englishMessages.extensionName.message.includes('BETA'));
   assert.ok(
-    japaneseMessages.extensionDescription.message.includes('THIS EXTENSION IS FOR BETA TESTING')
+    !japaneseMessages.extensionName.message.includes('BETA') &&
+      !japaneseMessages.extensionName.message.includes('ベータ')
   );
   assert.ok(
-    englishMessages.extensionDescription.message.includes('THIS EXTENSION IS FOR BETA TESTING')
+    !englishMessages.extensionName.message.includes('BETA') &&
+      !englishMessages.extensionName.message.toLowerCase().includes('beta')
+  );
+  assert.ok(
+    !japaneseMessages.extensionDescription.message.includes('THIS EXTENSION IS FOR BETA TESTING')
+  );
+  assert.ok(
+    !englishMessages.extensionDescription.message.includes('THIS EXTENSION IS FOR BETA TESTING')
   );
 }
 

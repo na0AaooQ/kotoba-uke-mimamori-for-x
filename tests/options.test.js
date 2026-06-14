@@ -1,7 +1,15 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const { applyLocalizedMessages, initializeOptionsPage, saveOptionSettings } = require('../options');
+const fs = require('node:fs');
+const path = require('node:path');
+const {
+  applyExtensionVersion,
+  applyLocalizedMessages,
+  getExtensionVersion,
+  initializeOptionsPage,
+  saveOptionSettings
+} = require('../options');
 
 const MESSAGES = Object.freeze({
   optionsTitle: 'ことばうけみまもりの設定',
@@ -23,12 +31,21 @@ const MESSAGES = Object.freeze({
 });
 
 async function runTests() {
+  testOptionsHtmlContainsVersionLabel();
   testApplyLocalizedMessages();
+  testApplyExtensionVersion();
+  testGetExtensionVersionFallsBackWhenUnavailable();
   await testInitializeOptionsPageLoadsSafeInitialState();
   await testSaveOptionSettingsStoresThreeSensitivityValues();
   await testSaveOptionSettingsShowsErrorMessage();
 
   console.log('All options tests passed.');
+}
+
+function testOptionsHtmlContainsVersionLabel() {
+  const optionsHtml = fs.readFileSync(path.join(__dirname, '..', 'options.html'), 'utf8');
+
+  assert.match(optionsHtml, /id="options-version"/);
 }
 
 function testApplyLocalizedMessages() {
@@ -62,6 +79,28 @@ function testApplyLocalizedMessages() {
     assert.equal(sensitivityHighElement.textContent, MESSAGES.optionSensitivityHighDescription);
     assert.equal(reloadNoteElement.textContent, MESSAGES.optionReloadNote);
   });
+}
+
+function testApplyExtensionVersion() {
+  const fakeDocument = createFakeDocument();
+  const version = applyExtensionVersion(fakeDocument, {
+    getManifest: () => ({ version: '1.0.0' })
+  });
+
+  assert.equal(version, '1.0.0');
+  assert.equal(fakeDocument.versionLabel.textContent, 'v1.0.0');
+}
+
+function testGetExtensionVersionFallsBackWhenUnavailable() {
+  assert.equal(getExtensionVersion(undefined), '');
+  assert.equal(
+    getExtensionVersion({
+      getManifest: () => {
+        throw new Error('Extension context invalidated.');
+      }
+    }),
+    ''
+  );
 }
 
 async function testInitializeOptionsPageLoadsSafeInitialState() {
@@ -142,11 +181,13 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 
     return input;
   });
+  const versionLabel = createElement('span');
   const statusMessage = createElement('p');
 
   return {
     enabledCheckbox,
     sensitivityInputs,
+    versionLabel,
     statusMessage,
     title: '',
     getElementById(id) {
@@ -156,6 +197,10 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 
       if (id === 'options-status') {
         return statusMessage;
+      }
+
+      if (id === 'options-version') {
+        return versionLabel;
       }
 
       return null;
