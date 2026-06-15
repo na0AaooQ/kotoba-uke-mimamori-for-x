@@ -22,7 +22,7 @@ function runTests() {
   testHealthyCriticismShouldNotCushion();
   testQuotedOrContextualTextShouldNotCushion();
   testHighRiskTextShouldCushion();
-  testCustomizeShouldNotBeDetectedAsSevereInsult();
+  testKatakanaWordsContainingCasShouldNotBeDetectedAsSevereInsult();
   testFamilyBackgroundSelfDescriptionShouldNotCushion();
   testFamilyBackgroundInsultContextShouldCushion();
   testDisabilitySupportContextShouldNotCushion();
@@ -136,11 +136,18 @@ function testHighRiskTextShouldCushion() {
   }
 }
 
-function testCustomizeShouldNotBeDetectedAsSevereInsult() {
+function testKatakanaWordsContainingCasShouldNotBeDetectedAsSevereInsult() {
   const cases = [
+    'フォーカス',
+    'Webサイト一部フォーカス',
+    'カスハラ',
+    'カスタマーハラスメント',
     'カスタマイズ',
+    'スカスカ',
+    'カステラ',
     'カスタマイズが盛り盛り',
-    'ポストで紹介しきれない機能、カスタマイズが盛り盛りです。マーケティング的には特定ニーズに特化した方が良いんでしょうけどね'
+    'ポストで紹介しきれない機能、カスタマイズが盛り盛りです。マーケティング的には特定ニーズに特化した方が良いんでしょうけどね',
+    'MiruMado 一部を見る窓 Webサイト一部フォーカス'
   ];
 
   for (const text of cases) {
@@ -149,12 +156,12 @@ function testCustomizeShouldNotBeDetectedAsSevereInsult() {
     assert.equal(
       result.shouldCushion,
       false,
-      `通常語の「カスタマイズ」は標準感度でワンクッション対象外にする: ${text}`
+      `カタカナ語の一部としての「カス」は標準感度でワンクッション対象外にする: ${text}`
     );
 
     assert.ok(
       !result.matchedRules.includes('severe_insult.strong_word'),
-      `通常語の「カスタマイズ」は強い侮辱表現ルールに一致させない: ${text}`
+      `カタカナ語の一部としての「カス」は強い侮辱表現ルールに一致させない: ${text}`
     );
   }
 }
@@ -443,7 +450,19 @@ function testSevereInsultStrongWordsShouldCushionAtStandardSensitivity() {
 }
 
 function testCasInsultsShouldStillCushionAtStandardSensitivity() {
-  const cases = ['カス', 'カスだな', 'カスが', 'お前はカス'];
+  const cases = [
+    'カス',
+    'カスだ',
+    'カスだな',
+    'カスが',
+    'カスばっか',
+    'カス共',
+    'カス女',
+    'ほんとカス',
+    'お前はカス',
+    'ほんと女って言い逃げブロックするカスばっかだよな',
+    '自分がしたことも忘れて被害者面？女仕事も大概にしろよカス'
+  ];
 
   for (const text of cases) {
     const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
