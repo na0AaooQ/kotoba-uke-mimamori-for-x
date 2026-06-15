@@ -23,6 +23,10 @@ function runTests() {
   testQuotedOrContextualTextShouldNotCushion();
   testHighRiskTextShouldCushion();
   testCustomizeShouldNotBeDetectedAsSevereInsult();
+  testFamilyBackgroundSelfDescriptionShouldNotCushion();
+  testFamilyBackgroundInsultContextShouldCushion();
+  testDisabilitySupportContextShouldNotCushion();
+  testDisabilityInsultContextShouldCushion();
   testPhysicalWasteWarningShouldNotCushionAtStandardSensitivity();
   testGomiInsultsShouldStillCushionAtStandardSensitivity();
   testSevereInsultStrongWordsShouldCushionAtStandardSensitivity();
@@ -151,6 +155,120 @@ function testCustomizeShouldNotBeDetectedAsSevereInsult() {
     assert.ok(
       !result.matchedRules.includes('severe_insult.strong_word'),
       `通常語の「カスタマイズ」は強い侮辱表現ルールに一致させない: ${text}`
+    );
+  }
+}
+
+function testFamilyBackgroundSelfDescriptionShouldNotCushion() {
+  const cases = [
+    '片親',
+    '私は片親です',
+    '片親家庭で育ちました',
+    '片親で子どもを育てています',
+    '自分は片親だから、手続きが大変だった',
+    '片親家庭で育ったので、支援制度の手続きを調べています'
+  ];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      false,
+      `家庭環境の自己説明・制度文脈は標準感度で対象外にする: ${text}`
+    );
+
+    assert.ok(
+      !result.matchedRules.includes('severe_insult.strong_word'),
+      `家庭環境を表す語単体は強い侮辱表現ルールに一致させない: ${text}`
+    );
+  }
+}
+
+function testFamilyBackgroundInsultContextShouldCushion() {
+  const cases = [
+    '片親のくせに',
+    '片親だから',
+    '片親がよ',
+    '片親かな',
+    '片親なんだ',
+    'どうせ片親のくせにうぜぇな',
+    '片親だから支援を受けるな',
+    'あえんさんとしびしゅうは片親だから'
+  ];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      true,
+      `家庭環境を攻撃材料にする文脈は標準感度で対象にする: ${text}`
+    );
+
+    assert.ok(
+      result.matchedRules.includes('discriminatory_attack.family_background_context'),
+      `家庭環境への攻撃文脈ルールに一致させる: ${text}`
+    );
+
+    assert.ok(
+      result.categories.includes('discriminatory_attack'),
+      `discriminatory_attack カテゴリを含める: ${text}`
+    );
+  }
+}
+
+function testDisabilitySupportContextShouldNotCushion() {
+  const cases = [
+    '障害者',
+    '障害者支援',
+    '障害者福祉',
+    '障害者手帳',
+    '障害者雇用',
+    '障害者向けの制度',
+    '障害者だから、支援制度の案内を確認した',
+    '知的障害者向けの相談窓口を紹介します'
+  ];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      false,
+      `障害に関する支援・制度・説明文脈は標準感度で対象外にする: ${text}`
+    );
+  }
+}
+
+function testDisabilityInsultContextShouldCushion() {
+  const cases = [
+    '障害者のくせに',
+    '障害者だから',
+    '障害者がよ',
+    '障害者かな',
+    '障害者なんだ',
+    '障害者だから支援を受けるな',
+    '知的障害者のくせに'
+  ];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      true,
+      `障害に関する語を侮辱に使う文脈は標準感度で対象にする: ${text}`
+    );
+
+    assert.ok(
+      result.matchedRules.includes('discriminatory_attack.disability_context'),
+      `障害に関する侮辱文脈ルールに一致させる: ${text}`
+    );
+
+    assert.ok(
+      result.categories.includes('discriminatory_attack'),
+      `discriminatory_attack カテゴリを含める: ${text}`
     );
   }
 }
@@ -295,7 +413,6 @@ function testSevereInsultStrongWordsShouldCushionAtStandardSensitivity() {
     'バカ男',
     '欠陥品がよ',
     '親がいないせい',
-    '片親',
     'クズ',
     'ゴミ',
     'カス',
