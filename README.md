@@ -3,7 +3,7 @@ Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワ
 
 - GitHubリポジトリURL: [https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/](https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/)
 - Chrome Web Store: [ことばうけみまもり｜Xことばに心のワンクッション](https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb)
-- 現在のステータス: Chrome Web Store 正式版 v1.0.0 リリース準備中
+- 現在のステータス: Chrome Web Store 正式版 v1.0.0 リリース完了。公開済み。
 - バージョン: `1.0.0`
 
 ## 概要
