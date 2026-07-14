@@ -186,17 +186,13 @@ function assertLanguageSwitcher(html, targetPath, selectedLabel, alternateLabel)
 
 function testDocsThemeSwitcher() {
   for (const page of PAGE_PAIRS) {
-    assertThemeSwitcher(readDoc(page.jaPath), `./${THEME_SWITCHER_SCRIPT_PATH}`, {
-      label: '表示テーマ',
-      system: '端末に合わせる',
-      light: 'ライト',
-      dark: 'ダーク'
+    assertThemeToggle(readDoc(page.jaPath), `./${THEME_SWITCHER_SCRIPT_PATH}`, {
+      ariaLabel: 'ダークモードに切り替える',
+      label: '🌙 ダークモード'
     });
-    assertThemeSwitcher(readDoc(page.enPath), `../${THEME_SWITCHER_SCRIPT_PATH}`, {
-      label: 'Theme',
-      system: 'System',
-      light: 'Light',
-      dark: 'Dark'
+    assertThemeToggle(readDoc(page.enPath), `../${THEME_SWITCHER_SCRIPT_PATH}`, {
+      ariaLabel: 'Switch to dark mode',
+      label: '🌙 Dark mode'
     });
   }
 
@@ -215,17 +211,16 @@ function testDocsThemeSwitcher() {
   assert.match(enPrivacy, /browsing history,\s+pages or URLs viewed/u);
 }
 
-function assertThemeSwitcher(html, scriptPath, labels) {
+function assertThemeToggle(html, scriptPath, labels) {
   assert.ok(html.includes(`src="${scriptPath}"`));
   assert.ok(html.includes('class="page-preferences"'));
   assert.ok(html.includes('class="theme-switcher"'));
-  assert.ok(html.includes('for="theme-select"'));
-  assert.ok(html.includes('id="theme-select"'));
-  assert.ok(html.includes('data-theme-select'));
-  assert.ok(html.includes(`>${labels.label}</label>`));
-  assert.ok(html.includes(`<option value="system">${labels.system}</option>`));
-  assert.ok(html.includes(`<option value="light">${labels.light}</option>`));
-  assert.ok(html.includes(`<option value="dark">${labels.dark}</option>`));
+  assert.ok(html.includes('class="theme-switcher__button"'));
+  assert.ok(html.includes('data-theme-toggle'));
+  assert.ok(html.includes(`aria-label="${labels.ariaLabel}"`));
+  assert.ok(html.includes(`>${labels.label}</button>`));
+  assert.equal(html.includes('data-theme-select'), false);
+  assert.ok(html.indexOf('class="theme-switcher"') < html.indexOf('class="language-switcher"'));
 }
 
 function testServicePdfLinks() {

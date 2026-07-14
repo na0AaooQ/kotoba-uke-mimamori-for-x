@@ -28,24 +28,19 @@
   <body>
     <div class="page-shell">
       <div class="page-preferences">
-      <div class="language-switcher">
-        <label class="language-switcher__label" for="language-select">Language</label>
-        <select
-          id="language-select"
-          class="language-switcher__select"
-          aria-label="Select language"
-          onchange="if (this.value) window.location.href = this.value;"
-        >
-          <option value="../about.html">日本語</option>
-          <option value="./about.html" selected>English</option>
-        </select>
-      </div>
         <div class="theme-switcher">
-          <label class="theme-switcher__label" for="theme-select">Theme</label>
-          <select id="theme-select" class="theme-switcher__select" data-theme-select>
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+          <button type="button" class="theme-switcher__button" data-theme-toggle aria-label="Switch to dark mode">🌙 Dark mode</button>
+        </div>
+        <div class="language-switcher">
+          <label class="language-switcher__label" for="language-select">Language</label>
+          <select
+            id="language-select"
+            class="language-switcher__select"
+            aria-label="Select language"
+            onchange="if (this.value) window.location.href = this.value;"
+          >
+            <option value="../about.html">日本語</option>
+            <option value="./about.html" selected>English</option>
           </select>
         </div>
       </div>

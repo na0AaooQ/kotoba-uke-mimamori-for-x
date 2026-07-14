@@ -132,12 +132,11 @@ a:hover {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 10px 18px;
+  gap: 10px 14px;
   margin-bottom: 14px;
 }
 
-.language-switcher,
-.theme-switcher {
+.language-switcher {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -145,13 +144,16 @@ a:hover {
   font-size: 0.95rem;
 }
 
-.language-switcher__label,
-.theme-switcher__label {
+.theme-switcher {
+  display: flex;
+  align-items: center;
+}
+
+.language-switcher__label {
   font-weight: 700;
 }
 
-.language-switcher__select,
-.theme-switcher__select {
+.language-switcher__select {
   min-width: 132px;
   min-height: 40px;
   padding: 7px 34px 7px 12px;
@@ -162,8 +164,22 @@ a:hover {
   font: inherit;
 }
 
-.theme-switcher__select {
-  min-width: 172px;
+.theme-switcher__button {
+  min-height: 40px;
+  padding: 7px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.theme-switcher__button:hover {
+  background: var(--surface-soft);
+  color: var(--accent-hover);
 }
 
 .site-header {
@@ -560,14 +576,17 @@ section[id] {
     gap: 10px;
   }
 
-  .language-switcher,
-  .theme-switcher {
+  .language-switcher {
     justify-content: space-between;
     width: 100%;
   }
 
-  .language-switcher__select,
-  .theme-switcher__select {
+  .theme-switcher {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .language-switcher__select {
     flex: 1;
     min-width: 0;
     max-width: 220px;

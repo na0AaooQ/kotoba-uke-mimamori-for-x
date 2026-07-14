@@ -7,7 +7,8 @@ function runTests() {
   testThemeNormalization();
   testThemeResolution();
   testStorageFailureFallback();
-  testThemeSwitcherSynchronization();
+  testThemeToggleSynchronization();
+  testSystemThemeToggleSynchronization();
 
   console.log('All docs theme tests passed.');
 }
@@ -25,6 +26,10 @@ function testThemeResolution() {
   assert.equal(theme.resolveTheme('dark', false), 'dark');
   assert.equal(theme.resolveTheme('system', false), 'light');
   assert.equal(theme.resolveTheme('system', true), 'dark');
+  assert.equal(theme.getToggleTheme('light', true), 'dark');
+  assert.equal(theme.getToggleTheme('dark', false), 'light');
+  assert.equal(theme.getToggleTheme('system', false), 'dark');
+  assert.equal(theme.getToggleTheme('system', true), 'light');
 }
 
 function testStorageFailureFallback() {
@@ -42,15 +47,15 @@ function testStorageFailureFallback() {
   assert.equal(theme.saveTheme(null, 'light'), false);
 }
 
-function testThemeSwitcherSynchronization() {
+function testThemeToggleSynchronization() {
   const storage = createStorage('dark');
-  const select = createSelect();
+  const button = createButton();
   const colorSchemeQuery = createColorSchemeQuery(false);
   const document = {
-    documentElement: { dataset: {} },
+    documentElement: { dataset: {}, lang: 'ja' },
     querySelector(selector) {
-      assert.equal(selector, '[data-theme-select]');
-      return select;
+      assert.equal(selector, '[data-theme-toggle]');
+      return button;
     }
   };
   const root = {
@@ -64,29 +69,56 @@ function testThemeSwitcherSynchronization() {
 
   theme.initializeThemeSwitcher(root);
 
-  assert.equal(select.value, 'dark');
   assert.equal(document.documentElement.dataset.themePreference, 'dark');
   assert.equal(document.documentElement.dataset.theme, 'dark');
+  assert.equal(button.textContent, '☀️ ライトモード');
+  assert.equal(button.getAttribute('aria-label'), 'ライトモードに切り替える');
+  assert.equal(button.dataset.nextTheme, 'light');
 
-  select.value = 'light';
-  select.dispatch('change');
+  button.dispatch('click');
   assert.equal(storage.getItem(theme.STORAGE_KEY), 'light');
   assert.equal(document.documentElement.dataset.theme, 'light');
+  assert.equal(button.textContent, '🌙 ダークモード');
+  assert.equal(button.getAttribute('aria-label'), 'ダークモードに切り替える');
+  assert.equal(button.dataset.nextTheme, 'dark');
+}
 
-  select.value = 'system';
-  select.dispatch('change');
-  assert.equal(storage.getItem(theme.STORAGE_KEY), 'system');
+function testSystemThemeToggleSynchronization() {
+  const storage = createStorage('system');
+  const button = createButton();
+  const colorSchemeQuery = createColorSchemeQuery(false);
+  const document = {
+    documentElement: { dataset: {}, lang: 'en' },
+    querySelector() {
+      return button;
+    }
+  };
+  const root = {
+    document,
+    localStorage: storage,
+    matchMedia() {
+      return colorSchemeQuery;
+    }
+  };
+
+  theme.initializeThemeSwitcher(root);
+
   assert.equal(document.documentElement.dataset.theme, 'light');
+  assert.equal(button.textContent, '🌙 Dark mode');
 
   colorSchemeQuery.matches = true;
   colorSchemeQuery.dispatch('change');
   assert.equal(document.documentElement.dataset.theme, 'dark');
+  assert.equal(button.textContent, '☀️ Light mode');
 
-  select.value = 'dark';
-  select.dispatch('change');
+  button.dispatch('click');
+  assert.equal(storage.getItem(theme.STORAGE_KEY), 'light');
+  assert.equal(document.documentElement.dataset.themePreference, 'light');
+  assert.equal(document.documentElement.dataset.theme, 'light');
+
   colorSchemeQuery.matches = false;
   colorSchemeQuery.dispatch('change');
-  assert.equal(document.documentElement.dataset.theme, 'dark');
+  assert.equal(document.documentElement.dataset.theme, 'light');
 }
 
 function createStorage(initialTheme) {
@@ -102,16 +134,24 @@ function createStorage(initialTheme) {
   };
 }
 
-function createSelect() {
+function createButton() {
   const listeners = new Map();
+  const attributes = new Map();
 
   return {
-    value: 'system',
+    dataset: {},
+    textContent: '',
     addEventListener(type, callback) {
       listeners.set(type, callback);
     },
     dispatch(type) {
       listeners.get(type)?.();
+    },
+    getAttribute(name) {
+      return attributes.get(name) ?? null;
+    },
+    setAttribute(name, value) {
+      attributes.set(name, value);
     }
   };
 }

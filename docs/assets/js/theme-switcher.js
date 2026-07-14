@@ -19,6 +19,10 @@
     return theme;
   }
 
+  function getToggleTheme(preference, prefersDark) {
+    return resolveTheme(preference, prefersDark) === 'dark' ? 'light' : 'dark';
+  }
+
   function readStoredTheme(storage) {
     try {
       return normalizeTheme(storage?.getItem(STORAGE_KEY));
@@ -68,6 +72,29 @@
     return context.matchMedia('(prefers-color-scheme: dark)');
   }
 
+  function getToggleLabels(document, nextTheme) {
+    const isJapanese = document.documentElement.lang === 'ja';
+
+    if (nextTheme === 'dark') {
+      return isJapanese
+        ? { ariaLabel: 'ダークモードに切り替える', text: '🌙 ダークモード' }
+        : { ariaLabel: 'Switch to dark mode', text: '🌙 Dark mode' };
+    }
+
+    return isJapanese
+      ? { ariaLabel: 'ライトモードに切り替える', text: '☀️ ライトモード' }
+      : { ariaLabel: 'Switch to light mode', text: '☀️ Light mode' };
+  }
+
+  function updateThemeToggle(button, document, preference, prefersDark) {
+    const nextTheme = getToggleTheme(preference, prefersDark);
+    const labels = getToggleLabels(document, nextTheme);
+
+    button.textContent = labels.text;
+    button.setAttribute('aria-label', labels.ariaLabel);
+    button.dataset.nextTheme = nextTheme;
+  }
+
   function initializeThemeSwitcher(context = root) {
     const document = context.document;
 
@@ -77,33 +104,36 @@
 
     const colorSchemeQuery = getColorSchemeQuery(context);
     const storage = getStorage(context);
-    const preference = readStoredTheme(storage);
-    const prefersDark = colorSchemeQuery?.matches === true;
+    let preference = readStoredTheme(storage);
+    const initialPrefersDark = colorSchemeQuery?.matches === true;
 
-    applyTheme(document, preference, prefersDark);
+    applyTheme(document, preference, initialPrefersDark);
 
-    const select = document.querySelector('[data-theme-select]');
+    const button = document.querySelector('[data-theme-toggle]');
 
-    if (!select) {
+    if (!button) {
       return;
     }
 
-    select.value = preference;
+    const updateTheme = () => {
+      const prefersDark = colorSchemeQuery?.matches === true;
+
+      applyTheme(document, preference, prefersDark);
+      updateThemeToggle(button, document, preference, prefersDark);
+    };
+
+    updateTheme();
 
     const synchronizeSystemTheme = () => {
-      const selectedTheme = normalizeTheme(select.value);
-
-      if (selectedTheme === SYSTEM_THEME) {
-        applyTheme(document, selectedTheme, colorSchemeQuery?.matches === true);
+      if (preference === SYSTEM_THEME) {
+        updateTheme();
       }
     };
 
-    select.addEventListener('change', () => {
-      const selectedTheme = normalizeTheme(select.value);
-
-      select.value = selectedTheme;
-      applyTheme(document, selectedTheme, colorSchemeQuery?.matches === true);
-      saveTheme(storage, selectedTheme);
+    button.addEventListener('click', () => {
+      preference = getToggleTheme(preference, colorSchemeQuery?.matches === true);
+      saveTheme(storage, preference);
+      updateTheme();
     });
 
     if (colorSchemeQuery?.addEventListener) {
@@ -116,11 +146,13 @@
   const api = {
     STORAGE_KEY,
     applyTheme,
+    getToggleTheme,
     initializeThemeSwitcher,
     normalizeTheme,
     readStoredTheme,
     resolveTheme,
-    saveTheme
+    saveTheme,
+    updateThemeToggle
   };
 
   if (typeof module === 'object' && module.exports) {
