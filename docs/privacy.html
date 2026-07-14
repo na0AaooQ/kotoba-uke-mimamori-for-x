@@ -22,21 +22,27 @@
       hreflang="en"
       href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/privacy.html"
     >
+    <script src="./assets/js/theme-switcher.js"></script>
     <link rel="stylesheet" href="./assets/css/style.css">
   </head>
   <body>
     <div class="page-shell">
-      <div class="language-switcher">
-        <label class="language-switcher__label" for="language-select">表示言語</label>
-        <select
-          id="language-select"
-          class="language-switcher__select"
-          aria-label="表示言語を選択"
-          onchange="if (this.value) window.location.href = this.value;"
-        >
-          <option value="./privacy.html" selected>日本語</option>
-          <option value="./en/privacy.html">English</option>
-        </select>
+      <div class="page-preferences">
+        <div class="theme-switcher">
+          <button type="button" class="theme-switcher__button" data-theme-toggle aria-label="ダークモードに切り替える">🌙 ダークモード</button>
+        </div>
+        <div class="language-switcher">
+          <label class="language-switcher__label" for="language-select">表示言語</label>
+          <select
+            id="language-select"
+            class="language-switcher__select"
+            aria-label="表示言語を選択"
+            onchange="if (this.value) window.location.href = this.value;"
+          >
+            <option value="./privacy.html" selected>日本語</option>
+            <option value="./en/privacy.html">English</option>
+          </select>
+        </div>
       </div>
 
       <header class="site-header">
@@ -96,6 +102,12 @@
           </p>
           <p>
             現時点でGoogle Chrome拡張機能の保存領域 <code>chrome.storage.local</code> に保存する設定値は、拡張機能を有効にするかどうかを示す <code>enabled</code> と、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code> です。
+          </p>
+          <p>
+            公開ドキュメントページでは、利用者が選択した表示テーマを保持するため、ブラウザの <code>localStorage</code> に表示テーマの設定だけを保存します。保存する値は <code>system</code>、<code>light</code>、<code>dark</code> のいずれかです。
+          </p>
+          <p>
+            表示テーマの設定では、投稿本文、判定結果、閲覧履歴、閲覧URL、ユーザー名、アカウントIDなどを保存しません。テーマ設定を外部へ送信せず、Cookieやアクセス解析も使用しません。ブラウザのサイトデータを削除すると、この設定も削除され、「端末に合わせる」に戻ります。
           </p>
           <p>
             X（旧Twitter）の投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、その他のユーザー情報は保存しません。

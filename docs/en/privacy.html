@@ -22,21 +22,27 @@
       hreflang="en"
       href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/privacy.html"
     >
+    <script src="../assets/js/theme-switcher.js"></script>
     <link rel="stylesheet" href="../assets/css/style.css">
   </head>
   <body>
     <div class="page-shell">
-      <div class="language-switcher">
-        <label class="language-switcher__label" for="language-select">Language</label>
-        <select
-          id="language-select"
-          class="language-switcher__select"
-          aria-label="Select language"
-          onchange="if (this.value) window.location.href = this.value;"
-        >
-          <option value="../privacy.html">日本語</option>
-          <option value="./privacy.html" selected>English</option>
-        </select>
+      <div class="page-preferences">
+        <div class="theme-switcher">
+          <button type="button" class="theme-switcher__button" data-theme-toggle aria-label="Switch to dark mode">🌙 Dark mode</button>
+        </div>
+        <div class="language-switcher">
+          <label class="language-switcher__label" for="language-select">Language</label>
+          <select
+            id="language-select"
+            class="language-switcher__select"
+            aria-label="Select language"
+            onchange="if (this.value) window.location.href = this.value;"
+          >
+            <option value="../privacy.html">日本語</option>
+            <option value="./privacy.html" selected>English</option>
+          </select>
+        </div>
       </div>
 
       <header class="site-header">
@@ -109,6 +115,19 @@
             <code>enabled</code>, which represents whether the extension is ON, and
             <code>cushionSensitivity</code>, which represents how easily cushions are
             shown.
+          </p>
+          <p>
+            On the public documentation pages, only the display theme preference is
+            saved in the browser&apos;s <code>localStorage</code> so your selection can be
+            retained. The saved value is limited to <code>system</code>,
+            <code>light</code>, or <code>dark</code>.
+          </p>
+          <p>
+            The theme preference does not store post text, detection results,
+            browsing history, pages or URLs viewed, usernames, account IDs, or other
+            user information. It is not sent externally, and these pages do not use
+            cookies or analytics. If site data is cleared, this preference is also
+            removed and the pages return to the System setting.
           </p>
           <p>
             Post text is not saved. Detection results are not saved. Browsing history

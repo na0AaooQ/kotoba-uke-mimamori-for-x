@@ -8,6 +8,7 @@ const DOCS_BASE_URL = 'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x';
 const SERVICE_PDF_PATH = 'assets/pdf/kotoba-uke-mimamori-introduction.pdf';
 const STORE_LISTING_DRAFT_PATH = 'store-listing-draft.md';
 const MANUAL_MODAL_SCRIPT_PATH = 'assets/js/manual-image-modal.js';
+const THEME_SWITCHER_SCRIPT_PATH = 'assets/js/theme-switcher.js';
 const CHROME_WEB_STORE_URL =
   'https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb';
 const GITHUB_REPOSITORY_URL = 'https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x';
@@ -123,6 +124,7 @@ function runTests() {
     testEnglishPageMetadataAndLanguageSwitcher(page);
   }
 
+  testDocsThemeSwitcher();
   testServicePdfLinks();
   testManualImagesAndAltText();
   testManualAssetsExist();
@@ -180,6 +182,45 @@ function assertLanguageSwitcher(html, targetPath, selectedLabel, alternateLabel)
   assert.ok(html.includes(`value="${targetPath}"`));
   assert.ok(html.includes(`selected>${selectedLabel}</option>`));
   assert.ok(html.includes(alternateLabel));
+}
+
+function testDocsThemeSwitcher() {
+  for (const page of PAGE_PAIRS) {
+    assertThemeToggle(readDoc(page.jaPath), `./${THEME_SWITCHER_SCRIPT_PATH}`, {
+      ariaLabel: 'ダークモードに切り替える',
+      label: '🌙 ダークモード'
+    });
+    assertThemeToggle(readDoc(page.enPath), `../${THEME_SWITCHER_SCRIPT_PATH}`, {
+      ariaLabel: 'Switch to dark mode',
+      label: '🌙 Dark mode'
+    });
+  }
+
+  const sharedStyles = readDoc('assets/css/style.css');
+  assert.ok(sharedStyles.includes(":root[data-theme='dark']"));
+  assert.ok(sharedStyles.includes('@media (prefers-color-scheme: dark)'));
+  assert.ok(sharedStyles.includes('.theme-switcher'));
+
+  const jaPrivacy = readDoc('privacy.html');
+  const enPrivacy = readDoc('en/privacy.html');
+  assert.ok(jaPrivacy.includes('localStorage'));
+  assert.ok(jaPrivacy.includes('Cookieやアクセス解析も使用しません'));
+  assert.ok(jaPrivacy.includes('閲覧履歴、閲覧URL'));
+  assert.ok(enPrivacy.includes('localStorage'));
+  assert.match(enPrivacy, /do not use\s+cookies or analytics/u);
+  assert.match(enPrivacy, /browsing history,\s+pages or URLs viewed/u);
+}
+
+function assertThemeToggle(html, scriptPath, labels) {
+  assert.ok(html.includes(`src="${scriptPath}"`));
+  assert.ok(html.includes('class="page-preferences"'));
+  assert.ok(html.includes('class="theme-switcher"'));
+  assert.ok(html.includes('class="theme-switcher__button"'));
+  assert.ok(html.includes('data-theme-toggle'));
+  assert.ok(html.includes(`aria-label="${labels.ariaLabel}"`));
+  assert.ok(html.includes(`>${labels.label}</button>`));
+  assert.equal(html.includes('data-theme-select'), false);
+  assert.ok(html.indexOf('class="theme-switcher"') < html.indexOf('class="language-switcher"'));
 }
 
 function testServicePdfLinks() {
