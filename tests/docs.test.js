@@ -129,6 +129,20 @@ const ENGLISH_PAGE_PATHS = Object.freeze([
   'en/disclaimer.html',
   'en/manual.html'
 ]);
+const JAPANESE_DOCS_NAV_LINKS = Object.freeze([
+  '<a href="./about.html" target="_blank" rel="noopener noreferrer">本拡張機能について</a>',
+  '<a href="./privacy.html" target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>',
+  '<a href="./disclaimer.html" target="_blank" rel="noopener noreferrer">免責事項</a>',
+  '<a href="./manual.html" target="_blank" rel="noopener noreferrer">拡張機能の使い方</a>',
+  '<a href="./protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+]);
+const ENGLISH_DOCS_NAV_LINKS = Object.freeze([
+  '<a href="./about.html" target="_blank" rel="noopener noreferrer">About this extension</a>',
+  '<a href="./privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>',
+  '<a href="./disclaimer.html" target="_blank" rel="noopener noreferrer">Disclaimer</a>',
+  '<a href="./manual.html" target="_blank" rel="noopener noreferrer">How to Use</a>',
+  '<a href="../protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+]);
 const PROTECT_YOUR_HEART_SECTION_IDS = Object.freeze([
   'when-cushion-appears',
   'deciding-whether-to-view',
@@ -464,23 +478,12 @@ function testDisclaimers() {
 }
 
 function testDocsNavigation() {
-  const japaneseLinks = [
-    '<a href="./about.html">本拡張機能について</a>',
-    '<a href="./privacy.html">プライバシーポリシー</a>',
-    '<a href="./disclaimer.html">免責事項</a>',
-    '<a href="./manual.html">拡張機能の使い方</a>'
-  ];
-  const englishLinks = [
-    '<a href="./about.html">About this extension</a>',
-    '<a href="./privacy.html">Privacy Policy</a>',
-    '<a href="./disclaimer.html">Disclaimer</a>',
-    '<a href="./manual.html">How to Use</a>'
-  ];
-
   for (const page of PAGE_PAIRS) {
-    assertOrderedIncludes(readDoc(page.jaPath), japaneseLinks);
-    assertOrderedIncludes(readDoc(page.enPath), englishLinks);
+    assertOrderedIncludes(readDoc(page.jaPath), JAPANESE_DOCS_NAV_LINKS);
+    assertOrderedIncludes(readDoc(page.enPath), ENGLISH_DOCS_NAV_LINKS);
   }
+
+  assertOrderedIncludes(readDoc('protect-your-heart.html'), JAPANESE_DOCS_NAV_LINKS);
 }
 
 function testStoreListingDraft() {
@@ -608,9 +611,12 @@ function testProtectYourHeartGuide() {
     assert.ok(html.includes(`href="${url}" target="_blank" rel="noopener noreferrer"`));
   }
 
-  for (const path of ['./about.html', './manual.html', './privacy.html', './disclaimer.html']) {
-    assert.ok(html.includes(`href="${path}"`));
-  }
+  assertOrderedIncludes(html, [
+    '<a href="./about.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりについて</a>',
+    '<a href="./manual.html" target="_blank" rel="noopener noreferrer">拡張機能の使い方</a>',
+    '<a href="./privacy.html" target="_blank" rel="noopener noreferrer">プライバシーポリシーについて</a>',
+    '<a href="./disclaimer.html" target="_blank" rel="noopener noreferrer">免責事項</a>'
+  ]);
 
   assert.ok(
     html.includes(
@@ -625,6 +631,7 @@ function testDocumentLastUpdatedDates() {
     const date = '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
 
     assert.equal(countOccurrences(html, date), 1);
+    assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
   }
 
   for (const pagePath of ENGLISH_PAGE_PATHS) {
@@ -632,20 +639,27 @@ function testDocumentLastUpdatedDates() {
     const date = 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
 
     assert.equal(countOccurrences(html, date), 1);
+    assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
   }
 }
 
 function testProtectYourHeartEntryLinks() {
-  for (const pagePath of ['about.html', 'manual.html']) {
+  for (const pagePath of JAPANESE_PAGE_PATHS) {
     const html = readDoc(pagePath);
 
     assert.ok(
-      html.includes('<a href="./protect-your-heart.html">ことばうけみまもりで心を守る使い方</a>')
+      html.includes(
+        '<a href="./protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+      )
     );
   }
 
   for (const pagePath of ENGLISH_PAGE_PATHS) {
-    assert.equal(readDoc(pagePath).includes('protect-your-heart.html'), false);
+    assert.ok(
+      readDoc(pagePath).includes(
+        '<a href="../protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+      )
+    );
   }
 }
 
