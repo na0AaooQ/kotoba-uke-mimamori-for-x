@@ -117,6 +117,52 @@ const PAGE_PAIRS = Object.freeze([
     enToJa: '../disclaimer.html'
   }
 ]);
+const JAPANESE_PAGE_PATHS = Object.freeze([
+  'about.html',
+  'privacy.html',
+  'disclaimer.html',
+  'manual.html'
+]);
+const ENGLISH_PAGE_PATHS = Object.freeze([
+  'en/about.html',
+  'en/privacy.html',
+  'en/disclaimer.html',
+  'en/manual.html'
+]);
+const JAPANESE_DOCS_NAV_LINKS = Object.freeze([
+  '<a href="./about.html" target="_blank" rel="noopener noreferrer">本拡張機能について</a>',
+  '<a href="./privacy.html" target="_blank" rel="noopener noreferrer">プライバシーポリシー</a>',
+  '<a href="./disclaimer.html" target="_blank" rel="noopener noreferrer">免責事項</a>',
+  '<a href="./manual.html" target="_blank" rel="noopener noreferrer">拡張機能の使い方</a>',
+  '<a href="./protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+]);
+const ENGLISH_DOCS_NAV_LINKS = Object.freeze([
+  '<a href="./about.html" target="_blank" rel="noopener noreferrer">About this extension</a>',
+  '<a href="./privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>',
+  '<a href="./disclaimer.html" target="_blank" rel="noopener noreferrer">Disclaimer</a>',
+  '<a href="./manual.html" target="_blank" rel="noopener noreferrer">How to Use</a>',
+  '<a href="../protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+]);
+const PROTECT_YOUR_HEART_SECTION_IDS = Object.freeze([
+  'when-cushion-appears',
+  'deciding-whether-to-view',
+  'choices-available-now',
+  'repeated-contact',
+  'x-safety-features',
+  'hesitating-about-muting-or-blocking',
+  'fear-or-immediate-danger',
+  'extension-role',
+  'x-help-and-related-pages'
+]);
+const X_HELP_URLS = Object.freeze([
+  'https://help.x.com/ja/using-x/x-mute',
+  'https://help.x.com/ja/using-x/blocking-and-unblocking-accounts',
+  'https://help.x.com/ja/using-x/direct-messages',
+  'https://help.x.com/ja/safety-and-security/report-a-post',
+  'https://help.x.com/ja/rules-and-policies/x-report-violation',
+  'https://help.x.com/ja/rules-and-policies/abusive-behavior',
+  'https://help.x.com/ja/rules-and-policies/hateful-conduct-policy'
+]);
 
 function runTests() {
   for (const page of PAGE_PAIRS) {
@@ -138,6 +184,9 @@ function runTests() {
   testRuleBasedExplanation();
   testNotPurposeStatements();
   testDocsDoNotExposeInternalRuleIds();
+  testProtectYourHeartGuide();
+  testDocumentLastUpdatedDates();
+  testProtectYourHeartEntryLinks();
 
   console.log('All docs tests passed.');
 }
@@ -411,13 +460,17 @@ function testDisclaimers() {
   const jaDisclaimer = readDoc('disclaimer.html');
   const enDisclaimer = readDoc('en/disclaimer.html');
 
-  assert.ok(jaDisclaimer.includes('最終更新：2026年6月'));
+  assert.ok(jaDisclaimer.includes('最終更新日：<time datetime="2026-06-16">2026年6月16日</time>'));
+  assert.equal(jaDisclaimer.includes('最終更新：2026年6月'), false);
   assert.ok(jaDisclaimer.includes('ブラウザ内の固定的なルールベース'));
   assert.ok(jaDisclaimer.includes('正確性、完全性、有用性を保証するものではありません'));
   assert.ok(jaDisclaimer.includes('法令上責任を免れない場合を除きます'));
   assert.ok(jaDisclaimer.includes('X Corp.または関連会社が提供、承認、保証するものではありません'));
 
-  assert.ok(enDisclaimer.includes('Last updated: June 2026'));
+  assert.ok(
+    enDisclaimer.includes('Last updated: <time datetime="2026-06-16">June 16, 2026</time>')
+  );
+  assert.equal(enDisclaimer.includes('Last updated: June 2026'), false);
   assert.ok(enDisclaimer.includes('fixed rule-based checks'));
   assert.ok(enDisclaimer.includes('does not guarantee the accuracy, completeness, or usefulness'));
   assert.ok(enDisclaimer.includes('except where liability cannot be'));
@@ -425,23 +478,12 @@ function testDisclaimers() {
 }
 
 function testDocsNavigation() {
-  const japaneseLinks = [
-    '<a href="./about.html">本拡張機能について</a>',
-    '<a href="./privacy.html">プライバシーポリシー</a>',
-    '<a href="./disclaimer.html">免責事項</a>',
-    '<a href="./manual.html">拡張機能の使い方</a>'
-  ];
-  const englishLinks = [
-    '<a href="./about.html">About this extension</a>',
-    '<a href="./privacy.html">Privacy Policy</a>',
-    '<a href="./disclaimer.html">Disclaimer</a>',
-    '<a href="./manual.html">How to Use</a>'
-  ];
-
   for (const page of PAGE_PAIRS) {
-    assertOrderedIncludes(readDoc(page.jaPath), japaneseLinks);
-    assertOrderedIncludes(readDoc(page.enPath), englishLinks);
+    assertOrderedIncludes(readDoc(page.jaPath), JAPANESE_DOCS_NAV_LINKS);
+    assertOrderedIncludes(readDoc(page.enPath), ENGLISH_DOCS_NAV_LINKS);
   }
+
+  assertOrderedIncludes(readDoc('protect-your-heart.html'), JAPANESE_DOCS_NAV_LINKS);
 }
 
 function testStoreListingDraft() {
@@ -517,6 +559,7 @@ function testNotPurposeStatements() {
 function testDocsDoNotExposeInternalRuleIds() {
   const allDocs = [
     ...PAGE_PAIRS.flatMap((page) => [page.jaPath, page.enPath]),
+    'protect-your-heart.html',
     STORE_LISTING_DRAFT_PATH
   ]
     .map(readDoc)
@@ -534,6 +577,89 @@ function testDocsDoNotExposeInternalRuleIds() {
 
   for (const snippet of forbiddenInternalSnippets) {
     assert.equal(allDocs.includes(snippet), false);
+  }
+}
+
+function testProtectYourHeartGuide() {
+  const html = readDoc('protect-your-heart.html');
+
+  assert.match(html, /<html lang="ja">/);
+  assert.ok(
+    html.includes('<title>ことばうけみまもりで心を守る使い方 | ことばうけみまもり</title>')
+  );
+  assert.ok(html.includes('<h1>ことばうけみまもりで心を守る使い方</h1>'));
+  assert.ok(html.includes('「今は見ない」「届いた言葉から少し距離を置く」という選択について'));
+  assert.ok(html.includes('最終更新日：<time datetime="2026-07-15">2026年7月15日</time>'));
+  assert.ok(html.includes('X公式ヘルプ確認日：<time datetime="2026-07-15">2026年7月15日</time>'));
+  assert.equal((html.match(/<h1>/gu) ?? []).length, 1);
+  assert.ok(html.includes('class="toc" aria-labelledby="protect-your-heart-toc-title"'));
+  assert.ok(html.includes('<h2 id="protect-your-heart-toc-title">目次</h2>'));
+  assert.ok(html.includes('<h2>おわりに</h2>'));
+  assert.ok(html.includes('<script src="./assets/js/theme-switcher.js"></script>'));
+  assert.ok(html.includes('<link rel="stylesheet" href="./assets/css/style.css">'));
+  assert.ok(html.includes('class="page-preferences"'));
+  assert.ok(html.includes('class="theme-switcher__button"'));
+  assert.equal(html.includes('en/protect-your-heart.html'), false);
+  assert.equal(html.includes('hreflang="en"'), false);
+
+  for (const id of PROTECT_YOUR_HEART_SECTION_IDS) {
+    assert.ok(html.includes(`href="#${id}"`));
+    assert.ok(html.includes(`<section id="${id}">`));
+  }
+
+  for (const url of X_HELP_URLS) {
+    assert.ok(html.includes(`href="${url}" target="_blank" rel="noopener noreferrer"`));
+  }
+
+  assertOrderedIncludes(html, [
+    '<a href="./about.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりについて</a>',
+    '<a href="./manual.html" target="_blank" rel="noopener noreferrer">拡張機能の使い方</a>',
+    '<a href="./privacy.html" target="_blank" rel="noopener noreferrer">プライバシーポリシーについて</a>',
+    '<a href="./disclaimer.html" target="_blank" rel="noopener noreferrer">免責事項</a>'
+  ]);
+
+  assert.ok(
+    html.includes(
+      'href="https://words-watching-app.na0aaooq.com/consultation.html" target="_blank" rel="noopener noreferrer"'
+    )
+  );
+}
+
+function testDocumentLastUpdatedDates() {
+  for (const pagePath of JAPANESE_PAGE_PATHS) {
+    const html = readDoc(pagePath);
+    const date = '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
+
+    assert.equal(countOccurrences(html, date), 1);
+    assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
+  }
+
+  for (const pagePath of ENGLISH_PAGE_PATHS) {
+    const html = readDoc(pagePath);
+    const date = 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
+
+    assert.equal(countOccurrences(html, date), 1);
+    assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
+  }
+}
+
+function testProtectYourHeartEntryLinks() {
+  for (const pagePath of JAPANESE_PAGE_PATHS) {
+    const html = readDoc(pagePath);
+
+    assert.ok(
+      html.includes(
+        '<a href="./protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+      )
+    );
+  }
+
+  for (const pagePath of ENGLISH_PAGE_PATHS) {
+    assert.ok(
+      readDoc(pagePath).includes(
+        '<a href="../protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+      )
+    );
   }
 }
 
@@ -584,6 +710,10 @@ function assertStoreFigureOrderAndCaptions(html, figures) {
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+}
+
+function countOccurrences(value, needle) {
+  return value.split(needle).length - 1;
 }
 
 function readDoc(relativePath) {
