@@ -17,6 +17,11 @@
       hreflang="ja"
       href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/protect-your-heart.html"
     >
+    <link
+      rel="alternate"
+      hreflang="en"
+      href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/protect-your-heart.html"
+    >
     <script src="./assets/js/theme-switcher.js"></script>
     <link rel="stylesheet" href="./assets/css/style.css">
   </head>
@@ -26,13 +31,25 @@
         <div class="theme-switcher">
           <button type="button" class="theme-switcher__button" data-theme-toggle aria-label="ダークモードに切り替える">🌙 ダークモード</button>
         </div>
+        <div class="language-switcher">
+          <label class="language-switcher__label" for="language-select">表示言語</label>
+          <select
+            id="language-select"
+            class="language-switcher__select"
+            aria-label="表示言語を選択"
+            onchange="if (this.value) window.location.href = this.value;"
+          >
+            <option value="./protect-your-heart.html" selected>日本語</option>
+            <option value="./en/protect-your-heart.html">English</option>
+          </select>
+        </div>
       </div>
 
       <header class="site-header">
         <p class="eyebrow">ことばうけみまもり</p>
         <h1>ことばうけみまもりで心を守る使い方</h1>
         <p class="page-subtitle">「今は見ない」「届いた言葉から少し距離を置く」という選択について</p>
-        <p class="last-updated">最終更新日：<time datetime="2026-07-15">2026年7月15日</time></p>
+        <p class="last-updated">最終更新日：<time datetime="2026-07-16">2026年7月16日</time></p>
       </header>
 
       <main class="content-card">
@@ -55,6 +72,22 @@
         <p>
           特定の行動を一律に勧めたり、利用者に代わって判断したりするものではありません。今の状況や感じている負担に合う選択を、落ち着いて考えるための参考としてご覧ください。
         </p>
+
+        <section class="quick-guide" aria-labelledby="quick-guide-title">
+          <h2 id="quick-guide-title">クイックガイド：ワンクッションが表示されたときにできること</h2>
+          <ul>
+            <li>今すぐ内容を表示する必要はありません。</li>
+            <li>迷ったときは、そのまま表示せず、いったん画面から離れても構いません。</li>
+            <li>後で考えても、そのまま見ないことを選んでも構いません。</li>
+            <li>内容を表示する前に、今の自分がどう感じているかを確認してみてください。</li>
+            <li>返信や反応を急ぐ必要はありません。</li>
+            <li>同じ相手からの内容に繰り返し負担を感じる場合は、自分にどの程度の距離が必要か考えてみてください。</li>
+            <li>状況に応じて、ミュート、ブロック、DM設定、報告などの選択肢を確認できます。</li>
+            <li>これらを決まった順番で利用する必要はありません。</li>
+            <li>強い恐怖や身の危険を感じる場合は、自分の安全を優先し、必要に応じて信頼できる人や適切な相談先につながることも考えられます。</li>
+            <li>「ことばうけみまもり」は判断を代行するのではなく、少し立ち止まり、自分に合う選択を考えるための余白をつくります。</li>
+          </ul>
+        </section>
 
         <nav class="toc" aria-labelledby="protect-your-heart-toc-title">
           <h2 id="protect-your-heart-toc-title">目次</h2>

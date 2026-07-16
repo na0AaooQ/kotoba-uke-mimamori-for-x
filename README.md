@@ -1159,7 +1159,7 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 
 ### 心を守る使い方ページの設計意図
 
-`docs/protect-your-heart.html` は、ワンクッションが表示されたときの一般的な考え方や選択肢を案内する日本語ページです。設計意図、更新日の役割、X公式ヘルプへの案内方針、代替案の検討結果は [design/protect-your-heart-guide.md](design/protect-your-heart-guide.md) に記録しています。
+`docs/protect-your-heart.html` と `docs/en/protect-your-heart.html` は、ワンクッションが表示されたときの一般的な考え方や選択肢を、日本語・英語で案内する対応ページです。両ページには長文の前にQuick Guideを置き、読む・読まない・後で考える選択を利用者自身が考えられるようにしています。設計意図、更新日の役割、X公式ヘルプへの案内方針、代替案の検討結果は [design/protect-your-heart-guide.md](design/protect-your-heart-guide.md) に記録しています。
 
 ## 技術方針
 

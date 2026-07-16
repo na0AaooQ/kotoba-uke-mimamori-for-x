@@ -344,6 +344,27 @@ section[id] {
   background: var(--surface-soft);
 }
 
+.quick-guide {
+  margin: 26px 0 30px;
+  padding: 22px 24px;
+  border: 1px solid var(--border-soft);
+  border-left: 4px solid var(--accent-soft);
+  border-radius: 14px;
+  background: var(--surface-subtle);
+}
+
+.quick-guide h2 {
+  margin-top: 0;
+}
+
+.quick-guide ul {
+  margin-top: 16px;
+}
+
+.quick-guide li + li {
+  margin-top: 10px;
+}
+
 .toc h2 {
   margin-top: 0;
   text-align: center;
@@ -657,6 +678,10 @@ blockquote p + p {
   }
 
   .toc {
+    padding: 18px 16px;
+  }
+
+  .quick-guide {
     padding: 18px 16px;
   }
 
