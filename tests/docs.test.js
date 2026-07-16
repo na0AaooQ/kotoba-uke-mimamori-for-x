@@ -141,7 +141,7 @@ const ENGLISH_DOCS_NAV_LINKS = Object.freeze([
   '<a href="./privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>',
   '<a href="./disclaimer.html" target="_blank" rel="noopener noreferrer">Disclaimer</a>',
   '<a href="./manual.html" target="_blank" rel="noopener noreferrer">How to Use</a>',
-  '<a href="../protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+  '<a href="./protect-your-heart.html" target="_blank" rel="noopener noreferrer">How to Protect Your Peace of Mind</a>'
 ]);
 const PROTECT_YOUR_HEART_SECTION_IDS = Object.freeze([
   'when-cushion-appears',
@@ -162,6 +162,15 @@ const X_HELP_URLS = Object.freeze([
   'https://help.x.com/ja/rules-and-policies/x-report-violation',
   'https://help.x.com/ja/rules-and-policies/abusive-behavior',
   'https://help.x.com/ja/rules-and-policies/hateful-conduct-policy'
+]);
+const ENGLISH_X_HELP_URLS = Object.freeze([
+  'https://help.x.com/en/using-x/x-mute',
+  'https://help.x.com/using-twitter/blocking-and-unblocking-accounts',
+  'https://help.x.com/en/using-x/direct-messages',
+  'https://help.x.com/en/safety-and-security/report-a-post',
+  'https://help.x.com/en/rules-and-policies/x-report-violation',
+  'https://help.x.com/en/rules-and-policies/abusive-behavior',
+  'https://help.x.com/en/rules-and-policies/hateful-conduct-policy'
 ]);
 
 function runTests() {
@@ -185,6 +194,7 @@ function runTests() {
   testNotPurposeStatements();
   testDocsDoNotExposeInternalRuleIds();
   testProtectYourHeartGuide();
+  testEnglishProtectYourHeartGuide();
   testDocumentLastUpdatedDates();
   testProtectYourHeartEntryLinks();
 
@@ -249,6 +259,7 @@ function testDocsThemeSwitcher() {
   assert.ok(sharedStyles.includes(":root[data-theme='dark']"));
   assert.ok(sharedStyles.includes('@media (prefers-color-scheme: dark)'));
   assert.ok(sharedStyles.includes('.theme-switcher'));
+  assert.ok(sharedStyles.includes('.quick-guide'));
 
   const jaPrivacy = readDoc('privacy.html');
   const enPrivacy = readDoc('en/privacy.html');
@@ -560,6 +571,7 @@ function testDocsDoNotExposeInternalRuleIds() {
   const allDocs = [
     ...PAGE_PAIRS.flatMap((page) => [page.jaPath, page.enPath]),
     'protect-your-heart.html',
+    'en/protect-your-heart.html',
     STORE_LISTING_DRAFT_PATH
   ]
     .map(readDoc)
@@ -589,7 +601,7 @@ function testProtectYourHeartGuide() {
   );
   assert.ok(html.includes('<h1>ことばうけみまもりで心を守る使い方</h1>'));
   assert.ok(html.includes('「今は見ない」「届いた言葉から少し距離を置く」という選択について'));
-  assert.ok(html.includes('最終更新日：<time datetime="2026-07-15">2026年7月15日</time>'));
+  assert.ok(html.includes('最終更新日：<time datetime="2026-07-16">2026年7月16日</time>'));
   assert.ok(html.includes('X公式ヘルプ確認日：<time datetime="2026-07-15">2026年7月15日</time>'));
   assert.equal((html.match(/<h1>/gu) ?? []).length, 1);
   assert.ok(html.includes('class="toc" aria-labelledby="protect-your-heart-toc-title"'));
@@ -597,10 +609,23 @@ function testProtectYourHeartGuide() {
   assert.ok(html.includes('<h2>おわりに</h2>'));
   assert.ok(html.includes('<script src="./assets/js/theme-switcher.js"></script>'));
   assert.ok(html.includes('<link rel="stylesheet" href="./assets/css/style.css">'));
-  assert.ok(html.includes('class="page-preferences"'));
-  assert.ok(html.includes('class="theme-switcher__button"'));
-  assert.equal(html.includes('en/protect-your-heart.html'), false);
-  assert.equal(html.includes('hreflang="en"'), false);
+  assertThemeToggle(html, `./${THEME_SWITCHER_SCRIPT_PATH}`, {
+    ariaLabel: 'ダークモードに切り替える',
+    label: '🌙 ダークモード'
+  });
+  assertIncludesMetadata(
+    html,
+    `${DOCS_BASE_URL}/protect-your-heart.html`,
+    `${DOCS_BASE_URL}/protect-your-heart.html`,
+    `${DOCS_BASE_URL}/en/protect-your-heart.html`
+  );
+  assertLanguageSwitcher(html, './en/protect-your-heart.html', '日本語', 'English');
+
+  const quickGuide = getQuickGuide(html);
+  assert.ok(quickGuide.includes('クイックガイド：ワンクッションが表示されたときにできること'));
+  assert.equal(countOccurrences(quickGuide, '<li>'), 10);
+  assert.ok(html.indexOf('class="quick-guide"') > html.indexOf('参考としてご覧ください。'));
+  assert.ok(html.indexOf('class="quick-guide"') < html.indexOf('class="toc"'));
 
   for (const id of PROTECT_YOUR_HEART_SECTION_IDS) {
     assert.ok(html.includes(`href="#${id}"`));
@@ -623,6 +648,69 @@ function testProtectYourHeartGuide() {
       'href="https://words-watching-app.na0aaooq.com/consultation.html" target="_blank" rel="noopener noreferrer"'
     )
   );
+}
+
+function testEnglishProtectYourHeartGuide() {
+  const html = readDoc('en/protect-your-heart.html');
+
+  assert.match(html, /<html lang="en">/);
+  assert.ok(
+    html.includes('<title>How to Protect Your Peace of Mind with Kotoba Uke Mimamori</title>')
+  );
+  assert.ok(html.includes('<h1>How to Protect Your Peace of Mind with Kotoba Uke Mimamori</h1>'));
+  assert.ok(
+    html.includes(
+      'Choosing Not to Read Something Right Away, and Taking Some Distance from the Words You Receive'
+    )
+  );
+  assert.ok(html.includes('Last updated: <time datetime="2026-07-16">July 16, 2026</time>'));
+  assert.ok(
+    html.includes('X Help Center checked on: <time datetime="2026-07-16">July 16, 2026</time>')
+  );
+  assert.equal((html.match(/<h1>/gu) ?? []).length, 1);
+  assert.ok(html.includes('class="toc" aria-labelledby="protect-your-heart-toc-title"'));
+  assert.ok(html.includes('<h2 id="protect-your-heart-toc-title">Table of Contents</h2>'));
+  assert.ok(html.includes('<h2>Closing</h2>'));
+  assert.ok(html.includes('<script src="../assets/js/theme-switcher.js"></script>'));
+  assert.ok(html.includes('<link rel="stylesheet" href="../assets/css/style.css">'));
+  assertThemeToggle(html, `../${THEME_SWITCHER_SCRIPT_PATH}`, {
+    ariaLabel: 'Switch to dark mode',
+    label: '🌙 Dark mode'
+  });
+  assertIncludesMetadata(
+    html,
+    `${DOCS_BASE_URL}/en/protect-your-heart.html`,
+    `${DOCS_BASE_URL}/protect-your-heart.html`,
+    `${DOCS_BASE_URL}/en/protect-your-heart.html`
+  );
+  assertLanguageSwitcher(html, '../protect-your-heart.html', 'English', '日本語');
+
+  const quickGuide = getQuickGuide(html);
+  assert.ok(quickGuide.includes('Quick Guide: What You Can Do When a Pause Appears'));
+  assert.equal(countOccurrences(quickGuide, '<li>'), 10);
+
+  for (const id of PROTECT_YOUR_HEART_SECTION_IDS) {
+    assert.ok(html.includes(`href="#${id}"`));
+    assert.ok(html.includes(`<section id="${id}">`));
+  }
+
+  for (const url of ENGLISH_X_HELP_URLS) {
+    assert.ok(html.includes(`href="${url}" target="_blank" rel="noopener noreferrer"`));
+  }
+
+  assertOrderedIncludes(html, [
+    '<a href="./about.html" target="_blank" rel="noopener noreferrer">About &apos;Kotoba Uke Mimamori&apos;</a>',
+    '<a href="./manual.html" target="_blank" rel="noopener noreferrer">How to Use the Extension</a>',
+    '<a href="./privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>',
+    '<a href="./disclaimer.html" target="_blank" rel="noopener noreferrer">Disclaimer</a>'
+  ]);
+  assert.ok(
+    html.includes(
+      'href="https://words-watching-app.na0aaooq.com/en/consultation.html" target="_blank" rel="noopener noreferrer"'
+    )
+  );
+  assertOrderedIncludes(html, ENGLISH_DOCS_NAV_LINKS);
+  assertGitHubRepositoryLink(html, 'View source code on GitHub');
 }
 
 function testDocumentLastUpdatedDates() {
@@ -657,10 +745,17 @@ function testProtectYourHeartEntryLinks() {
   for (const pagePath of ENGLISH_PAGE_PATHS) {
     assert.ok(
       readDoc(pagePath).includes(
-        '<a href="../protect-your-heart.html" target="_blank" rel="noopener noreferrer">ことばうけみまもりで心を守る使い方</a>'
+        '<a href="./protect-your-heart.html" target="_blank" rel="noopener noreferrer">How to Protect Your Peace of Mind</a>'
       )
     );
   }
+}
+
+function getQuickGuide(html) {
+  const quickGuide = /<section class="quick-guide"[\s\S]*?<\/section>/u.exec(html);
+
+  assert.ok(quickGuide);
+  return quickGuide[0];
 }
 
 function assertImageWithAlt(html, src) {
