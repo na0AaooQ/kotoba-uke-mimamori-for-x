@@ -1,6 +1,10 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { buildCushionGuidance } = require('../cushion-guidance');
+
+delete globalThis.kotobaUkeMimamoriCushionGuidance;
+
 const {
   ATTRIBUTES,
   CLASSES,
@@ -34,7 +38,9 @@ async function runTests() {
   testDoesNotProcessCandidateWhenEnabledFalse();
   testDoesNotScanCandidatePostsWhenEnabledFalse();
   testMarksCushionCandidate();
+  testPassesCushionGuidanceToOverlay();
   testMarksRiskCheckedWithoutCushion();
+  testRendersWithoutCushionGuidanceApi();
   testSkipsEmptyPostText();
   testSkipsAlreadyProcessedPost();
   testDoesNotRenderOverlayWhenFeatureDisabled();
@@ -44,8 +50,11 @@ async function runTests() {
   testAppliesContentBlurWhenDevFlagIsOn();
   testAppliesContentBlurWhenEnabledIsOn();
   testProcessesQuotedPostSourceTextSeparately();
+  testPassesCushionGuidanceToQuotedSourceOnly();
+  testPassesIndependentCushionGuidanceToQuotedPostTexts();
   testDoesNotInsertDuplicateCushionForQuotedSource();
   testShowButtonRevealsQuotedSourceOnly();
+  testShowButtonRevealsOnlyItsOwnQuotedPostText();
   testShowButtonRevealsContentAndRemovesOverlay();
   testHideButtonKeepsContentBlurAndOverlay();
   testDefaultFeatureFlagsAreOff();
@@ -53,6 +62,9 @@ async function runTests() {
   testDoesNotForceDevTestCushionWhenOverlayDevFlagIsOff();
   testForcesDevTestCushionOnlyWhenBothFlagsAreOn();
   testDevTestCushionTextIsNotIncludedInOverlay();
+  testDoesNotPassGuidanceForForcedDevTestCushion();
+  testRetainsCushionGuidanceWhenCushionElementCreationFails();
+  testRetainsAndCleansUpCushionGuidanceAroundOverlayInsertion();
   testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn();
 
   console.log('All content tests passed.');
@@ -234,7 +246,57 @@ function testMarksCushionCandidate() {
   );
 }
 
+function testPassesCushionGuidanceToOverlay() {
+  let overlayResult = null;
+  const riskResult = {
+    shouldCushion: true,
+    score: 85,
+    categories: ['personality_attack'],
+    reasons: ['internal reason'],
+    matchedRules: ['internal.rule']
+  };
+  const { postNode } = createPostNodeWithNestedText('お前なんか存在価値がない');
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return riskResult;
+      }
+    },
+    () => {
+      withCushionGuidance({ buildCushionGuidance }, () => {
+        withOverlay(
+          {
+            createCushionElement(result) {
+              overlayResult = result;
+
+              return createElement('section');
+            }
+          },
+          () => {
+            processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+          }
+        );
+      });
+    }
+  );
+
+  assert.deepEqual(overlayResult, {
+    reasonMessageKey: 'reasonGeneric',
+    guidance: {
+      strengthKey: 'strong',
+      tendencyKeys: ['directedStrongLanguage']
+    }
+  });
+  assert.equal(Object.hasOwn(overlayResult, 'score'), false);
+  assert.equal(Object.hasOwn(overlayResult, 'categories'), false);
+  assert.equal(Object.hasOwn(overlayResult, 'reasons'), false);
+  assert.equal(Object.hasOwn(overlayResult, 'matchedRules'), false);
+}
+
 function testMarksRiskCheckedWithoutCushion() {
+  let guidanceBuildCount = 0;
+  let overlayCreateCount = 0;
   const postNode = createPostNode(['その意見には反対です']);
 
   withRiskDetector(
@@ -246,18 +308,96 @@ function testMarksRiskCheckedWithoutCushion() {
       }
     },
     () => {
-      const result = processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+      withCushionGuidance(
+        {
+          buildCushionGuidance() {
+            guidanceBuildCount += 1;
 
-      assert.deepEqual(result, {
-        processed: true,
-        riskChecked: true,
-        shouldCushion: false
-      });
-      assert.equal(postNode.getAttribute(ATTRIBUTES.processed), 'true');
-      assert.equal(postNode.getAttribute(ATTRIBUTES.riskChecked), 'true');
-      assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+            return {
+              strengthKey: 'strong',
+              tendencyKeys: ['directedStrongLanguage']
+            };
+          }
+        },
+        () => {
+          withOverlay(
+            {
+              createCushionElement() {
+                overlayCreateCount += 1;
+
+                return createElement('section');
+              }
+            },
+            () => {
+              const result = processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+
+              assert.deepEqual(result, {
+                processed: true,
+                riskChecked: true,
+                shouldCushion: false
+              });
+            }
+          );
+        }
+      );
     }
   );
+
+  assert.equal(postNode.getAttribute(ATTRIBUTES.processed), 'true');
+  assert.equal(postNode.getAttribute(ATTRIBUTES.riskChecked), 'true');
+  assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+  assert.equal(guidanceBuildCount, 0);
+  assert.equal(overlayCreateCount, 0);
+}
+
+function testRendersWithoutCushionGuidanceApi() {
+  const unavailableApis = [
+    null,
+    {},
+    {
+      buildCushionGuidance() {
+        throw new Error('Guidance unavailable');
+      }
+    }
+  ];
+
+  for (const cushionGuidanceApi of unavailableApis) {
+    let overlayResult = null;
+    const { postNode } = createPostNodeWithNestedText('お前なんか存在価値がない');
+
+    withRiskDetector(
+      {
+        detectTextRisk() {
+          return {
+            shouldCushion: true,
+            score: 85,
+            categories: ['personality_attack']
+          };
+        }
+      },
+      () => {
+        withCushionGuidance(cushionGuidanceApi, () => {
+          withOverlay(
+            {
+              createCushionElement(result) {
+                overlayResult = result;
+
+                return createElement('section');
+              }
+            },
+            () => {
+              processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+            }
+          );
+        });
+      }
+    );
+
+    assert.deepEqual(overlayResult, {
+      reasonMessageKey: 'reasonGeneric'
+    });
+    assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+  }
 }
 
 function testSkipsEmptyPostText() {
@@ -456,6 +596,125 @@ function testProcessesQuotedPostSourceTextSeparately() {
   );
 }
 
+function testPassesCushionGuidanceToQuotedSourceOnly() {
+  const overlayResults = [];
+  const { mainTextNode, postNode, quoteTextNode } = createQuotedPostNodeWithNestedTexts(
+    '引用している側の通常本文です',
+    'お前なんか存在価値がない'
+  );
+
+  withRiskDetector(
+    {
+      detectTextRisk(text) {
+        if (text === 'お前なんか存在価値がない') {
+          return {
+            shouldCushion: true,
+            score: 85,
+            categories: ['personality_attack']
+          };
+        }
+
+        return {
+          shouldCushion: false,
+          score: 0,
+          categories: []
+        };
+      }
+    },
+    () => {
+      withCushionGuidance({ buildCushionGuidance }, () => {
+        withOverlay(
+          {
+            createCushionElement(result) {
+              overlayResults.push(result);
+
+              return createElement('section');
+            }
+          },
+          () => {
+            processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+          }
+        );
+      });
+    }
+  );
+
+  assert.equal(mainTextNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+  assert.equal(quoteTextNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+  assert.deepEqual(overlayResults, [
+    {
+      reasonMessageKey: 'reasonGeneric',
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['directedStrongLanguage']
+      }
+    }
+  ]);
+}
+
+function testPassesIndependentCushionGuidanceToQuotedPostTexts() {
+  const overlayResults = [];
+  const { mainTextNode, postNode, quoteTextNode } = createQuotedPostNodeWithNestedTexts(
+    '引用している側の強い本文です',
+    '引用元のより強い本文です'
+  );
+
+  withRiskDetector(
+    {
+      detectTextRisk(text) {
+        if (text === '引用している側の強い本文です') {
+          return {
+            shouldCushion: true,
+            score: 85,
+            categories: ['personality_attack']
+          };
+        }
+
+        return {
+          shouldCushion: true,
+          score: 95,
+          categories: ['threat_or_harm', 'persistent_attack']
+        };
+      }
+    },
+    () => {
+      withCushionGuidance({ buildCushionGuidance }, () => {
+        withOverlay(
+          {
+            createCushionElement(result) {
+              overlayResults.push(result);
+
+              return createElement('section');
+            }
+          },
+          () => {
+            processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+          }
+        );
+      });
+    }
+  );
+
+  assert.equal(mainTextNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+  assert.equal(quoteTextNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+  assert.deepEqual(overlayResults, [
+    {
+      reasonMessageKey: 'reasonGeneric',
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['directedStrongLanguage']
+      }
+    },
+    {
+      reasonMessageKey: 'reasonGeneric',
+      guidance: {
+        strengthKey: 'veryStrong',
+        tendencyKeys: ['personalSafety', 'possiblyPressuringLanguage']
+      }
+    }
+  ]);
+}
+
 function testDoesNotInsertDuplicateCushionForQuotedSource() {
   let createCount = 0;
   let riskDetectorCallCount = 0;
@@ -539,6 +798,63 @@ function testShowButtonRevealsQuotedSourceOnly() {
       );
     }
   );
+}
+
+function testShowButtonRevealsOnlyItsOwnQuotedPostText() {
+  const renderedCushions = [];
+  const { mainBodyNode, mainTextNode, postNode, quoteBodyNode, quoteTextNode } =
+    createQuotedPostNodeWithNestedTexts('引用している側の本文です', '引用元の本文です');
+
+  withRiskDetector(
+    {
+      detectTextRisk(text) {
+        return {
+          shouldCushion: true,
+          score: text === '引用している側の本文です' ? 85 : 95,
+          categories:
+            text === '引用している側の本文です'
+              ? ['personality_attack']
+              : ['threat_or_harm', 'persistent_attack']
+        };
+      }
+    },
+    () => {
+      withCushionGuidance({ buildCushionGuidance }, () => {
+        withOverlay(
+          {
+            createCushionElement(_result, handlers) {
+              const cushionElement = createElement('section');
+              renderedCushions.push({ cushionElement, handlers });
+
+              return cushionElement;
+            }
+          },
+          () => {
+            processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+          }
+        );
+      });
+    }
+  );
+
+  assert.equal(renderedCushions.length, 2);
+  assert.equal(mainTextNode.className.includes(CLASSES.contentBlur), true);
+  assert.equal(quoteTextNode.className.includes(CLASSES.contentBlur), true);
+
+  renderedCushions[0].handlers.onShow();
+
+  assert.equal(mainTextNode.className.includes(CLASSES.contentBlur), false);
+  assert.equal(mainBodyNode.children.length, 1);
+  assert.equal(mainBodyNode.children[0], mainTextNode);
+  assert.equal(quoteTextNode.className.includes(CLASSES.contentBlur), true);
+  assert.equal(quoteBodyNode.children.length, 2);
+
+  renderedCushions[1].handlers.onShow();
+
+  assert.equal(mainTextNode.getAttribute(ATTRIBUTES.contentRevealed), 'true');
+  assert.equal(quoteTextNode.className.includes(CLASSES.contentBlur), false);
+  assert.equal(quoteBodyNode.children.length, 1);
+  assert.equal(quoteBodyNode.children[0], quoteTextNode);
 }
 
 function testRendersOverlayOnceWhenDevFlagIsOn() {
@@ -891,6 +1207,160 @@ function testDevTestCushionTextIsNotIncludedInOverlay() {
   );
 }
 
+function testDoesNotPassGuidanceForForcedDevTestCushion() {
+  let overlayResult = null;
+  const postNode = createPostNode([DEV_TEST_CUSHION_TEXT]);
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return {
+          shouldCushion: false,
+          score: 85,
+          categories: ['personality_attack']
+        };
+      }
+    },
+    () => {
+      withCushionGuidance({ buildCushionGuidance }, () => {
+        withOverlay(
+          {
+            createCushionElement(result) {
+              overlayResult = result;
+
+              return createElement('section');
+            }
+          },
+          () => {
+            processCandidatePost(postNode, {
+              enableCushionOverlayDev: true,
+              enableDevTestCushionText: true
+            });
+          }
+        );
+      });
+    }
+  );
+
+  assert.deepEqual(overlayResult, {
+    reasonMessageKey: 'reasonGeneric'
+  });
+}
+
+function testRetainsCushionGuidanceWhenCushionElementCreationFails() {
+  const overlayResults = [];
+  let shouldCreateElement = false;
+  const { postNode } = createPostNodeWithNestedText('お前なんか存在価値がない');
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return {
+          shouldCushion: true,
+          score: 85,
+          categories: ['personality_attack']
+        };
+      }
+    },
+    () => {
+      withCushionGuidance({ buildCushionGuidance }, () => {
+        withOverlay(
+          {
+            createCushionElement(result) {
+              overlayResults.push(result);
+
+              return shouldCreateElement ? createElement('section') : null;
+            }
+          },
+          () => {
+            processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+            shouldCreateElement = true;
+            processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+          }
+        );
+      });
+    }
+  );
+
+  assert.deepEqual(overlayResults, [
+    {
+      reasonMessageKey: 'reasonGeneric',
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['directedStrongLanguage']
+      }
+    },
+    {
+      reasonMessageKey: 'reasonGeneric',
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['directedStrongLanguage']
+      }
+    }
+  ]);
+  assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+}
+
+function testRetainsAndCleansUpCushionGuidanceAroundOverlayInsertion() {
+  const overlayResults = [];
+  const postNode = createPostNode(['お前なんか存在価値がない']);
+  const insertBefore = postNode.insertBefore;
+
+  postNode.insertBefore = undefined;
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return {
+          shouldCushion: true,
+          score: 85,
+          categories: ['personality_attack']
+        };
+      }
+    },
+    () => {
+      withCushionGuidance({ buildCushionGuidance }, () => {
+        withOverlay(
+          {
+            createCushionElement(result) {
+              overlayResults.push(result);
+
+              return createElement('section');
+            }
+          },
+          () => {
+            processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+            postNode.insertBefore = insertBefore;
+            processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+            postNode.setAttribute(ATTRIBUTES.cushionRendered, 'false');
+            maybeRenderCushionOverlay(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+          }
+        );
+      });
+    }
+  );
+
+  assert.deepEqual(overlayResults, [
+    {
+      reasonMessageKey: 'reasonGeneric',
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['directedStrongLanguage']
+      }
+    },
+    {
+      reasonMessageKey: 'reasonGeneric',
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['directedStrongLanguage']
+      }
+    },
+    {
+      reasonMessageKey: 'reasonGeneric'
+    }
+  ]);
+}
+
 function testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn() {
   let createCount = 0;
   const postNode = createPostNode(['通常の確認用テキスト']);
@@ -1099,6 +1569,21 @@ function withOverlay(overlay, callback) {
       delete globalThis.kotobaUkeMimamoriOverlay;
     } else {
       globalThis.kotobaUkeMimamoriOverlay = previousOverlay;
+    }
+  }
+}
+
+function withCushionGuidance(cushionGuidanceApi, callback) {
+  const previousCushionGuidanceApi = globalThis.kotobaUkeMimamoriCushionGuidance;
+  globalThis.kotobaUkeMimamoriCushionGuidance = cushionGuidanceApi;
+
+  try {
+    callback();
+  } finally {
+    if (previousCushionGuidanceApi === undefined) {
+      delete globalThis.kotobaUkeMimamoriCushionGuidance;
+    } else {
+      globalThis.kotobaUkeMimamoriCushionGuidance = previousCushionGuidanceApi;
     }
   }
 }

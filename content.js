@@ -48,6 +48,10 @@ const SKIPPED_PROCESS_RESULT = Object.freeze({
   shouldCushion: false
 });
 
+// UI表示に必要な安全な情報だけを、対応する本文ノードへ一時的に紐付けます。
+// 生の判定結果や投稿本文はこの経路に保持しません。
+const cushionGuidanceByTargetNode = new WeakMap();
+
 let initialized = false;
 let timelineObserver = null;
 let scanTimerId = null;
@@ -238,6 +242,14 @@ function processPostTextTarget(
     markRiskChecked(targetNode);
   }
 
+  if (riskResult?.shouldCushion === true) {
+    const cushionGuidance = buildCushionGuidanceForTarget(riskResult);
+
+    if (cushionGuidance) {
+      cushionGuidanceByTargetNode.set(targetNode, cushionGuidance);
+    }
+  }
+
   if (shouldCushion) {
     markCushionCandidate(targetNode);
     maybeRenderCushionOverlay(targetNode, featureFlags, settings);
@@ -312,20 +324,21 @@ function maybeRenderCushionOverlay(
     return false;
   }
 
+  const cushionGuidance = cushionGuidanceByTargetNode.get(postNode);
   let cushionElement = null;
-  cushionElement = overlay.createCushionElement(
-    {
-      reasonMessageKey: 'reasonGeneric'
-    },
-    {
+
+  try {
+    cushionElement = overlay.createCushionElement(createCushionOverlayResult(cushionGuidance), {
       onShow: () => {
         revealPostContent(postNode, cushionElement);
       },
       onHide: () => {
         keepPostContentHidden(postNode);
       }
-    }
-  );
+    });
+  } catch (_error) {
+    return false;
+  }
 
   if (!isElement(cushionElement)) {
     return false;
@@ -337,8 +350,53 @@ function maybeRenderCushionOverlay(
 
   applyContentBlur(postNode);
   markCushionRendered(postNode);
+  cushionGuidanceByTargetNode.delete(postNode);
 
   return true;
+}
+
+function buildCushionGuidanceForTarget(riskResult) {
+  const cushionGuidanceApi = getCushionGuidanceApi();
+
+  if (!cushionGuidanceApi) {
+    return null;
+  }
+
+  try {
+    return normalizeCushionGuidance(cushionGuidanceApi.buildCushionGuidance(riskResult));
+  } catch (_error) {
+    return null;
+  }
+}
+
+function normalizeCushionGuidance(cushionGuidance) {
+  if (!cushionGuidance || typeof cushionGuidance !== 'object') {
+    return null;
+  }
+
+  const safeGuidance = {
+    tendencyKeys: Array.isArray(cushionGuidance.tendencyKeys)
+      ? cushionGuidance.tendencyKeys.filter((key) => typeof key === 'string')
+      : []
+  };
+
+  if (typeof cushionGuidance.strengthKey === 'string') {
+    safeGuidance.strengthKey = cushionGuidance.strengthKey;
+  }
+
+  return safeGuidance;
+}
+
+function createCushionOverlayResult(cushionGuidance) {
+  const result = {
+    reasonMessageKey: 'reasonGeneric'
+  };
+
+  if (cushionGuidance) {
+    result.guidance = cushionGuidance;
+  }
+
+  return result;
 }
 
 function applyContentBlur(postNode) {
@@ -660,6 +718,16 @@ function getRiskDetector() {
   }
 
   return riskDetector;
+}
+
+function getCushionGuidanceApi() {
+  const cushionGuidanceApi = globalThis.kotobaUkeMimamoriCushionGuidance;
+
+  if (!cushionGuidanceApi || typeof cushionGuidanceApi.buildCushionGuidance !== 'function') {
+    return null;
+  }
+
+  return cushionGuidanceApi;
 }
 
 function getCushionOverlay() {
