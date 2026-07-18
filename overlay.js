@@ -3,6 +3,19 @@
 const GENERIC_REASON_MESSAGE_KEY = 'reasonGeneric';
 const CUSHION_STYLE_ELEMENT_ID = 'kum-cushion-styles';
 const SAFE_REASON_MESSAGE_KEYS = new Set([GENERIC_REASON_MESSAGE_KEY]);
+const SAFE_STRENGTH_MESSAGE_KEYS = Object.freeze({
+  somewhatStrong: 'cushionGuidanceStrengthSomewhatStrong',
+  strong: 'cushionGuidanceStrengthStrong',
+  veryStrong: 'cushionGuidanceStrengthVeryStrong'
+});
+const SAFE_TENDENCY_MESSAGE_KEYS = Object.freeze({
+  personalSafety: 'cushionGuidanceTendencyPersonalSafety',
+  privacy: 'cushionGuidanceTendencyPrivacy',
+  circumstancesOrBackground: 'cushionGuidanceTendencyCircumstancesOrBackground',
+  directedStrongLanguage: 'cushionGuidanceTendencyDirectedStrongLanguage',
+  possiblyPressuringLanguage: 'cushionGuidanceTendencyPossiblyPressuringLanguage'
+});
+const MAX_TENDENCY_MESSAGES = 2;
 const CUSHION_STYLES = `
 .kum-cushion {
   box-sizing: border-box;
@@ -45,6 +58,39 @@ const CUSHION_STYLES = `
 .kum-cushion__body,
 .kum-cushion__reason {
   margin: 4px 0 0;
+}
+
+.kum-cushion__guidance {
+  margin-top: 10px;
+}
+
+.kum-cushion__guidance-strength,
+.kum-cushion__guidance-tendency-label,
+.kum-cushion__guidance-note {
+  margin: 0;
+}
+
+.kum-cushion__guidance-tendency {
+  margin-top: 6px;
+}
+
+.kum-cushion__guidance-label {
+  font-weight: 600;
+}
+
+.kum-cushion__guidance-value::before {
+  content: ': ';
+}
+
+.kum-cushion__guidance-list {
+  margin: 2px 0 0;
+  padding-left: 1.2em;
+}
+
+.kum-cushion__guidance-note {
+  margin-top: 6px;
+  color: #71717a;
+  font-size: 13px;
 }
 
 .kum-cushion__dismissed-message,
@@ -104,6 +150,10 @@ const CUSHION_STYLES = `
     color: #fde68a;
   }
 
+  .kum-cushion__guidance-note {
+    color: #d6c9a8;
+  }
+
   .kum-cushion__button {
     border-color: rgba(251, 191, 36, 0.52);
     background: rgba(76, 54, 34, 0.94);
@@ -130,6 +180,10 @@ body[data-color-scheme="dark"] .kum-cushion {
 body[data-color-scheme="dark"] .kum-cushion__title,
 body[data-color-scheme="dark"] .kum-cushion__dismissed-message {
   color: #fde68a;
+}
+
+body[data-color-scheme="dark"] .kum-cushion__guidance-note {
+  color: #d6c9a8;
 }
 
 body[data-color-scheme="dark"] .kum-cushion__button {
@@ -169,6 +223,8 @@ function createCushionElement(result = {}, handlers = {}) {
   reason.className = 'kum-cushion__reason';
   reason.textContent = getLocalizedMessage(resolveReasonMessageKey(result));
 
+  const guidance = createCushionGuidanceElement(result?.guidance);
+
   const actions = document.createElement('div');
   actions.className = 'kum-cushion__actions';
 
@@ -178,9 +234,123 @@ function createCushionElement(result = {}, handlers = {}) {
   });
 
   actions.append(showButton, hideButton);
-  container.append(title, body, reason, actions);
+  container.append(title, body, reason);
+
+  if (guidance) {
+    container.append(guidance);
+  }
+
+  container.append(actions);
 
   return container;
+}
+
+function createCushionGuidanceElement(guidance) {
+  const displayData = resolveGuidanceDisplayData(guidance);
+
+  if (!displayData) {
+    return null;
+  }
+
+  const container = document.createElement('div');
+  container.className = 'kum-cushion__guidance';
+
+  if (displayData.strengthMessageKey) {
+    const strength = document.createElement('p');
+    strength.className = 'kum-cushion__guidance-strength';
+
+    const label = document.createElement('span');
+    label.className = 'kum-cushion__guidance-label';
+    label.textContent = getLocalizedMessage('cushionGuidanceStrengthLabel');
+
+    const value = document.createElement('span');
+    value.className = 'kum-cushion__guidance-value';
+    value.textContent = getLocalizedMessage(displayData.strengthMessageKey);
+
+    strength.append(label, value);
+    container.append(strength);
+  }
+
+  if (displayData.tendencyMessageKeys.length > 0) {
+    const tendency = document.createElement('div');
+    tendency.className = 'kum-cushion__guidance-tendency';
+
+    const label = document.createElement('p');
+    label.className = 'kum-cushion__guidance-tendency-label kum-cushion__guidance-label';
+    label.textContent = getLocalizedMessage('cushionGuidanceTendencyLabel');
+
+    const list = document.createElement('ul');
+    list.className = 'kum-cushion__guidance-list';
+
+    for (const messageKey of displayData.tendencyMessageKeys) {
+      const item = document.createElement('li');
+      item.className = 'kum-cushion__guidance-item';
+      item.textContent = getLocalizedMessage(messageKey);
+      list.append(item);
+    }
+
+    tendency.append(label, list);
+    container.append(tendency);
+  }
+
+  const note = document.createElement('p');
+  note.className = 'kum-cushion__guidance-note';
+  note.textContent = getLocalizedMessage('cushionGuidanceNote');
+  container.append(note);
+
+  return container;
+}
+
+function resolveGuidanceDisplayData(guidance) {
+  if (!guidance || typeof guidance !== 'object' || Array.isArray(guidance)) {
+    return null;
+  }
+
+  const strengthMessageKey = resolveSafeMessageKey(
+    SAFE_STRENGTH_MESSAGE_KEYS,
+    guidance.strengthKey
+  );
+  const tendencyMessageKeys = resolveSafeTendencyMessageKeys(guidance.tendencyKeys);
+
+  if (!strengthMessageKey && tendencyMessageKeys.length === 0) {
+    return null;
+  }
+
+  return { strengthMessageKey, tendencyMessageKeys };
+}
+
+function resolveSafeTendencyMessageKeys(tendencyKeys) {
+  if (!Array.isArray(tendencyKeys)) {
+    return [];
+  }
+
+  const messageKeys = [];
+  const seenMessageKeys = new Set();
+
+  for (const tendencyKey of tendencyKeys) {
+    const messageKey = resolveSafeMessageKey(SAFE_TENDENCY_MESSAGE_KEYS, tendencyKey);
+
+    if (!messageKey || seenMessageKeys.has(messageKey)) {
+      continue;
+    }
+
+    seenMessageKeys.add(messageKey);
+    messageKeys.push(messageKey);
+
+    if (messageKeys.length === MAX_TENDENCY_MESSAGES) {
+      break;
+    }
+  }
+
+  return messageKeys;
+}
+
+function resolveSafeMessageKey(messageKeys, key) {
+  if (typeof key !== 'string' || !Object.hasOwn(messageKeys, key)) {
+    return null;
+  }
+
+  return messageKeys[key];
 }
 
 function renderDismissedCushionElement(container, handlers) {
