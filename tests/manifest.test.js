@@ -27,6 +27,7 @@ function runTests() {
   testOnlyStoragePermissionIsRequested();
   testHostPermissionsAreNotRequested();
   testSettingsScriptLoadsBeforeContentScript();
+  testCushionGuidanceScriptLoadsBeforeContentScript();
   testLocaleMessagesDoNotIncludeBetaNotice();
 
   console.log('All manifest tests passed.');
@@ -96,6 +97,14 @@ function testSettingsScriptLoadsBeforeContentScript() {
   assert.ok(scripts.indexOf('settings.js') !== -1);
   assert.ok(scripts.indexOf('content.js') !== -1);
   assert.ok(scripts.indexOf('settings.js') < scripts.indexOf('content.js'));
+}
+
+function testCushionGuidanceScriptLoadsBeforeContentScript() {
+  const manifest = readManifest();
+  const scripts = manifest.content_scripts[0].js;
+
+  assert.ok(scripts.indexOf('cushion-guidance.js') !== -1);
+  assert.ok(scripts.indexOf('cushion-guidance.js') < scripts.indexOf('content.js'));
 }
 
 function testLocaleMessagesDoNotIncludeBetaNotice() {
