@@ -47,6 +47,39 @@
   "reasonGeneric": {
     "message": "心に負荷がかかる可能性のある表現を検知しました"
   },
+  "cushionGuidanceStrengthLabel": {
+    "message": "表現の強さの目安"
+  },
+  "cushionGuidanceTendencyLabel": {
+    "message": "検知された表現の傾向"
+  },
+  "cushionGuidanceNote": {
+    "message": "固定ルールによる補助的な目安です。"
+  },
+  "cushionGuidanceStrengthSomewhatStrong": {
+    "message": "やや強め"
+  },
+  "cushionGuidanceStrengthStrong": {
+    "message": "強め"
+  },
+  "cushionGuidanceStrengthVeryStrong": {
+    "message": "かなり強め"
+  },
+  "cushionGuidanceTendencyPersonalSafety": {
+    "message": "身の安全に関わる可能性のある表現"
+  },
+  "cushionGuidanceTendencyPrivacy": {
+    "message": "個人情報やプライバシーに関わる可能性のある表現"
+  },
+  "cushionGuidanceTendencyCircumstancesOrBackground": {
+    "message": "人の立場や背景などに関わる強い表現"
+  },
+  "cushionGuidanceTendencyDirectedStrongLanguage": {
+    "message": "人に向けた強い表現"
+  },
+  "cushionGuidanceTendencyPossiblyPressuringLanguage": {
+    "message": "圧を感じる可能性のある表現"
+  },
   "reasonPotentialBurden": {
     "message": "心に負荷がかかる可能性のある表現かもしれません"
   },

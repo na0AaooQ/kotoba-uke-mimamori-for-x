@@ -5,11 +5,26 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { getMessage } = require('../i18n');
 
+const REQUIRED_GUIDANCE_KEYS = Object.freeze([
+  'cushionGuidanceStrengthLabel',
+  'cushionGuidanceTendencyLabel',
+  'cushionGuidanceNote',
+  'cushionGuidanceStrengthSomewhatStrong',
+  'cushionGuidanceStrengthStrong',
+  'cushionGuidanceStrengthVeryStrong',
+  'cushionGuidanceTendencyPersonalSafety',
+  'cushionGuidanceTendencyPrivacy',
+  'cushionGuidanceTendencyCircumstancesOrBackground',
+  'cushionGuidanceTendencyDirectedStrongLanguage',
+  'cushionGuidanceTendencyPossiblyPressuringLanguage'
+]);
+
 function runTests() {
   testFallbackWithoutChromeI18n();
   testChromeI18nMessage();
   testChromeI18nInvalidatedContextFallsBack();
   testLocaleKeysMatch();
+  testRequiredGuidanceMessagesExist();
   testRequiredEnglishMessagesExist();
   testEnglishMessagesAvoidStrongPhrases();
 
@@ -104,6 +119,17 @@ function testRequiredEnglishMessagesExist() {
   for (const key of requiredKeys) {
     assert.equal(typeof enMessages[key]?.message, 'string');
     assert.notEqual(enMessages[key].message.trim(), '');
+  }
+}
+
+function testRequiredGuidanceMessagesExist() {
+  for (const locale of ['ja', 'en']) {
+    const messages = readLocaleMessages(locale);
+
+    for (const key of REQUIRED_GUIDANCE_KEYS) {
+      assert.equal(typeof messages[key]?.message, 'string');
+      assert.notEqual(messages[key].message.trim(), '');
+    }
   }
 }
 

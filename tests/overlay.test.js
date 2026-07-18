@@ -11,6 +11,17 @@ const MESSAGES = Object.freeze({
   cushionTitle: '読む前に、少しだけワンクッションを置きました',
   cushionBody: 'この投稿には、心に負荷がかかる可能性のある表現が含まれているかもしれません。',
   reasonGeneric: '心に負荷がかかる可能性のある表現を検知しました',
+  cushionGuidanceStrengthLabel: '表現の強さの目安',
+  cushionGuidanceTendencyLabel: '検知された表現の傾向',
+  cushionGuidanceNote: '固定ルールによる補助的な目安です。',
+  cushionGuidanceStrengthSomewhatStrong: 'やや強め',
+  cushionGuidanceStrengthStrong: '強め',
+  cushionGuidanceStrengthVeryStrong: 'かなり強め',
+  cushionGuidanceTendencyPersonalSafety: '身の安全に関わる可能性のある表現',
+  cushionGuidanceTendencyPrivacy: '個人情報やプライバシーに関わる可能性のある表現',
+  cushionGuidanceTendencyCircumstancesOrBackground: '人の立場や背景などに関わる強い表現',
+  cushionGuidanceTendencyDirectedStrongLanguage: '人に向けた強い表現',
+  cushionGuidanceTendencyPossiblyPressuringLanguage: '圧を感じる可能性のある表現',
   cushionDismissedMessage: '今は読まないようにしました。',
   cushionDismissedBody: '読みたくなったら、あとから内容を表示できます。',
   buttonShowContent: '内容を表示する',
@@ -20,6 +31,14 @@ const MESSAGES = Object.freeze({
 function runTests() {
   testCreatesGenericCushionElement();
   testCreatesButtonElements();
+  testCreatesCushionGuidanceElement();
+  testRendersStrengthWithoutGuidanceTendencies();
+  testRendersOneGuidanceTendency();
+  testRendersTwoGuidanceTendenciesInOrder();
+  testDoesNotRenderGuidanceWithoutValidData();
+  testIgnoresUnknownStrengthKey();
+  testIgnoresUnknownTendencyKey();
+  testRendersOnlyKnownGuidanceKeys();
   testHideButtonCollapsesCushionElement();
   testInjectsCushionStylesOnce();
   testDoesNotRenderPostTextOrInternalRiskDetails();
@@ -47,6 +66,7 @@ function testCreatesGenericCushionElement() {
     assert.ok(element.textContent.includes(MESSAGES.reasonGeneric));
     assert.ok(element.textContent.includes(MESSAGES.buttonShowContent));
     assert.ok(element.textContent.includes(MESSAGES.buttonHideForNow));
+    assert.equal(getGuidanceElement(element), null);
   });
 }
 
@@ -70,7 +90,12 @@ function testHideButtonCollapsesCushionElement() {
     let showCount = 0;
     let hideCount = 0;
     const element = createCushionElement(
-      {},
+      {
+        guidance: {
+          strengthKey: 'strong',
+          tendencyKeys: ['directedStrongLanguage']
+        }
+      },
       {
         onShow: () => {
           showCount += 1;
@@ -80,7 +105,7 @@ function testHideButtonCollapsesCushionElement() {
         }
       }
     );
-    const hideButton = element.children[3].children[1];
+    const hideButton = element.children[4].children[1];
 
     hideButton.click();
 
@@ -95,6 +120,14 @@ function testHideButtonCollapsesCushionElement() {
     assert.equal(element.textContent.includes(MESSAGES.buttonHideForNow), false);
     assert.equal(element.textContent.includes(MESSAGES.cushionTitle), false);
     assert.equal(element.textContent.includes(MESSAGES.cushionBody), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceStrengthLabel), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceStrengthStrong), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceTendencyLabel), false);
+    assert.equal(
+      element.textContent.includes(MESSAGES.cushionGuidanceTendencyDirectedStrongLanguage),
+      false
+    );
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceNote), false);
     assert.equal(hideCount, 1);
 
     const showButton = element.children[2].children[0];
@@ -123,6 +156,9 @@ function testInjectsCushionStylesOnce() {
     assert.ok(styleElement.textContent.includes('.kum-content-blur'));
     assert.ok(styleElement.textContent.includes('filter: blur(5px)'));
     assert.ok(styleElement.textContent.includes('.kum-cushion--dismissed'));
+    assert.ok(styleElement.textContent.includes('.kum-cushion__guidance'));
+    assert.ok(styleElement.textContent.includes('.kum-cushion__guidance-note'));
+    assert.ok(styleElement.textContent.includes('padding-left: 1.2em'));
     assert.ok(styleElement.textContent.includes('.kum-cushion__dismissed-message'));
     assert.ok(styleElement.textContent.includes('.kum-cushion__button:focus-visible'));
     assert.ok(styleElement.textContent.includes('outline-offset: 2px'));
@@ -130,6 +166,7 @@ function testInjectsCushionStylesOnce() {
     assert.ok(styleElement.textContent.includes('@media (prefers-color-scheme: dark)'));
     assert.ok(styleElement.textContent.includes('body[data-color-scheme="dark"] .kum-cushion'));
     assert.ok(styleElement.textContent.includes('background: rgba(43, 35, 27, 0.96)'));
+    assert.ok(styleElement.textContent.includes('color: #d6c9a8'));
     assert.ok(styleElement.textContent.includes('outline-color: rgba(252, 211, 77, 0.95)'));
   });
 }
@@ -141,15 +178,23 @@ function testDoesNotRenderPostTextOrInternalRiskDetails() {
       score: 100,
       matchedRules: ['existence_denial.strong_phrase'],
       categories: ['existence_denial'],
-      reasons: ['存在否定に近い表現の可能性があります']
+      reasons: ['存在否定に近い表現の可能性があります'],
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['directedStrongLanguage']
+      }
     });
 
     assertDoesNotIncludeRiskDetails(element);
+    assertDoesNotIncludeInternalGuidanceKeys(element);
     assert.ok(element.textContent.includes(MESSAGES.reasonGeneric));
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceStrengthStrong));
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceTendencyDirectedStrongLanguage));
 
-    element.children[3].children[1].click();
+    element.children[4].children[1].click();
 
     assertDoesNotIncludeRiskDetails(element);
+    assertDoesNotIncludeInternalGuidanceKeys(element);
     assert.ok(element.textContent.includes(MESSAGES.cushionDismissedMessage));
   });
 }
@@ -160,6 +205,160 @@ function assertDoesNotIncludeRiskDetails(element) {
   assert.equal(element.textContent.includes('existence_denial'), false);
   assert.equal(element.textContent.includes('existence_denial.strong_phrase'), false);
   assert.equal(element.textContent.includes('存在否定に近い表現の可能性があります'), false);
+}
+
+function testCreatesCushionGuidanceElement() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['directedStrongLanguage']
+      }
+    });
+    const guidance = getGuidanceElement(element);
+
+    assert.ok(guidance);
+    assert.equal(guidance.children[0].className, 'kum-cushion__guidance-strength');
+    assert.equal(guidance.children[1].className, 'kum-cushion__guidance-tendency');
+    assert.equal(guidance.children[2].className, 'kum-cushion__guidance-note');
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceStrengthLabel));
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceStrengthStrong));
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceTendencyLabel));
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceTendencyDirectedStrongLanguage));
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceNote));
+    assertDoesNotIncludeInternalGuidanceKeys(element);
+  });
+}
+
+function testRendersOneGuidanceTendency() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({
+      guidance: {
+        tendencyKeys: ['personalSafety']
+      }
+    });
+    const guidance = getGuidanceElement(element);
+    const list = findElementByClass(guidance, 'kum-cushion__guidance-list');
+
+    assert.equal(findElementByClass(guidance, 'kum-cushion__guidance-strength'), null);
+    assert.equal(list.children.length, 1);
+    assert.equal(list.children[0].textContent, MESSAGES.cushionGuidanceTendencyPersonalSafety);
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceNote));
+  });
+}
+
+function testRendersStrengthWithoutGuidanceTendencies() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({
+      guidance: {
+        strengthKey: 'somewhatStrong',
+        tendencyKeys: []
+      }
+    });
+    const guidance = getGuidanceElement(element);
+
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceStrengthSomewhatStrong));
+    assert.equal(findElementByClass(guidance, 'kum-cushion__guidance-tendency'), null);
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceNote));
+  });
+}
+
+function testRendersTwoGuidanceTendenciesInOrder() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({
+      guidance: {
+        strengthKey: 'veryStrong',
+        tendencyKeys: ['personalSafety', 'possiblyPressuringLanguage']
+      }
+    });
+    const list = findElementByClass(getGuidanceElement(element), 'kum-cushion__guidance-list');
+
+    assert.equal(list.children.length, 2);
+    assert.equal(list.children[0].textContent, MESSAGES.cushionGuidanceTendencyPersonalSafety);
+    assert.equal(
+      list.children[1].textContent,
+      MESSAGES.cushionGuidanceTendencyPossiblyPressuringLanguage
+    );
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceStrengthVeryStrong));
+  });
+}
+
+function testDoesNotRenderGuidanceWithoutValidData() {
+  const invalidGuidanceValues = [
+    undefined,
+    null,
+    [],
+    {},
+    { tendencyKeys: [] },
+    { tendencyKeys: 'directedStrongLanguage' },
+    { strengthKey: 'unknownStrength' },
+    { tendencyKeys: ['unknownTendency'] }
+  ];
+
+  withFakeDomAndI18n(() => {
+    for (const guidance of invalidGuidanceValues) {
+      const element = createCushionElement({ guidance });
+
+      assert.equal(getGuidanceElement(element), null);
+      assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceNote), false);
+    }
+  });
+}
+
+function testIgnoresUnknownStrengthKey() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({
+      guidance: {
+        strengthKey: 'unknownStrength',
+        tendencyKeys: ['directedStrongLanguage']
+      }
+    });
+
+    assert.equal(element.textContent.includes('unknownStrength'), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceStrengthLabel), false);
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceTendencyDirectedStrongLanguage));
+  });
+}
+
+function testIgnoresUnknownTendencyKey() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['unknownTendency']
+      }
+    });
+
+    assert.equal(element.textContent.includes('unknownTendency'), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceTendencyLabel), false);
+    assert.ok(element.textContent.includes(MESSAGES.cushionGuidanceStrengthStrong));
+  });
+}
+
+function testRendersOnlyKnownGuidanceKeys() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement({
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['unknownTendency', 'personalSafety', 'possiblyPressuringLanguage']
+      }
+    });
+    const list = findElementByClass(getGuidanceElement(element), 'kum-cushion__guidance-list');
+
+    assert.equal(element.textContent.includes('unknownTendency'), false);
+    assert.equal(list.children.length, 2);
+    assert.equal(list.children[0].textContent, MESSAGES.cushionGuidanceTendencyPersonalSafety);
+    assert.equal(
+      list.children[1].textContent,
+      MESSAGES.cushionGuidanceTendencyPossiblyPressuringLanguage
+    );
+  });
+}
+
+function assertDoesNotIncludeInternalGuidanceKeys(element) {
+  assert.equal(element.textContent.includes('strong'), false);
+  assert.equal(element.textContent.includes('personalSafety'), false);
+  assert.equal(element.textContent.includes('directedStrongLanguage'), false);
 }
 
 function testShowButtonHandler() {
@@ -256,6 +455,30 @@ function findElementById(root, id) {
 
   for (const childNode of root.children || []) {
     const foundNode = findElementById(childNode, id);
+
+    if (foundNode) {
+      return foundNode;
+    }
+  }
+
+  return null;
+}
+
+function getGuidanceElement(element) {
+  return findElementByClass(element, 'kum-cushion__guidance');
+}
+
+function findElementByClass(root, className) {
+  if (!root) {
+    return null;
+  }
+
+  if (root.className.split(' ').includes(className)) {
+    return root;
+  }
+
+  for (const childNode of root.children || []) {
+    const foundNode = findElementByClass(childNode, className);
 
     if (foundNode) {
       return foundNode;

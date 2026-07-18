@@ -47,6 +47,39 @@
   "reasonGeneric": {
     "message": "This may contain wording that could feel emotionally heavy."
   },
+  "cushionGuidanceStrengthLabel": {
+    "message": "Expression intensity guide"
+  },
+  "cushionGuidanceTendencyLabel": {
+    "message": "Detected language patterns"
+  },
+  "cushionGuidanceNote": {
+    "message": "This is supplementary guidance based on fixed rules."
+  },
+  "cushionGuidanceStrengthSomewhatStrong": {
+    "message": "Somewhat strong"
+  },
+  "cushionGuidanceStrengthStrong": {
+    "message": "Strong"
+  },
+  "cushionGuidanceStrengthVeryStrong": {
+    "message": "Very strong"
+  },
+  "cushionGuidanceTendencyPersonalSafety": {
+    "message": "Language that may relate to personal safety"
+  },
+  "cushionGuidanceTendencyPrivacy": {
+    "message": "Language that may relate to personal information or privacy"
+  },
+  "cushionGuidanceTendencyCircumstancesOrBackground": {
+    "message": "Strong language related to someone's circumstances or background"
+  },
+  "cushionGuidanceTendencyDirectedStrongLanguage": {
+    "message": "Strong language directed at someone"
+  },
+  "cushionGuidanceTendencyPossiblyPressuringLanguage": {
+    "message": "Language that may feel pressuring"
+  },
   "reasonPotentialBurden": {
     "message": "This may contain wording that could place an emotional burden on the reader."
   },
