@@ -22,6 +22,7 @@ function runTests() {
   testHealthyCriticismShouldNotCushion();
   testQuotedOrContextualTextShouldNotCushion();
   testHighRiskTextShouldCushion();
+  testScoreIsClampedAtOneHundred();
   testKatakanaWordsContainingCasShouldNotBeDetectedAsSevereInsult();
   testFamilyBackgroundSelfDescriptionShouldNotCushion();
   testFamilyBackgroundInsultContextShouldCushion();
@@ -134,6 +135,14 @@ function testHighRiskTextShouldCushion() {
 
     assert.ok(result.reasons.length > 0, `高リスク表現には理由を含める: ${text}`);
   }
+}
+
+function testScoreIsClampedAtOneHundred() {
+  const result = detectTextRisk('お前は無能。消えろ。住所を晒す。何度でも言う、答えろ。');
+
+  assert.equal(result.score, 100, '複数の加点要素が重なる場合も最終 score は100にクランプする');
+  assert.ok(result.score <= 100, '最終 score は100を超えない');
+  assert.equal(result.shouldCushion, true, 'score が100にクランプされた高リスク表現は対象にする');
 }
 
 function testKatakanaWordsContainingCasShouldNotBeDetectedAsSevereInsult() {
@@ -506,7 +515,11 @@ function testSensitivityThresholdBoundaries() {
   const standardSensitivityResult = detectTextRisk(mediumRiskText, { threshold: 80 });
   const highSensitivityResult = detectTextRisk(mediumRiskText, { threshold: 60 });
 
-  assert.equal(standardSensitivityResult.score, 70);
+  assert.deepEqual(
+    [lowSensitivityResult.score, standardSensitivityResult.score, highSensitivityResult.score],
+    [70, 70, 70],
+    '感度のしきい値を変えても同じ本文の score は変えない'
+  );
   assert.equal(standardSensitivityResult.riskLevel, RISK_LEVELS.MEDIUM);
   assert.equal(lowSensitivityResult.shouldCushion, false);
   assert.equal(standardSensitivityResult.shouldCushion, false);
