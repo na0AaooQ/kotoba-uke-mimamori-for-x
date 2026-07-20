@@ -552,19 +552,32 @@ function testCushionGuidanceDocumentation() {
     '表現の強さの目安',
     '検知された表現の傾向',
     '固定ルールによる補助的な情報',
-    'AIが文章の意味を理解して危険性を判断した結果ではありません',
+    '身の安全に関わる可能性のある表現',
+    '圧を感じる可能性のある表現',
+    '判定結果はAIが文章の意味を理解して危険性を判断した結果ではありません',
     '投稿者の人格や悪意',
-    '同じ本文に対する表現の強さの意味'
+    '同じ本文に対する表現の強さの意味',
+    'X（Twitter）の投稿本文を変更・削除するものではありません。'
   ]);
+  assert.ok(
+    jaManual.includes(
+      '<a href="./protect-your-heart.html" target="_blank" rel="noopener noreferrer">'
+    )
+  );
+  assert.equal(jaManual.includes('生の内部scoreは表示しません。'), false);
 
   assertIncludesAll(enManual, [
     'Expression intensity guide',
     'Detected language patterns',
     'based on fixed rules',
-    'not an AI interpretation of the post',
+    'Language that may relate to personal safety',
+    'Language that may feel pressuring',
+    'not based on AI understanding the meaning of the post',
     'poster&apos;s personality or intent',
-    'Changing sensitivity does not change the meaning'
+    'changing the cushion display sensitivity setting in Kotoba Uke Mimamori',
+    'does not change or delete post text on X (Twitter).'
   ]);
+  assert.equal(enManual.includes('The underlying score is not shown.'), false);
 
   assertIncludesAll(readme, [
     '表現の強さの目安',
@@ -775,7 +788,7 @@ function testDocumentLastUpdatedDates() {
     const html = readDoc(pagePath);
     const date =
       pagePath === 'manual.html'
-        ? '最終更新日：<time datetime="2026-07-20">2026年7月20日</time>'
+        ? '最終更新日：<time datetime="2026-07-21">2026年7月21日</time>'
         : '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
 
     assert.equal(countOccurrences(html, date), 1);
@@ -786,7 +799,7 @@ function testDocumentLastUpdatedDates() {
     const html = readDoc(pagePath);
     const date =
       pagePath === 'en/manual.html'
-        ? 'Last updated: <time datetime="2026-07-20">July 20, 2026</time>'
+        ? 'Last updated: <time datetime="2026-07-21">July 21, 2026</time>'
         : 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
 
     assert.equal(countOccurrences(html, date), 1);
