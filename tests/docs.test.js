@@ -575,7 +575,9 @@ function testCushionGuidanceDocumentation() {
     'not based on AI understanding the meaning of the post',
     'poster&apos;s personality or intent',
     'changing the cushion display sensitivity setting in Kotoba Uke Mimamori',
-    'does not change or delete post text on X (Twitter).'
+    'does not change or delete post text on X (Twitter).',
+    '<h2 id="protect-your-heart-title">Protecting Your Peace of Mind</h2>',
+    '<a href="./protect-your-heart.html" target="_blank" rel="noopener noreferrer">How to Protect Your Peace of Mind with Kotoba Uke Mimamori</a>'
   ]);
   assert.equal(enManual.includes('The underlying score is not shown.'), false);
 
