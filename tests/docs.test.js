@@ -9,6 +9,7 @@ const SERVICE_PDF_PATH = 'assets/pdf/kotoba-uke-mimamori-introduction.pdf';
 const STORE_LISTING_DRAFT_PATH = 'store-listing-draft.md';
 const MANUAL_MODAL_SCRIPT_PATH = 'assets/js/manual-image-modal.js';
 const THEME_SWITCHER_SCRIPT_PATH = 'assets/js/theme-switcher.js';
+const CUSHION_GUIDANCE_DESIGN_PATH = 'design/cushion-guidance.md';
 const CHROME_WEB_STORE_URL =
   'https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb';
 const GITHUB_REPOSITORY_URL = 'https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x';
@@ -190,6 +191,7 @@ function runTests() {
   testGitHubRepositoryLinks();
   testStoreListingDraft();
   testManualSensitivityDescriptions();
+  testCushionGuidanceDocumentation();
   testRuleBasedExplanation();
   testNotPurposeStatements();
   testDocsDoNotExposeInternalRuleIds();
@@ -539,6 +541,61 @@ function testManualSensitivityDescriptions() {
   ]);
 }
 
+function testCushionGuidanceDocumentation() {
+  const jaManual = readDoc('manual.html');
+  const enManual = readDoc('en/manual.html');
+  const readme = readRepositoryFile('README.md');
+  const agents = readRepositoryFile('AGENTS.md');
+  const design = readRepositoryFile(CUSHION_GUIDANCE_DESIGN_PATH);
+
+  assertIncludesAll(jaManual, [
+    '表現の強さの目安',
+    '検知された表現の傾向',
+    '固定ルールによる補助的な情報',
+    'AIが文章の意味を理解して危険性を判断した結果ではありません',
+    '投稿者の人格や悪意',
+    '同じ本文に対する表現の強さの意味'
+  ]);
+
+  assertIncludesAll(enManual, [
+    'Expression intensity guide',
+    'Detected language patterns',
+    'based on fixed rules',
+    'not an AI interpretation of the post',
+    'poster&apos;s personality or intent',
+    'Changing sensitivity does not change the meaning'
+  ]);
+
+  assertIncludesAll(readme, [
+    '表現の強さの目安',
+    '検知された表現の傾向',
+    '生の数値 score を表示しません',
+    '感度設定が変えるのは、ワンクッションを表示するかどうか',
+    '[design/cushion-guidance.md](design/cushion-guidance.md)'
+  ]);
+  assert.equal(readme.includes('以下のような短い理由文だけを表示します。'), false);
+
+  assertIncludesAll(agents, [
+    '生の `score`',
+    '生の内部カテゴリIDをユーザーへ表示しない。',
+    'ホワイトリスト方式',
+    '未知のキーは表示しない。',
+    '「今は見ない」後',
+    '危険度ゲージ',
+    '引用する側の投稿と引用元投稿は独立した対象として扱い'
+  ]);
+
+  assertIncludesAll(design, [
+    '## 生の数値 score を表示しない理由',
+    '## 表現の強さの目安',
+    '## 検知された表現の傾向',
+    '## 感度設定と強さの目安の関係',
+    '## AI判定ではないこと',
+    '## 保存・外部送信をしない理由',
+    '## 検討した代替案と見送り理由'
+  ]);
+}
+
 function testRuleBasedExplanation() {
   const jaAbout = readDoc('about.html');
   const enAbout = readDoc('en/about.html');
@@ -716,7 +773,10 @@ function testEnglishProtectYourHeartGuide() {
 function testDocumentLastUpdatedDates() {
   for (const pagePath of JAPANESE_PAGE_PATHS) {
     const html = readDoc(pagePath);
-    const date = '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
+    const date =
+      pagePath === 'manual.html'
+        ? '最終更新日：<time datetime="2026-07-20">2026年7月20日</time>'
+        : '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
 
     assert.equal(countOccurrences(html, date), 1);
     assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
@@ -724,7 +784,10 @@ function testDocumentLastUpdatedDates() {
 
   for (const pagePath of ENGLISH_PAGE_PATHS) {
     const html = readDoc(pagePath);
-    const date = 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
+    const date =
+      pagePath === 'en/manual.html'
+        ? 'Last updated: <time datetime="2026-07-20">July 20, 2026</time>'
+        : 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
 
     assert.equal(countOccurrences(html, date), 1);
     assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
@@ -787,6 +850,12 @@ function assertOrderedIncludes(html, snippets) {
   }
 }
 
+function assertIncludesAll(value, snippets) {
+  for (const snippet of snippets) {
+    assert.ok(value.includes(snippet));
+  }
+}
+
 function assertStoreFigureOrderAndCaptions(html, figures) {
   let previousIndex = -1;
 
@@ -813,6 +882,14 @@ function countOccurrences(value, needle) {
 
 function readDoc(relativePath) {
   const filePath = path.join(__dirname, '..', 'docs', relativePath);
+
+  assert.equal(fs.existsSync(filePath), true);
+
+  return fs.readFileSync(filePath, 'utf8');
+}
+
+function readRepositoryFile(relativePath) {
+  const filePath = path.join(__dirname, '..', relativePath);
 
   assert.equal(fs.existsSync(filePath), true);
 
