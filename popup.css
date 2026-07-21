@@ -150,6 +150,35 @@ body {
   outline-offset: 2px;
 }
 
+.popup-language {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 14px 0 0;
+  border-top: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.popup-language-label {
+  color: #7c4a03;
+  font-weight: 700;
+}
+
+.popup-language-select {
+  width: 100%;
+  min-height: 40px;
+  padding: 7px 10px;
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  border-radius: 9px;
+  background: #ffffff;
+  color: #3f3f46;
+  font: inherit;
+}
+
+.popup-language-select:focus-visible {
+  outline: 3px solid rgba(245, 158, 11, 0.7);
+  outline-offset: 2px;
+}
+
 .popup-sensitivity {
   margin: 16px 0 0;
   padding: 14px 0 0;
@@ -280,11 +309,13 @@ body {
   }
 
   .popup-header,
+  .popup-language,
   .popup-sensitivity {
     border-color: rgba(251, 191, 36, 0.22);
   }
 
   .popup-title,
+  .popup-language-label,
   .popup-sensitivity-title,
   .popup-save-status {
     color: #fde68a;
@@ -317,6 +348,12 @@ body {
 
   .popup-radio-copy {
     border-color: rgba(251, 191, 36, 0.28);
+    background: rgba(67, 56, 38, 0.5);
+    color: #f8efd7;
+  }
+
+  .popup-language-select {
+    border-color: rgba(251, 191, 36, 0.32);
     background: rgba(67, 56, 38, 0.5);
     color: #f8efd7;
   }

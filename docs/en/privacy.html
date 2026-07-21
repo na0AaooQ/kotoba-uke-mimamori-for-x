@@ -6,7 +6,7 @@
     <title>Privacy Policy | Kotoba Uke Mimamori</title>
     <meta
       name="description"
-      content="Privacy policy for Kotoba Uke Mimamori. Post text and detection results are not sent externally, and saved settings are limited to enabled and cushionSensitivity."
+      content="Privacy policy for Kotoba Uke Mimamori. Post text and detection results are not sent externally, and saved settings are limited to enabled, cushionSensitivity, and uiLanguage."
     >
     <link
       rel="canonical"
@@ -53,7 +53,7 @@
           the current MVP, post text and detection results are not sent to external
           servers, and only the minimum settings are saved.
         </p>
-        <p class="last-updated">Last updated: <time datetime="2026-06-16">June 16, 2026</time></p>
+        <p class="last-updated">Last updated: <time datetime="2026-07-21">July 21, 2026</time></p>
       </header>
 
       <main class="content-card">
@@ -109,14 +109,20 @@
         <section id="storage">
           <h2>2. Saved settings</h2>
           <p>
-            The only saved settings are the extension ON/OFF setting and the cushion
-            display sensitivity setting.
+            The only saved settings are the extension ON/OFF setting, the cushion
+            display sensitivity setting, and the display language setting.
           </p>
           <p>
             The only settings saved in <code>chrome.storage.local</code> are
-            <code>enabled</code>, which represents whether the extension is ON, and
+            <code>enabled</code>, which represents whether the extension is ON,
             <code>cushionSensitivity</code>, which represents how easily cushions are
-            shown.
+            shown, and <code>uiLanguage</code>, which represents the display language.
+            The allowed <code>uiLanguage</code> values are <code>auto</code>,
+            <code>ja</code>, and <code>en</code>.
+          </p>
+          <p>
+            The display language is an in-browser user setting and is not sent
+            externally.
           </p>
           <p>
             On the public documentation pages, only the display theme preference is

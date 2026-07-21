@@ -62,7 +62,7 @@
           <h2 id="manual-toc-title">Contents</h2>
           <ul>
             <li><a href="#store-install">1. Add the extension from the Chrome Web Store</a></li>
-            <li><a href="#popup-settings">2. Change ON/OFF and sensitivity in the popup</a></li>
+            <li><a href="#popup-settings">2. Change ON/OFF, display language, and sensitivity in the popup</a></li>
             <li><a href="#cushion">3. When a cushion is shown</a></li>
             <li><a href="#collapsed">4. After choosing Not now</a></li>
             <li><a href="#show-content">5. After choosing Show content</a></li>
@@ -156,12 +156,18 @@
         </section>
 
         <section id="popup-settings">
-          <h2>2. Change ON/OFF and sensitivity in the popup</h2>
+          <h2>2. Change ON/OFF, display language, and sensitivity in the popup</h2>
           <p>
-            The popup can turn the extension ON/OFF. The initial state is OFF, and
-            you can turn it ON when you want to use it.
+            The popup can change the extension ON/OFF, display language, and cushion
+            sensitivity. The initial state is OFF, and you can turn it ON when you
+            want to use it.
           </p>
           <ul>
+            <li>
+              You can choose Auto, 日本語, or English for the display language. Auto
+              uses Japanese when Chrome&apos;s UI language is Japanese and English
+              otherwise. The popup and options page update immediately when you change it.
+            </li>
             <li>
               You can choose the cushion display sensitivity from Low, Standard, or High.
               <ul class="manual-sensitivity-list">
@@ -172,6 +178,10 @@
             </li>
             <li>Post text and detection results are not sent to external servers.</li>
             <li>ON/OFF and sensitivity changes take effect after reloading the open X page.</li>
+            <li>
+              The display language setting is currently shared by the popup and options
+              page only. It does not yet change the language of cushions shown on X.
+            </li>
           </ul>
           <div class="manual-grid">
             <figure class="manual-figure">
@@ -276,7 +286,8 @@
           <p>
             Post text and detection results are not sent externally. Detection runs
             locally in the browser, and the only saved settings are
-            <code>enabled</code> and <code>cushionSensitivity</code>.
+            <code>enabled</code>, <code>cushionSensitivity</code>, and
+            <code>uiLanguage</code>.
           </p>
           <p>
             This extension does not replace X&apos;s built-in mute features. It is a

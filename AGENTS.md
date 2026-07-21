@@ -122,13 +122,15 @@ MVPでは、以下を実装しないでください。
 
 設定値の保存には `chrome.storage.local` を使用してください。
 
-`chrome.storage.local` に保存してよいのは、ユーザーが明示的に選択した設定値のみです。現在のMVPでは、拡張機能の有効 / 無効を示す `enabled` と、ワンクッションの表示されやすさを示す `cushionSensitivity` に限定してください。
+`chrome.storage.local` に保存してよいのは、ユーザーが明示的に選択した設定値のみです。現在のMVPでは、拡張機能の有効 / 無効を示す `enabled`、ワンクッションの表示されやすさを示す `cushionSensitivity`、表示言語を示す `uiLanguage` の3つに限定してください。
 
 投稿本文、判定結果、閲覧履歴、ユーザーID、投稿URL、`score`、`matchedRules`、`categories`、`reasons`、`riskLevel`、`shouldCushion`、`guidance`、`strengthKey`、`tendencyKeys` は保存しないでください。これらを Chrome Storage、Local Storage、IndexedDB、DOM data 属性へ保存したり、外部送信したりしないでください。
 
 `content.js` の本番動作は、ユーザーが明示的に `enabled=true` にした場合のみ有効にしてください。初期値は `enabled=false` とし、`enabled=false` では表示変更・ぼかし・ワンクッションUI・候補属性付与を行わないでください。
 
 `cushionSensitivity` の初期値は `standard` とし、`low` / `standard` / `high` 以外の値は `standard` に正規化してください。ON/OFFと表示されやすさの変更は、現時点ではXページ再読み込み後に反映してください。
+
+`uiLanguage` の初期値は `auto` とし、`auto` / `ja` / `en` 以外の値は `auto` に正規化してください。popup と options は同じ `uiLanguage` を使用し、変更した画面ではただちに表示を切り替えてください。`auto` は Chrome UI 言語が日本語系なら `ja`、それ以外なら `en` に解決します。翻訳文言は `_locales` を正本とし、外部翻訳APIや外部通信を利用しません。工程6では `content.js`、`overlay.js`、ワンクッションUIへ `uiLanguage` を適用しません。
 
 `chrome.storage.onChanged` によるリアルタイム反映を実装する場合は、既存DOM状態、ワンクッションUI、ぼかし、`data-kum-*` 属性を安全に復元・停止できる設計を先に確認してください。投稿本文や投稿DOMは削除しないでください。
 
@@ -279,6 +281,8 @@ UIは、落ち着いた、やさしい、非断定的な表現にしてくださ
 
 Chrome拡張機能の i18n 仕組みに合わせて、UIに表示する固定文言、manifest上の名称・説明文、オプション画面の文言、ワンクッションUIの文言、判定理由文は、可能な限り `_locales` 配下の `messages.json` で管理してください。
 
+popup と options の表示言語切り替えでは、既存の `getMessage()` を維持したうえで、拡張機能内に同梱された `_locales/ja/messages.json` または `_locales/en/messages.json` を安全に読み込んでください。JavaScriptへ日英辞書を重複コピーしてはいけません。
+
 ### 初期対応言語
 
 初期対応言語は以下です。
@@ -365,6 +369,7 @@ function getMessage(key, substitutions) {
 - `_locales/ja/messages.json` と `_locales/en/messages.json` のキーが揃っていること。
 - UIに表示する固定文言が、コード内に不要に直書きされていないこと。
 - `chrome.i18n.getMessage()` が利用できないテスト環境でも、安全にフォールバックできること。
+- `uiLanguage=auto` / `ja` / `en` の解決と、popup / options の即時反映をテストすること。
 - manifest の `name` と `description` が `__MSG_xxx__` 形式になっていること。
 - `default_locale` が設定されていること。
 
@@ -447,7 +452,7 @@ Chrome Extension
 役割:
 
 - ユーザー設定を読み込む。
-- 拡張機能の有効 / 無効設定と表示されやすさ設定を保存する。
+- 拡張機能の有効 / 無効設定、表示言語、表示されやすさ設定を保存する。
 - 保存状態メッセージを表示する。
 - 投稿本文や判定結果を扱わない。
 
@@ -457,6 +462,7 @@ Chrome Extension
 
 - 初期設定を `enabled: false` にする。
 - 初期の表示されやすさ設定を `cushionSensitivity: 'standard'` にする。
+- 初期の表示言語設定を `uiLanguage: 'auto'` にする。
 - `chrome.storage.local` にはユーザーが明示的に選んだ設定値だけを保存する。
 - テスト環境などで `chrome.storage.local` が使えない場合は安全な初期値にフォールバックする。
 - 投稿本文、判定結果、閲覧履歴、ユーザーID、投稿URL、`score`、`matchedRules` を保存しない。

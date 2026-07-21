@@ -6,7 +6,7 @@
     <title>プライバシーポリシーについて | ことばうけみまもり</title>
     <meta
       name="description"
-      content="ことばうけみまもりのプライバシーポリシーです。投稿本文や判定結果を外部送信せず、保存する設定値を enabled と cushionSensitivity に限定する方針を説明します。"
+      content="ことばうけみまもりのプライバシーポリシーです。投稿本文や判定結果を外部送信せず、保存する設定値を enabled、cushionSensitivity、uiLanguage に限定する方針を説明します。"
     >
     <link
       rel="canonical"
@@ -51,7 +51,7 @@
         <p class="lead">
           「ことばうけみまもり｜Xことばに心のワンクッション」は、読む前のワンクッションをブラウザ内で表示し、読むか、今は読まないかをユーザー自身が選べるようにするGoogle Chrome拡張機能です。現在のMVP（必要最小限の機能）では、投稿本文や判定結果を外部サーバーへ送信せず、必要最小限の設定だけを保存します。
         </p>
-        <p class="last-updated">最終更新日：<time datetime="2026-06-16">2026年6月16日</time></p>
+        <p class="last-updated">最終更新日：<time datetime="2026-07-21">2026年7月21日</time></p>
       </header>
 
       <main class="content-card">
@@ -100,10 +100,13 @@
         <section id="storage">
           <h2>2. 保存する設定値</h2>
           <p>
-            保存するのは、拡張機能のON/OFFと、ワンクッションの表示されやすさの設定だけです。
+            保存するのは、拡張機能のON/OFF、ワンクッションの表示されやすさ、表示言語の設定だけです。
           </p>
           <p>
-            現時点でGoogle Chrome拡張機能の保存領域 <code>chrome.storage.local</code> に保存する設定値は、拡張機能を有効にするかどうかを示す <code>enabled</code> と、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code> です。
+            現時点でGoogle Chrome拡張機能の保存領域 <code>chrome.storage.local</code> に保存する設定値は、拡張機能を有効にするかどうかを示す <code>enabled</code>、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code>、表示言語を示す <code>uiLanguage</code> です。<code>uiLanguage</code> に保存する値は <code>auto</code>、<code>ja</code>、<code>en</code> のいずれかです。
+          </p>
+          <p>
+            表示言語はブラウザ内に保存するユーザー設定であり、外部へ送信しません。
           </p>
           <p>
             公開ドキュメントページでは、利用者が選択した表示テーマを保持するため、ブラウザの <code>localStorage</code> に表示テーマの設定だけを保存します。保存する値は <code>system</code>、<code>light</code>、<code>dark</code> のいずれかです。

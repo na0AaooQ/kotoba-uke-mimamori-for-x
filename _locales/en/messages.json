@@ -110,6 +110,18 @@
   "optionEnableExtension": {
     "message": "Enable Kotoba Uke Mimamori"
   },
+  "optionDisplayLanguage": {
+    "message": "Display language"
+  },
+  "optionLanguageAuto": {
+    "message": "Auto"
+  },
+  "optionLanguageJapanese": {
+    "message": "日本語"
+  },
+  "optionLanguageEnglish": {
+    "message": "English"
+  },
   "optionCushionSensitivity": {
     "message": "Cushion display sensitivity"
   },

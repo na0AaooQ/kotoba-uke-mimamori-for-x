@@ -6,6 +6,7 @@ const path = require('node:path');
 const {
   applyExtensionVersion,
   applyLocalizedMessages,
+  applyOptionsSettings,
   getExtensionVersion,
   initializeOptionsPage,
   saveOptionSettings
@@ -15,6 +16,10 @@ const MESSAGES = Object.freeze({
   optionsTitle: 'ことばうけみまもりの設定',
   optionsDescription: 'Xで届く言葉に、読む前のワンクッションを置くための設定です。',
   optionEnableExtension: 'ことばうけみまもりを有効にする',
+  optionDisplayLanguage: '表示言語',
+  optionLanguageAuto: '自動',
+  optionLanguageJapanese: '日本語',
+  optionLanguageEnglish: 'English',
   optionCushionSensitivity: 'ワンクッションの表示されやすさ',
   optionSensitivityLow: '少なめ',
   optionSensitivityLowDescription: '強い表現を中心に表示します。',
@@ -37,6 +42,7 @@ async function runTests() {
   testGetExtensionVersionFallsBackWhenUnavailable();
   await testInitializeOptionsPageLoadsSafeInitialState();
   await testSaveOptionSettingsStoresThreeSensitivityValues();
+  await testLanguageChangeUpdatesOptionsImmediatelyAndKeepsOtherSettings();
   await testSaveOptionSettingsShowsErrorMessage();
 
   console.log('All options tests passed.');
@@ -46,6 +52,11 @@ function testOptionsHtmlContainsVersionLabel() {
   const optionsHtml = fs.readFileSync(path.join(__dirname, '..', 'options.html'), 'utf8');
 
   assert.match(optionsHtml, /id="options-version"/);
+  assert.match(optionsHtml, /id="option-ui-language"/);
+  assert.match(optionsHtml, /for="option-ui-language"/);
+  assert.match(optionsHtml, /value="auto"/);
+  assert.match(optionsHtml, /value="ja"/);
+  assert.match(optionsHtml, /value="en"/);
 }
 
 function testApplyLocalizedMessages() {
@@ -108,13 +119,18 @@ async function testInitializeOptionsPageLoadsSafeInitialState() {
     const fakeDocument = createFakeDocument();
 
     const result = await initializeOptionsPage(fakeDocument, {
-      loadSettings: async () => ({ enabled: false, cushionSensitivity: 'standard' }),
+      loadSettings: async () => ({
+        enabled: false,
+        cushionSensitivity: 'standard',
+        uiLanguage: 'auto'
+      }),
       saveSettings: async (settings) => settings
     });
 
     assert.equal(result, true);
     assert.equal(fakeDocument.enabledCheckbox.checked, false);
     assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'standard');
+    assert.equal(fakeDocument.uiLanguageSelect.value, 'auto');
   });
 }
 
@@ -125,10 +141,12 @@ async function testSaveOptionSettingsStoresThreeSensitivityValues() {
       const fakeDocument = createFakeDocument();
       fakeDocument.enabledCheckbox.checked = true;
       setSelectedSensitivity(fakeDocument.sensitivityInputs, cushionSensitivity);
+      fakeDocument.uiLanguageSelect.value = 'ja';
 
       const result = await saveOptionSettings(
         {
           enabledCheckbox: fakeDocument.enabledCheckbox,
+          uiLanguageSelect: fakeDocument.uiLanguageSelect,
           sensitivityInputs: fakeDocument.sensitivityInputs,
           statusMessage: fakeDocument.statusMessage
         },
@@ -141,12 +159,75 @@ async function testSaveOptionSettingsStoresThreeSensitivityValues() {
         }
       );
 
-      assert.deepEqual(result, { enabled: true, cushionSensitivity });
-      assert.deepEqual(savedSettings, [{ enabled: true, cushionSensitivity }]);
+      assert.deepEqual(result, { enabled: true, cushionSensitivity, uiLanguage: 'ja' });
+      assert.deepEqual(savedSettings, [{ enabled: true, cushionSensitivity, uiLanguage: 'ja' }]);
       assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), cushionSensitivity);
       assert.equal(fakeDocument.statusMessage.textContent, MESSAGES.optionSaved);
       assert.equal(fakeDocument.statusMessage.dataset.state, 'saved');
     }
+  });
+}
+
+async function testLanguageChangeUpdatesOptionsImmediatelyAndKeepsOtherSettings() {
+  await withI18n(async () => {
+    const languageLabel = createLocalizedElement('label', 'optionDisplayLanguage');
+    const autoOption = createLocalizedElement('option', 'optionLanguageAuto');
+    const japaneseOption = createLocalizedElement('option', 'optionLanguageJapanese');
+    const englishOption = createLocalizedElement('option', 'optionLanguageEnglish');
+    const fakeDocument = createFakeDocument({
+      localizedElements: [languageLabel, autoOption, japaneseOption, englishOption]
+    });
+    const elements = getInteractiveElements(fakeDocument);
+
+    await applyOptionsSettings(
+      fakeDocument,
+      elements,
+      { enabled: true, cushionSensitivity: 'high', uiLanguage: 'en' },
+      {}
+    );
+
+    assert.equal(fakeDocument.documentElement.lang, 'en');
+    assert.equal(fakeDocument.uiLanguageSelect.value, 'en');
+    assert.equal(languageLabel.textContent, 'Display language');
+    assert.equal(autoOption.textContent, 'Auto');
+    assert.equal(japaneseOption.textContent, '日本語');
+    assert.equal(englishOption.textContent, 'English');
+    assert.equal(fakeDocument.enabledCheckbox.checked, true);
+    assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'high');
+
+    const savedSettings = [];
+    const result = await saveOptionSettings(
+      elements,
+      {
+        saveSettings: async (settings) => {
+          savedSettings.push(settings);
+          return settings;
+        }
+      },
+      fakeDocument,
+      {}
+    );
+
+    assert.deepEqual(result, { enabled: true, cushionSensitivity: 'high', uiLanguage: 'en' });
+    assert.deepEqual(savedSettings, [
+      { enabled: true, cushionSensitivity: 'high', uiLanguage: 'en' }
+    ]);
+    fakeDocument.enabledCheckbox.checked = false;
+    await saveOptionSettings(
+      elements,
+      { saveSettings: async (settings) => settings },
+      fakeDocument,
+      {}
+    );
+    assert.equal(fakeDocument.uiLanguageSelect.value, 'en');
+    setSelectedSensitivity(fakeDocument.sensitivityInputs, 'low');
+    await saveOptionSettings(
+      elements,
+      { saveSettings: async (settings) => settings },
+      fakeDocument,
+      {}
+    );
+    assert.equal(fakeDocument.uiLanguageSelect.value, 'en');
   });
 }
 
@@ -175,6 +256,8 @@ async function testSaveOptionSettingsShowsErrorMessage() {
 
 function createFakeDocument({ localizedElements = [] } = {}) {
   const enabledCheckbox = createElement('input');
+  const uiLanguageSelect = createElement('select');
+  uiLanguageSelect.value = 'auto';
   const sensitivityInputs = ['low', 'standard', 'high'].map((value) => {
     const input = createElement('input');
     input.value = value;
@@ -186,13 +269,19 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 
   return {
     enabledCheckbox,
+    uiLanguageSelect,
     sensitivityInputs,
     versionLabel,
     statusMessage,
+    documentElement: { lang: 'ja' },
     title: '',
     getElementById(id) {
       if (id === 'option-enabled') {
         return enabledCheckbox;
+      }
+
+      if (id === 'option-ui-language') {
+        return uiLanguageSelect;
       }
 
       if (id === 'options-status') {
@@ -216,6 +305,15 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 
       return [];
     }
+  };
+}
+
+function getInteractiveElements(fakeDocument) {
+  return {
+    enabledCheckbox: fakeDocument.enabledCheckbox,
+    uiLanguageSelect: fakeDocument.uiLanguageSelect,
+    sensitivityInputs: fakeDocument.sensitivityInputs,
+    statusMessage: fakeDocument.statusMessage
   };
 }
 
@@ -247,12 +345,27 @@ function createElement(tagName) {
   };
 }
 
+function createLocalizedElement(tagName, messageKey) {
+  const element = createElement(tagName);
+  element.setAttribute('data-i18n', messageKey);
+
+  return element;
+}
+
 async function withI18n(callback) {
   const previousI18n = globalThis.kotobaUkeMimamoriI18n;
 
   globalThis.kotobaUkeMimamoriI18n = {
     getMessage(key) {
       return MESSAGES[key] || key;
+    },
+    resolveUiLanguage(uiLanguage) {
+      return uiLanguage === 'en' ? 'en' : 'ja';
+    },
+    loadLocaleMessages: async (resolvedLanguage) =>
+      resolvedLanguage === 'en' ? createEnglishMessages() : toLocaleMessages(MESSAGES),
+    getLocaleMessage(localeMessages, key) {
+      return localeMessages?.[key]?.message || '';
     }
   };
 
@@ -265,6 +378,36 @@ async function withI18n(callback) {
       globalThis.kotobaUkeMimamoriI18n = previousI18n;
     }
   }
+}
+
+function createEnglishMessages() {
+  return toLocaleMessages({
+    ...MESSAGES,
+    optionsTitle: 'Kotoba Uke Mimamori Settings',
+    optionsDescription:
+      'Settings for adding a gentle cushion before reading words that arrive on X.',
+    optionEnableExtension: 'Enable Kotoba Uke Mimamori',
+    optionDisplayLanguage: 'Display language',
+    optionLanguageAuto: 'Auto',
+    optionCushionSensitivity: 'Cushion display sensitivity',
+    optionSensitivityLow: 'Low',
+    optionSensitivityLowDescription: 'Shows cushions mainly for stronger expressions.',
+    optionSensitivityStandard: 'Standard',
+    optionSensitivityStandardDescription: 'The usual setting.',
+    optionSensitivityHigh: 'High',
+    optionSensitivityHighDescription:
+      'Shows cushions more easily, including for slightly lighter risk expressions.',
+    optionPrivacyNote: 'Post text and detection results are not sent to external servers.',
+    optionStorageNote: 'Settings are stored in this browser.',
+    optionReloadNote:
+      'ON/OFF and display sensitivity changes will take effect after reloading the open X page.',
+    optionSaved: 'Settings saved.',
+    optionSaveError: 'Could not save settings.'
+  });
+}
+
+function toLocaleMessages(messages) {
+  return Object.fromEntries(Object.entries(messages).map(([key, message]) => [key, { message }]));
 }
 
 runTests();

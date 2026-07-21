@@ -3,7 +3,8 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { getMessage } = require('../i18n');
+const vm = require('node:vm');
+const { getLocaleMessage, getMessage, loadLocaleMessages, resolveUiLanguage } = require('../i18n');
 
 const REQUIRED_GUIDANCE_KEYS = Object.freeze([
   'cushionGuidanceStrengthLabel',
@@ -19,16 +20,83 @@ const REQUIRED_GUIDANCE_KEYS = Object.freeze([
   'cushionGuidanceTendencyPossiblyPressuringLanguage'
 ]);
 
-function runTests() {
+async function runTests() {
   testFallbackWithoutChromeI18n();
   testChromeI18nMessage();
   testChromeI18nInvalidatedContextFallsBack();
+  testResolveUiLanguageFromChromeLocale();
+  testResolveUiLanguageUsesExplicitSelection();
+  testInvalidUiLanguageFallsBackToAuto();
+  testSettingsAndI18nCanLoadInOneGlobalScope();
+  await testLocaleMessagesLoadFromExtensionPackage();
   testLocaleKeysMatch();
   testRequiredGuidanceMessagesExist();
   testRequiredEnglishMessagesExist();
   testEnglishMessagesAvoidStrongPhrases();
 
   console.log('All i18n tests passed.');
+}
+
+function testSettingsAndI18nCanLoadInOneGlobalScope() {
+  const context = vm.createContext({});
+  context.globalThis = context;
+
+  for (const fileName of ['settings.js', 'i18n.js']) {
+    const source = fs.readFileSync(path.join(__dirname, '..', fileName), 'utf8');
+
+    vm.runInContext(source, context, { filename: fileName });
+  }
+
+  assert.equal(typeof context.kotobaUkeMimamoriSettings?.saveSettings, 'function');
+  assert.equal(typeof context.kotobaUkeMimamoriI18n?.resolveUiLanguage, 'function');
+}
+
+function testResolveUiLanguageFromChromeLocale() {
+  for (const locale of ['ja', 'ja-JP', 'ja_JP', 'JA_jp']) {
+    assert.equal(resolveUiLanguage('auto', { getUILanguage: () => locale }), 'ja');
+  }
+
+  for (const locale of ['en', 'en-US', 'ko-KR', '']) {
+    assert.equal(resolveUiLanguage('auto', { getUILanguage: () => locale }), 'en');
+  }
+
+  assert.equal(
+    resolveUiLanguage('auto', {
+      getMessage: (key) => (key === '@@ui_locale' ? 'ja_JP' : '')
+    }),
+    'ja'
+  );
+}
+
+function testResolveUiLanguageUsesExplicitSelection() {
+  assert.equal(resolveUiLanguage('ja', { getUILanguage: () => 'en-US' }), 'ja');
+  assert.equal(resolveUiLanguage('en', { getUILanguage: () => 'ja-JP' }), 'en');
+}
+
+function testInvalidUiLanguageFallsBackToAuto() {
+  assert.equal(resolveUiLanguage('unknown', { getUILanguage: () => 'ja-JP' }), 'ja');
+  assert.equal(resolveUiLanguage('', { getUILanguage: () => 'en-US' }), 'en');
+  assert.equal(resolveUiLanguage(null, { getUILanguage: () => 'en-US' }), 'en');
+}
+
+async function testLocaleMessagesLoadFromExtensionPackage() {
+  const requestedUrls = [];
+  const localeMessages = await loadLocaleMessages(
+    'ja',
+    { getURL: (pathValue) => `chrome-extension://test/${pathValue}` },
+    async (url) => {
+      requestedUrls.push(url);
+
+      return {
+        ok: true,
+        json: async () => ({ optionDisplayLanguage: { message: '表示言語' } })
+      };
+    }
+  );
+
+  assert.deepEqual(requestedUrls, ['chrome-extension://test/_locales/ja/messages.json']);
+  assert.equal(getLocaleMessage(localeMessages, 'optionDisplayLanguage'), '表示言語');
+  assert.equal(getLocaleMessage(localeMessages, 'missing'), '');
 }
 
 function testChromeI18nInvalidatedContextFallsBack() {
@@ -99,6 +167,10 @@ function testRequiredEnglishMessagesExist() {
     'optionsTitle',
     'optionsDescription',
     'optionEnableExtension',
+    'optionDisplayLanguage',
+    'optionLanguageAuto',
+    'optionLanguageJapanese',
+    'optionLanguageEnglish',
     'optionCushionSensitivity',
     'optionSensitivityLow',
     'optionSensitivityLowDescription',
@@ -178,4 +250,7 @@ function withChrome(chromeValue, callback) {
   }
 }
 
-runTests();
+runTests().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
