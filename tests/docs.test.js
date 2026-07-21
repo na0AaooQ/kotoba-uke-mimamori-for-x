@@ -191,6 +191,7 @@ function runTests() {
   testGitHubRepositoryLinks();
   testStoreListingDraft();
   testManualSensitivityDescriptions();
+  testUiLanguageDocumentation();
   testCushionGuidanceDocumentation();
   testRuleBasedExplanation();
   testNotPurposeStatements();
@@ -514,6 +515,7 @@ function testStoreListingDraft() {
   assert.ok(draft.includes('storage'));
   assert.ok(draft.includes('enabled'));
   assert.ok(draft.includes('cushionSensitivity'));
+  assert.ok(draft.includes('uiLanguage'));
 
   for (const screenshotPath of STORE_LISTING_SCREENSHOT_CANDIDATES) {
     assert.ok(draft.includes(screenshotPath));
@@ -539,6 +541,44 @@ function testManualSensitivityDescriptions() {
     'Standard: The usual setting.',
     'High: Shows cushions more easily, including for slightly lighter risk expressions.'
   ]);
+}
+
+function testUiLanguageDocumentation() {
+  const jaManual = readDoc('manual.html');
+  const enManual = readDoc('en/manual.html');
+  const jaPrivacy = readDoc('privacy.html');
+  const enPrivacy = readDoc('en/privacy.html');
+
+  assertIncludesAll(jaManual, [
+    '「自動」「日本語」「English」から表示言語を選べます。',
+    'ChromeのUI言語が日本語系の場合は日本語、それ以外は英語',
+    '現在、表示言語設定が適用されるのはpopupとオプション画面です。',
+    '<code>uiLanguage</code>'
+  ]);
+  assertIncludesAll(enManual, [
+    'You can choose Auto, 日本語, or English',
+    'Chrome&apos;s UI language is Japanese',
+    'popup and options',
+    'page only',
+    '<code>uiLanguage</code>'
+  ]);
+  assertIncludesAll(jaPrivacy, [
+    '<code>enabled</code>、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code>、表示言語を示す <code>uiLanguage</code>',
+    '<code>auto</code>、<code>ja</code>、<code>en</code>',
+    '外部へ送信しません。'
+  ]);
+  assertIncludesAll(enPrivacy, [
+    '<code>enabled</code>,',
+    '<code>cushionSensitivity</code>',
+    '<code>uiLanguage</code>',
+    '<code>auto</code>',
+    'not sent\n            externally'
+  ]);
+  assert.equal(jaPrivacy.includes('enabled と、ワンクッションの表示されやすさを示す'), false);
+  assert.equal(
+    enPrivacy.includes('The only saved settings are the extension ON/OFF setting and'),
+    false
+  );
 }
 
 function testCushionGuidanceDocumentation() {
@@ -789,7 +829,7 @@ function testDocumentLastUpdatedDates() {
   for (const pagePath of JAPANESE_PAGE_PATHS) {
     const html = readDoc(pagePath);
     const date =
-      pagePath === 'manual.html'
+      pagePath !== 'disclaimer.html'
         ? '最終更新日：<time datetime="2026-07-21">2026年7月21日</time>'
         : '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
 
@@ -800,7 +840,7 @@ function testDocumentLastUpdatedDates() {
   for (const pagePath of ENGLISH_PAGE_PATHS) {
     const html = readDoc(pagePath);
     const date =
-      pagePath === 'en/manual.html'
+      pagePath !== 'en/disclaimer.html'
         ? 'Last updated: <time datetime="2026-07-21">July 21, 2026</time>'
         : 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
 

@@ -219,13 +219,19 @@ NODE
 
 ## 設定保存方針
 
-オプション画面で、ユーザーが拡張機能の有効 / 無効と、ワンクッションの表示されやすさを選択できます。設定保存には `chrome.storage.local` を使用し、保存対象は `enabled` と `cushionSensitivity` のみに限定します。投稿本文、判定結果、score、categories、reasons、matchedRules、riskLevel、shouldCushion、guidance、strengthKey、tendencyKeys、URL、Xユーザー情報は保存しません。
+オプション画面で、ユーザーが拡張機能の有効 / 無効、表示言語、ワンクッションの表示されやすさを選択できます。設定保存には `chrome.storage.local` を使用し、保存対象は `enabled`、`cushionSensitivity`、`uiLanguage` のみに限定します。投稿本文、判定結果、score、categories、reasons、matchedRules、riskLevel、shouldCushion、guidance、strengthKey、tendencyKeys、URL、Xユーザー情報は保存しません。
 
-拡張機能アイコンをクリックすると、簡易ポップアップからON/OFFとワンクッションの表示されやすさを確認・変更できます。Chromeの拡張機能メニュー内にある小さな「オプション」を探さなくても、ポップアップ内の「詳細設定を開く」からオプション画面へ移動できます。
+拡張機能アイコンをクリックすると、簡易ポップアップからON/OFF、表示言語、ワンクッションの表示されやすさを確認・変更できます。Chromeの拡張機能メニュー内にある小さな「オプション」を探さなくても、ポップアップ内の「詳細設定を開く」からオプション画面へ移動できます。
 
 オプション画面の `enabled` と `cushionSensitivity` 設定を `content.js` の処理へ接続しています。初期値は `enabled: false` および `cushionSensitivity: 'standard'` で、ユーザーが明示的にONにした場合のみ、通常判定によるワンクッション処理が有効になります。
 
 ON/OFFおよび表示されやすさの変更は、現時点では開いているXページを再読み込みすると反映されます。リアルタイム反映は今後検討予定です。投稿本文・判定結果・URL・ユーザー情報は保存しません。
+
+### 表示言語設定（工程6）
+
+`uiLanguage` は `auto` / `ja` / `en` のみを保存し、不正値または未設定値は `auto` に正規化します。`auto` は Chrome UI 言語が日本語系なら `ja`、それ以外なら `en` に解決します。popup と options はこの設定を共有し、変更した画面では固定UI文言と `document.documentElement.lang` をその場で切り替えます。
+
+翻訳文言の正本は `_locales/ja/messages.json` と `_locales/en/messages.json` です。popup と options は拡張機能に同梱した locale メッセージを読み込み、JavaScriptへ日英辞書を重複コピーしません。外部翻訳APIや外部通信は利用しません。工程6時点で `uiLanguage` を適用するのは popup と options のみであり、X上のワンクッションUI、`content.js`、`overlay.js` には適用しません。
 
 ## フィルター感度設定の設計
 
@@ -252,11 +258,12 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 ```js
 {
   enabled: boolean,
-  cushionSensitivity: 'low' | 'standard' | 'high'
+  cushionSensitivity: 'low' | 'standard' | 'high',
+  uiLanguage: 'auto' | 'ja' | 'en'
 }
 ```
 
-`chrome.storage.local` に保存する対象は、この2つのユーザー設定値だけに限定します。`cushionSensitivity` が未設定または不正値の場合は `standard` に正規化します。
+`chrome.storage.local` に保存する対象は、この3つのユーザー設定値だけに限定します。`cushionSensitivity` が未設定または不正値の場合は `standard`、`uiLanguage` が未設定または不正値の場合は `auto` に正規化します。
 
 ### 実装構成
 
@@ -271,7 +278,8 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 
 - `DEFAULT_SETTINGS` に `cushionSensitivity: 'standard'` を追加する。
 - `normalizeSettings()` は `low` / `standard` / `high` のみを許可し、それ以外を `standard` に戻す。
-- 保存対象は `enabled` と `cushionSensitivity` のみに絞り、投稿本文や判定結果などを受け取っても保存対象に含めない。
+- `DEFAULT_SETTINGS` に `uiLanguage: 'auto'` を追加し、`auto` / `ja` / `en` 以外は `auto` に戻す。
+- 保存対象は `enabled`、`cushionSensitivity`、`uiLanguage` のみに絞り、投稿本文や判定結果などを受け取っても保存対象に含めない。
 
 `content.js`:
 
@@ -297,7 +305,7 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 
 ### privacy / manual ページへの反映
 
-`docs/privacy.html` に、保存する設定値が `enabled` と `cushionSensitivity` であること、および投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、`score`、`matchedRules`、`categories`、`reasons` を保存しないことを明記しています。投稿本文や判定結果を外部送信しない方針も維持します。文言は現在のMVPの説明であり、法務文言を最終確定するものではありません。
+`docs/privacy.html` に、保存する設定値が `enabled`、`cushionSensitivity`、`uiLanguage` であること、および投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、`score`、`matchedRules`、`categories`、`reasons` を保存しないことを明記しています。投稿本文や判定結果を外部送信しない方針も維持します。文言は現在のMVPの説明であり、法務文言を最終確定するものではありません。
 
 `docs/manual.html` には、オプション画面から表示されやすさを選べること、`少なめ` / `標準` / `多め` の意味、変更後は開いているXページを再読み込みすると反映されることを記載しています。
 
@@ -307,11 +315,11 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 
 | テストファイル | 確認内容 |
 |---|---|
-| `tests/settings.test.js` | 初期値が `standard` であること、許可値のみ保持すること、不正値を `standard` に戻すこと、保存キーを限定すること |
+| `tests/settings.test.js` | `cushionSensitivity='standard'` と `uiLanguage='auto'` の初期値、許可値、正規化、保存キーの限定を確認すること |
 | `tests/risk-detector.test.js` | `threshold: 100` / `80` / `60` で `shouldCushion` の境界が意図どおりであり、`80` が現行標準のままであること |
 | `tests/content.test.js` | 感度に対応するしきい値を判定処理へ渡すこと、`enabled=false` では処理しないこと、不正値でも標準相当になること |
-| `tests/options.test.js` | 初期値 `standard` の表示、3つの選択値の保存、保存完了メッセージの表示を確認すること |
-| `tests/i18n.test.js` | 英語UI文言の必須キーが存在すること、強すぎる英語表現が含まれていないこと |
+| `tests/options.test.js` | 表示言語select、即時切替、3設定の維持、保存完了メッセージを確認すること |
+| `tests/i18n.test.js` | `auto` / `ja` / `en` の解決、localeメッセージ、英語UI文言の必須キーを確認すること |
 | `tests/docs.test.js` | 日本語 / 英語docsページの存在、言語切替、`html lang`、`canonical`、`hreflang` を確認すること |
 
 加えて、privacy / manual の説明と実際の保存値・反映方法が一致していること、外部通信・投稿本文・判定結果の保存が追加されていないことを実機QAで確認します。
@@ -337,7 +345,7 @@ Chrome Web Store正式版の公開に向けて、ユーザー向けdocsにサー
 - 判定は完全ではなく、誤って表示される場合や表示されない場合があること
 - ルール更新は拡張機能本体の更新として行い、投稿本文や判定結果を収集して改善に使わないこと
 - 投稿者を評価しないこと、自動ブロック・自動通報・アカウント危険度判定を行わないこと
-- 保存する設定値は `enabled` と `cushionSensitivity` のみに限定すること
+- 保存する設定値は `enabled`、`cushionSensitivity`、`uiLanguage` のみに限定すること
 
 ユーザー向けdocsでは、具体的な判定語句や `risk-detector.js` 内の具体的な文字列・正規表現を直接掲載しない方針です。説明は、強い侮辱表現、存在否定に近い表現、暴力的・脅迫的に読める表現、心に大きな負荷がかかりやすい表現などのカテゴリ表現に留めます。
 
@@ -352,7 +360,7 @@ Chrome Web Store正式版 v1.0.0 の掲載に向けて、以下を反映して�
 - `manifest.json` の `name` / `description` は `__MSG_extensionName__` / `__MSG_extensionDescription__` のまま維持し、実際の文言は `_locales/ja/messages.json` と `_locales/en/messages.json` で管理しています。
 - Chrome Web Store掲載用の日本語 / 英語文案、権限説明、審査向け補足説明、スクリーンショット候補を `docs/store-listing-draft.md` に整理しています。
 
-正式版 v1.0.0 でも、使用権限は `storage` のみに限定しています。`host_permissions` は使用しません。投稿本文や判定結果は外部送信せず、保存する設定値も `enabled` と `cushionSensitivity` のみに限定します。自動ブロック、自動通報、投稿削除、アカウント危険度判定は行いません。X公式機能を置き換えるものではありません。
+正式版 v1.0.0 でも、使用権限は `storage` のみに限定しています。`host_permissions` は使用しません。投稿本文や判定結果は外部送信せず、保存する設定値も `enabled`、`cushionSensitivity`、`uiLanguage` のみに限定します。自動ブロック、自動通報、投稿削除、アカウント危険度判定は行いません。X公式機能を置き換えるものではありません。
 
 ### Chrome Web Store掲載用アイコン画像生成スクリプト
 
@@ -857,6 +865,7 @@ Chrome Web Storeでの公開・更新時には、開発環境でChrome拡張を�
 
 - [ ] 初期状態で `enabled=false` になっている
 - [ ] 初期状態で `cushionSensitivity='standard'` になっている
+- [ ] 初期状態で `uiLanguage='auto'` になっている
 - [ ] `enabled=false` のとき、X画面に表示変更が発生しない
 - [ ] `enabled=false` のとき、DOM監視・通常判定・候補属性付与・ワンクッションUI・ぼかし表示が行われない
 - [ ] 開発用フラグの初期値がいずれも `false` のままである
@@ -902,6 +911,7 @@ Chrome Web Storeでの公開・更新時には、開発環境でChrome拡張を�
 - [ ] 現在のON/OFF状態が表示される
 - [ ] ポップアップからON/OFFを変更できる
 - [ ] ポップアップから「少なめ」/「標準」/「多め」を変更できる
+- [ ] ポップアップから「自動」/「日本語」/「English」を変更でき、popupとoptionsに即時反映される
 - [ ] ポップアップを閉じて再度開いても設定が保持されている
 - [ ] 「詳細設定を開く」から `options.html` を開ける
 - [ ] 投稿本文や判定結果を入力・保存するUIがない
@@ -915,8 +925,9 @@ Chrome Web Storeでの公開・更新時には、開発環境でChrome拡張を�
 
 - [ ] `options.html` が開ける
 - [ ] ON/OFF設定が表示される
+- [ ] 表示言語設定が表示される
 - [ ] 感度設定が表示される
-- [ ] ON/OFFと感度設定を保存できる
+- [ ] ON/OFF、表示言語、感度設定を保存できる
 - [ ] 保存メッセージが表示される
 - [ ] 投稿本文や判定結果を入力・保存するUIがない
 - [ ] ライトモード / ダークモードで読みやすい
@@ -953,7 +964,7 @@ XのDOM変更に備えて継続確認すること:
 
 - [ ] 判定処理がブラウザ内で行われる
 - [ ] 健全な批判、異論、反対意見をワンクッション対象として規制する動作になっていない
-- [ ] `chrome.storage.local` の保存値が `enabled` / `cushionSensitivity` のみである
+- [ ] `chrome.storage.local` の保存値が `enabled` / `cushionSensitivity` / `uiLanguage` のみである
 - [ ] 投稿本文を保存していない
 - [ ] 判定結果を保存していない
 - [ ] 閲覧履歴を保存していない
@@ -998,8 +1009,8 @@ XのDOM変更に備えて継続確認すること:
 - [ ] Tab / Enter / Space で主要操作ができる
 - [ ] ワンクッションUIのボタンへフォーカスできる
 - [ ] 折りたたみ状態の「内容を表示する」ボタンへフォーカスできる
-- [ ] ポップアップのON/OFF、感度設定、「詳細設定を開く」ボタンへフォーカスできる
-- [ ] `options.html` のON/OFF、感度設定へフォーカスできる
+- [ ] ポップアップのON/OFF、表示言語、感度設定、「詳細設定を開く」ボタンへフォーカスできる
+- [ ] `options.html` のON/OFF、表示言語、感度設定へフォーカスできる
 - [ ] `:focus-visible` が視認できる
 - [ ] ライトモード / ダークモードで読みにくい文字色がない
 
@@ -1091,7 +1102,7 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 - [ ] ダークモードでUIが読みやすい
 - [ ] Tab / Enter / Space 操作に問題がない
 - [ ] Consoleに投稿本文・URL・ユーザー情報・内部判定詳細が出ていない
-- [ ] `chrome.storage.local` に `enabled` と `cushionSensitivity` 以外が保存されていない
+- [ ] `chrome.storage.local` に `enabled`、`cushionSensitivity`、`uiLanguage` 以外が保存されていない
 - [ ] ことばうけみまもり由来の外部通信が増えていない
 - [ ] 試用後に `enabled=false` へ戻し、表示変更なしを確認した
 
@@ -1154,7 +1165,7 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 - `docs/en/disclaimer.html`
 - `docs/en/manual.html`
 
-`docs/about.html`、`docs/privacy.html`、`docs/disclaimer.html`、`docs/manual.html` では、「いきなり読ませない。でも、読む自由も残す」という本ツールの位置づけを説明しています。外部送信を行わないこと、保存対象が `enabled` と `cushionSensitivity` のみであること、ON/OFFおよび表示されやすさの反映方法やワンクッションUIの動作も記載しています。
+`docs/about.html`、`docs/privacy.html`、`docs/disclaimer.html`、`docs/manual.html` では、「いきなり読ませない。でも、読む自由も残す」という本ツールの位置づけを説明しています。外部送信を行わないこと、保存対象が `enabled`、`cushionSensitivity`、`uiLanguage` のみであること、ON/OFF・表示言語・表示されやすさの反映方法やワンクッションUIの動作も記載しています。
 
 英語版の `docs/en/about.html`、`docs/en/privacy.html`、`docs/en/disclaimer.html`、`docs/en/manual.html` では、英語話者にも自然に伝わるよう、強い断定を避けながら「読む前の小さな選択肢」「投稿者を裁くためではなく読む側の心を守る補助ツール」「投稿本文や判定結果を外部送信しない」という方針を説明しています。
 
@@ -1196,6 +1207,7 @@ Chrome Extension
 │  └─ 内部判定結果を安全な表示用ガイダンスへ変換
 ├─ i18n.js
 │  ├─ chrome.i18n.getMessage() のラップ
+│  ├─ popup / options 用の表示言語解決と同梱locale読込
 │  ├─ テスト環境でのフォールバック
 │  └─ UI文言取得処理の一元化
 ├─ _locales
@@ -1210,6 +1222,7 @@ Chrome Extension
 ├─ options.html
 ├─ options.js
 │  ├─ 有効 / 無効設定の読み込み
+│  ├─ 表示言語設定の読み込み
 │  ├─ 表示されやすさ設定の読み込み
 │  ├─ 設定値の保存
 │  └─ 保存状態メッセージ表示

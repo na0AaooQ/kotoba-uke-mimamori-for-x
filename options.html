@@ -96,6 +96,35 @@
         outline-offset: 3px;
       }
 
+      .options-language {
+        display: grid;
+        gap: 8px;
+        margin: 0 0 20px;
+        padding: 16px 0 0;
+        border-top: 1px solid rgba(245, 158, 11, 0.2);
+      }
+
+      .options-language-label {
+        color: #7c4a03;
+        font-weight: 700;
+      }
+
+      .options-language-select {
+        width: min(100%, 320px);
+        min-height: 42px;
+        padding: 8px 10px;
+        border: 1px solid rgba(245, 158, 11, 0.38);
+        border-radius: 8px;
+        background: #ffffff;
+        color: #3f3f46;
+        font: inherit;
+      }
+
+      .options-language-select:focus-visible {
+        outline: 2px solid rgba(245, 158, 11, 0.86);
+        outline-offset: 3px;
+      }
+
       .options-sensitivity {
         display: grid;
         gap: 10px;
@@ -190,6 +219,7 @@
         .options-title,
         .options-version,
         .options-status,
+        .options-language-label,
         .options-sensitivity-title {
           color: #fde68a;
         }
@@ -205,6 +235,16 @@
         .options-note,
         .options-radio-row {
           background: rgba(67, 56, 38, 0.72);
+        }
+
+        .options-language {
+          border-color: rgba(251, 191, 36, 0.22);
+        }
+
+        .options-language-select {
+          border-color: rgba(251, 191, 36, 0.32);
+          background: rgba(67, 56, 38, 0.5);
+          color: #f8efd7;
         }
 
         .options-status[data-state="error"] {
@@ -226,6 +266,19 @@
           <input id="option-enabled" class="options-checkbox" type="checkbox" />
           <span data-i18n="optionEnableExtension"></span>
         </label>
+
+        <div class="options-language">
+          <label
+            class="options-language-label"
+            for="option-ui-language"
+            data-i18n="optionDisplayLanguage"
+          ></label>
+          <select id="option-ui-language" class="options-language-select">
+            <option value="auto" data-i18n="optionLanguageAuto"></option>
+            <option value="ja" data-i18n="optionLanguageJapanese"></option>
+            <option value="en" data-i18n="optionLanguageEnglish"></option>
+          </select>
+        </div>
 
         <fieldset class="options-sensitivity">
           <legend class="options-sensitivity-title" data-i18n="optionCushionSensitivity"></legend>

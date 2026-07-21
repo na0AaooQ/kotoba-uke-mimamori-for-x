@@ -110,6 +110,18 @@
   "optionEnableExtension": {
     "message": "ことばうけみまもりを有効にする"
   },
+  "optionDisplayLanguage": {
+    "message": "表示言語"
+  },
+  "optionLanguageAuto": {
+    "message": "自動"
+  },
+  "optionLanguageJapanese": {
+    "message": "日本語"
+  },
+  "optionLanguageEnglish": {
+    "message": "English"
+  },
   "optionCushionSensitivity": {
     "message": "ワンクッションの表示されやすさ"
   },

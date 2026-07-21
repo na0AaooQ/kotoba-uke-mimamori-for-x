@@ -61,7 +61,7 @@
           <ul>
             <li><a href="#store-install">1. Chrome ウェブストアから拡張機能を追加する</a></li>
             <li><a href="#pin-extension">2. 拡張機能アイコンを固定する</a></li>
-            <li><a href="#popup-settings">3. popupでON/OFF・表示されやすさを設定する</a></li>
+            <li><a href="#popup-settings">3. popupでON/OFF・表示言語・表示されやすさを設定する</a></li>
             <li><a href="#options">4. 詳細設定を確認する</a></li>
             <li><a href="#cushion">5. ワンクッションが表示されたとき</a></li>
             <li><a href="#collapsed">6. 今は見ないを選んだ後</a></li>
@@ -161,12 +161,15 @@
         </section>
 
         <section id="popup-settings">
-          <h2>3. popupでON/OFF・表示されやすさを設定する</h2>
+          <h2>3. popupでON/OFF・表示言語・表示されやすさを設定する</h2>
           <p>
-            popupから、ことばうけみまもりのON/OFFと、ワンクッションの表示されやすさを変更できます。初期状態はOFFです。使いたいタイミングでONにしてください。
+            popupから、ことばうけみまもりのON/OFF、表示言語、ワンクッションの表示されやすさを変更できます。初期状態はOFFです。使いたいタイミングでONにしてください。
           </p>
           <ul>
             <li>ON/OFFを切り替えられます。</li>
+            <li>
+              「自動」「日本語」「English」から表示言語を選べます。「自動」を選ぶと、ChromeのUI言語が日本語系の場合は日本語、それ以外は英語でpopupとオプション画面を表示します。言語変更はその場で反映されます。
+            </li>
             <li>
               「少なめ」「標準」「多め」からワンクッションの表示されやすさを選べます。
               <ul class="manual-sensitivity-list">
@@ -193,7 +196,10 @@
         <section id="options">
           <h2>4. 詳細設定を確認する</h2>
           <p>
-            popupの「詳細設定を開く」から、オプション画面を開けます。保存するのは、拡張機能のON/OFFと、ワンクッションの表示されやすさの設定だけです。
+            popupの「詳細設定を開く」から、オプション画面を開けます。オプション画面でも、ON/OFF、表示言語、表示されやすさを確認・変更できます。保存するのはこの3つの設定だけで、表示言語はpopupとオプション画面で共有されます。
+          </p>
+          <p>
+            現在、表示言語設定が適用されるのはpopupとオプション画面です。X上に表示されるワンクッションUIの表示言語は、この設定ではまだ切り替わりません。
           </p>
           <figure class="manual-figure">
             <img src="./assets/img/manual/008_manual-popup-ja-on-more.png" alt="ことばうけみまもりの詳細設定画面でON/OFFと多め設定を確認する画面">
@@ -295,7 +301,7 @@
             Xにはミュートするキーワードなどの標準機能があります。本拡張機能はそれらを置き換えるものではなく、投稿を完全に見えなくする前に、読む前のワンクッションを置くための選択肢です。
           </p>
           <p>
-            X（旧Twitter）の投稿本文や判定結果は外部サーバーへ送信されません。判定はブラウザ内で行い、現時点で保存する設定値は <code>enabled</code> と <code>cushionSensitivity</code> のみです。
+            X（旧Twitter）の投稿本文や判定結果は外部サーバーへ送信されません。判定はブラウザ内で行い、現時点で保存する設定値は <code>enabled</code>、<code>cushionSensitivity</code>、<code>uiLanguage</code> のみです。
           </p>
           <p>
             X（旧Twitter）の閲覧履歴や投稿URL、ユーザー情報、内部判定の詳細は保存せず、自動ブロックや自動通報も行いません。詳しくは<a href="./privacy.html">プライバシーポリシーについて</a>をご覧ください。

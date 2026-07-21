@@ -6,6 +6,7 @@ const path = require('node:path');
 const {
   applyExtensionVersion,
   applyLocalizedMessages,
+  applyPopupSettings,
   getExtensionVersion,
   initializePopup,
   openDetailedSettings,
@@ -20,6 +21,10 @@ const MESSAGES = Object.freeze({
   popupStatusOff: 'OFF',
   popupOpenOptions: '詳細設定を開く',
   optionEnableExtension: 'ことばうけみまもりを有効にする',
+  optionDisplayLanguage: '表示言語',
+  optionLanguageAuto: '自動',
+  optionLanguageJapanese: '日本語',
+  optionLanguageEnglish: 'English',
   optionCushionSensitivity: 'ワンクッションの表示されやすさ',
   optionSensitivityLow: '少なめ',
   optionSensitivityLowSummary: '少なめ: 強い表現を中心に表示します。',
@@ -41,6 +46,9 @@ async function runTests() {
   testGetExtensionVersionFallsBackWhenUnavailable();
   await testInitializePopupLoadsCurrentState();
   await testSavePopupSettingsStoresAllowedSettingsOnly();
+  await testSavePopupSettingsPersistsEnabledStateForTheNextPopup();
+  await testLanguageChangeUpdatesPopupImmediatelyAndKeepsOtherSettings();
+  await testSavePopupSettingsShowsErrorMessage();
   await testOpenDetailedSettingsUsesChromeRuntime();
 
   console.log('All popup tests passed.');
@@ -50,6 +58,11 @@ function testPopupHtmlContainsRequiredControlsOnly() {
   const popupHtml = fs.readFileSync(path.join(__dirname, '..', 'popup.html'), 'utf8');
 
   assert.match(popupHtml, /id="popup-enabled"/);
+  assert.match(popupHtml, /id="popup-ui-language"/);
+  assert.match(popupHtml, /for="popup-ui-language"/);
+  assert.match(popupHtml, /value="auto"/);
+  assert.match(popupHtml, /value="ja"/);
+  assert.match(popupHtml, /value="en"/);
   assert.match(popupHtml, /id="popup-version"/);
   assert.match(popupHtml, /value="low"/);
   assert.match(popupHtml, /value="standard"/);
@@ -121,7 +134,7 @@ async function testInitializePopupLoadsCurrentState() {
     const fakeDocument = createFakeDocument();
 
     const result = await initializePopup(fakeDocument, {
-      loadSettings: async () => ({ enabled: true, cushionSensitivity: 'high' }),
+      loadSettings: async () => ({ enabled: true, cushionSensitivity: 'high', uiLanguage: 'auto' }),
       saveSettings: async (settings) => settings
     });
 
@@ -130,6 +143,7 @@ async function testInitializePopupLoadsCurrentState() {
     assert.equal(fakeDocument.statusValue.textContent, MESSAGES.popupStatusOn);
     assert.equal(fakeDocument.statusValue.dataset.state, 'on');
     assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'high');
+    assert.equal(fakeDocument.uiLanguageSelect.value, 'auto');
   });
 }
 
@@ -139,6 +153,7 @@ async function testSavePopupSettingsStoresAllowedSettingsOnly() {
     const fakeDocument = createFakeDocument();
     fakeDocument.enabledCheckbox.checked = true;
     setSelectedSensitivity(fakeDocument.sensitivityInputs, 'low');
+    fakeDocument.uiLanguageSelect.value = 'en';
 
     const result = await savePopupSettings(getInteractiveElements(fakeDocument), {
       saveSettings: async (settings) => {
@@ -148,11 +163,128 @@ async function testSavePopupSettingsStoresAllowedSettingsOnly() {
       }
     });
 
-    assert.deepEqual(savedSettings, [{ enabled: true, cushionSensitivity: 'low' }]);
-    assert.deepEqual(result, { enabled: true, cushionSensitivity: 'low' });
+    assert.deepEqual(savedSettings, [
+      { enabled: true, cushionSensitivity: 'low', uiLanguage: 'en' }
+    ]);
+    assert.deepEqual(result, { enabled: true, cushionSensitivity: 'low', uiLanguage: 'en' });
     assert.equal(fakeDocument.statusValue.textContent, MESSAGES.popupStatusOn);
-    assert.equal(fakeDocument.saveStatus.textContent, MESSAGES.optionSaved);
+    assert.equal(fakeDocument.saveStatus.textContent, 'Settings saved.');
     assert.equal(fakeDocument.saveStatus.dataset.state, 'saved');
+  });
+}
+
+async function testLanguageChangeUpdatesPopupImmediatelyAndKeepsOtherSettings() {
+  await withI18n(async () => {
+    const languageLabel = createLocalizedElement('label', 'optionDisplayLanguage');
+    const autoOption = createLocalizedElement('option', 'optionLanguageAuto');
+    const japaneseOption = createLocalizedElement('option', 'optionLanguageJapanese');
+    const englishOption = createLocalizedElement('option', 'optionLanguageEnglish');
+    const fakeDocument = createFakeDocument({
+      localizedElements: [languageLabel, autoOption, japaneseOption, englishOption]
+    });
+    const elements = getInteractiveElements(fakeDocument);
+
+    await applyPopupSettings(
+      fakeDocument,
+      elements,
+      { enabled: true, cushionSensitivity: 'high', uiLanguage: 'en' },
+      {}
+    );
+
+    assert.equal(fakeDocument.documentElement.lang, 'en');
+    assert.equal(fakeDocument.uiLanguageSelect.value, 'en');
+    assert.equal(languageLabel.textContent, 'Display language');
+    assert.equal(autoOption.textContent, 'Auto');
+    assert.equal(japaneseOption.textContent, '日本語');
+    assert.equal(englishOption.textContent, 'English');
+    assert.equal(fakeDocument.enabledCheckbox.checked, true);
+    assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'high');
+
+    const savedSettings = [];
+    const result = await savePopupSettings(
+      elements,
+      {
+        saveSettings: async (settings) => {
+          savedSettings.push(settings);
+          return settings;
+        }
+      },
+      fakeDocument,
+      {}
+    );
+
+    assert.deepEqual(result, { enabled: true, cushionSensitivity: 'high', uiLanguage: 'en' });
+    assert.deepEqual(savedSettings, [
+      { enabled: true, cushionSensitivity: 'high', uiLanguage: 'en' }
+    ]);
+    fakeDocument.enabledCheckbox.checked = false;
+    await savePopupSettings(
+      elements,
+      { saveSettings: async (settings) => settings },
+      fakeDocument,
+      {}
+    );
+    assert.equal(fakeDocument.uiLanguageSelect.value, 'en');
+    setSelectedSensitivity(fakeDocument.sensitivityInputs, 'low');
+    await savePopupSettings(
+      elements,
+      { saveSettings: async (settings) => settings },
+      fakeDocument,
+      {}
+    );
+    assert.equal(fakeDocument.uiLanguageSelect.value, 'en');
+  });
+}
+
+async function testSavePopupSettingsPersistsEnabledStateForTheNextPopup() {
+  await withI18n(async () => {
+    const storedSettings = {
+      enabled: false,
+      cushionSensitivity: 'standard',
+      uiLanguage: 'auto'
+    };
+    const settingsApi = {
+      loadSettings: async () => ({ ...storedSettings }),
+      saveSettings: async (settings) => {
+        Object.assign(storedSettings, settings);
+
+        return { ...storedSettings };
+      }
+    };
+    const firstPopupDocument = createFakeDocument();
+    const firstPopupElements = getInteractiveElements(firstPopupDocument);
+
+    firstPopupDocument.enabledCheckbox.checked = true;
+    await savePopupSettings(firstPopupElements, settingsApi, firstPopupDocument, {});
+
+    const reopenedPopupDocument = createFakeDocument();
+    await initializePopup(reopenedPopupDocument, settingsApi, {});
+
+    assert.equal(reopenedPopupDocument.enabledCheckbox.checked, true);
+    assert.equal(reopenedPopupDocument.statusValue.textContent, MESSAGES.popupStatusOn);
+    assert.equal(getSelectedSensitivity(reopenedPopupDocument.sensitivityInputs), 'standard');
+    assert.equal(reopenedPopupDocument.uiLanguageSelect.value, 'auto');
+  });
+}
+
+async function testSavePopupSettingsShowsErrorMessage() {
+  await withI18n(async () => {
+    const fakeDocument = createFakeDocument();
+
+    const result = await savePopupSettings(
+      getInteractiveElements(fakeDocument),
+      {
+        saveSettings: async () => {
+          throw new Error('Storage unavailable');
+        }
+      },
+      fakeDocument,
+      {}
+    );
+
+    assert.equal(result, null);
+    assert.equal(fakeDocument.saveStatus.textContent, MESSAGES.optionSaveError);
+    assert.equal(fakeDocument.saveStatus.dataset.state, 'error');
   });
 }
 
@@ -171,6 +303,8 @@ async function testOpenDetailedSettingsUsesChromeRuntime() {
 
 function createFakeDocument({ localizedElements = [] } = {}) {
   const enabledCheckbox = createElement('input');
+  const uiLanguageSelect = createElement('select');
+  uiLanguageSelect.value = 'auto';
   const sensitivityInputs = ['low', 'standard', 'high'].map((value) => {
     const input = createElement('input');
     input.value = value;
@@ -184,15 +318,21 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 
   return {
     enabledCheckbox,
+    uiLanguageSelect,
     sensitivityInputs,
     statusValue,
     versionLabel,
     saveStatus,
     openOptionsButton,
+    documentElement: { lang: 'ja' },
     title: '',
     getElementById(id) {
       if (id === 'popup-enabled') {
         return enabledCheckbox;
+      }
+
+      if (id === 'popup-ui-language') {
+        return uiLanguageSelect;
       }
 
       if (id === 'popup-status-value') {
@@ -230,6 +370,7 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 function getInteractiveElements(fakeDocument) {
   return {
     enabledCheckbox: fakeDocument.enabledCheckbox,
+    uiLanguageSelect: fakeDocument.uiLanguageSelect,
     sensitivityInputs: fakeDocument.sensitivityInputs,
     statusValue: fakeDocument.statusValue,
     versionLabel: fakeDocument.versionLabel,
@@ -279,6 +420,14 @@ async function withI18n(callback) {
   globalThis.kotobaUkeMimamoriI18n = {
     getMessage(key) {
       return MESSAGES[key] || key;
+    },
+    resolveUiLanguage(uiLanguage) {
+      return uiLanguage === 'en' ? 'en' : 'ja';
+    },
+    loadLocaleMessages: async (resolvedLanguage) =>
+      resolvedLanguage === 'en' ? createEnglishMessages() : toLocaleMessages(MESSAGES),
+    getLocaleMessage(localeMessages, key) {
+      return localeMessages?.[key]?.message || '';
     }
   };
 
@@ -291,6 +440,35 @@ async function withI18n(callback) {
       globalThis.kotobaUkeMimamoriI18n = previousI18n;
     }
   }
+}
+
+function createEnglishMessages() {
+  return toLocaleMessages({
+    ...MESSAGES,
+    popupTitle: 'Kotoba Uke Mimamori',
+    popupTagline: 'A gentle cushion for words on X',
+    popupStatusLabel: 'Status',
+    popupOpenOptions: 'Open detailed settings',
+    optionEnableExtension: 'Enable Kotoba Uke Mimamori',
+    optionDisplayLanguage: 'Display language',
+    optionLanguageAuto: 'Auto',
+    optionSensitivityLow: 'Low',
+    optionSensitivityLowSummary: 'Low: Shows cushions mainly for stronger expressions.',
+    optionSensitivityStandard: 'Standard',
+    optionSensitivityStandardSummary: 'Standard: The usual setting.',
+    optionSensitivityHigh: 'High',
+    optionSensitivityHighSummary:
+      'High: Shows cushions more easily, including for slightly lighter risk expressions.',
+    optionPrivacyNote: 'Post text and detection results are not sent to external servers.',
+    optionReloadNote:
+      'ON/OFF and display sensitivity changes will take effect after reloading the open X page.',
+    optionSaved: 'Settings saved.',
+    optionSaveError: 'Could not save settings.'
+  });
+}
+
+function toLocaleMessages(messages) {
+  return Object.fromEntries(Object.entries(messages).map(([key, message]) => [key, { message }]));
 }
 
 runTests();

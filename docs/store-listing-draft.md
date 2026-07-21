@@ -34,6 +34,7 @@ Xで届く強い言葉に、読む前のワンクッションを。投稿本文�
 - 投稿本文のみをぼかし表示
 - 「内容を表示する / 今は見ない」を選択可能
 - ポップアップからON/OFFを切り替え
+- ポップアップと設定画面の表示言語を「自動 / 日本語 / English」から選択
 - ワンクッションの表示されやすさを「少なめ / 標準 / 多め」から選択
 - 設定はブラウザ内に保存
 
@@ -43,11 +44,11 @@ Xで届く強い言葉に、読む前のワンクッションを。投稿本文�
 - 判定結果を外部サーバーへ送信しません
 - 投稿本文や判定結果を保存しません
 - 閲覧履歴、投稿URL、ユーザー名、アカウントIDを保存しません
-- 保存するのは、ON/OFFと表示されやすさの設定のみです
+- 保存するのは、ON/OFF、表示言語、表示されやすさの設定のみです
 
 ### 権限説明
 
-この拡張機能は、設定を保存するために storage 権限を使用します。保存する設定は、拡張機能のON/OFF状態と、ワンクッションの表示されやすさのみです。投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントIDは保存しません。
+この拡張機能は、設定を保存するために storage 権限を使用します。保存する設定は、拡張機能のON/OFF状態、popupと設定画面の表示言語、ワンクッションの表示されやすさのみです。投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントIDは保存しません。
 
 ### 本拡張機能が行わないこと
 
@@ -72,7 +73,7 @@ Xで届く強い言葉に、読む前のワンクッションを。投稿本文�
 - 投稿本文や判定結果を外部サーバーへ送信しません。
 - 外部AIサーバーによる判定は行いません。
 - 投稿本文や判定結果を保存しません。
-- 保存する設定値は `enabled` と `cushionSensitivity` のみです。
+- 保存する設定値は `enabled`、`cushionSensitivity`、`uiLanguage` のみです。
 - 投稿本文ノードにぼかしとワンクッションUIを追加します。
 - 投稿本文や投稿DOMを削除しません。
 - 自動ブロック、自動通報、アカウント危険度判定は行いません。
@@ -149,7 +150,7 @@ It is a helper tool that gives the reader a choice to read now or not read for n
 - Post text and detection results are not sent to external servers.
 - It does not use external AI servers for detection.
 - Post text and detection results are not saved.
-- The only saved settings are `enabled` and `cushionSensitivity`.
+- The only saved settings are `enabled`, `cushionSensitivity`, and `uiLanguage`.
 - The extension adds a blur effect and a gentle cushion UI to the post text node.
 - It does not delete post text or remove post DOM.
 - It does not automatically block, report, or judge account risk.
