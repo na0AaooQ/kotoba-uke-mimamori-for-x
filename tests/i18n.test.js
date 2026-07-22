@@ -30,6 +30,7 @@ async function runTests() {
   testSettingsAndI18nCanLoadInOneGlobalScope();
   await testLocaleMessagesLoadFromExtensionPackage();
   testLocaleKeysMatch();
+  testPopupCompactSensitivitySummaryMessages();
   testRequiredGuidanceMessagesExist();
   testRequiredEnglishMessagesExist();
   testEnglishMessagesAvoidStrongPhrases();
@@ -160,9 +161,6 @@ function testRequiredEnglishMessagesExist() {
     'buttonHideForNow',
     'popupTitle',
     'popupTagline',
-    'popupStatusLabel',
-    'popupStatusOn',
-    'popupStatusOff',
     'popupOpenOptions',
     'optionsTitle',
     'optionsDescription',
@@ -174,13 +172,11 @@ function testRequiredEnglishMessagesExist() {
     'optionCushionSensitivity',
     'optionSensitivityLow',
     'optionSensitivityLowDescription',
-    'optionSensitivityLowSummary',
     'optionSensitivityStandard',
     'optionSensitivityStandardDescription',
-    'optionSensitivityStandardSummary',
     'optionSensitivityHigh',
     'optionSensitivityHighDescription',
-    'optionSensitivityHighSummary',
+    'popupSensitivityCompactSummary',
     'optionPrivacyNote',
     'optionStorageNote',
     'optionReloadNote',
@@ -192,6 +188,20 @@ function testRequiredEnglishMessagesExist() {
     assert.equal(typeof enMessages[key]?.message, 'string');
     assert.notEqual(enMessages[key].message.trim(), '');
   }
+}
+
+function testPopupCompactSensitivitySummaryMessages() {
+  const jaMessages = readLocaleMessages('ja');
+  const enMessages = readLocaleMessages('en');
+
+  assert.equal(
+    jaMessages.popupSensitivityCompactSummary.message,
+    '少なめ＝強い表現中心 ／ 標準＝通常 ／ 多め＝より表示されやすい'
+  );
+  assert.equal(
+    enMessages.popupSensitivityCompactSummary.message,
+    'Low = stronger expressions / Standard = usual / High = more sensitive'
+  );
 }
 
 function testRequiredGuidanceMessagesExist() {

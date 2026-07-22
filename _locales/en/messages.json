@@ -89,15 +89,6 @@
   "popupTagline": {
     "message": "A gentle cushion for words on X"
   },
-  "popupStatusLabel": {
-    "message": "Status"
-  },
-  "popupStatusOn": {
-    "message": "ON"
-  },
-  "popupStatusOff": {
-    "message": "OFF"
-  },
   "popupOpenOptions": {
     "message": "Open detailed settings"
   },
@@ -131,17 +122,11 @@
   "optionSensitivityLowDescription": {
     "message": "Shows cushions mainly for stronger expressions."
   },
-  "optionSensitivityLowSummary": {
-    "message": "Low: Shows cushions mainly for stronger expressions."
-  },
   "optionSensitivityStandard": {
     "message": "Standard"
   },
   "optionSensitivityStandardDescription": {
     "message": "The usual setting."
-  },
-  "optionSensitivityStandardSummary": {
-    "message": "Standard: The usual setting."
   },
   "optionSensitivityHigh": {
     "message": "High"
@@ -149,8 +134,8 @@
   "optionSensitivityHighDescription": {
     "message": "Shows cushions more easily, including for slightly lighter risk expressions."
   },
-  "optionSensitivityHighSummary": {
-    "message": "High: Shows cushions more easily, including for slightly lighter risk expressions."
+  "popupSensitivityCompactSummary": {
+    "message": "Low = stronger expressions / Standard = usual / High = more sensitive"
   },
   "optionPrivacyNote": {
     "message": "Post text and detection results are not sent to external servers."

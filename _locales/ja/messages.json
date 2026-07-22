@@ -89,15 +89,6 @@
   "popupTagline": {
     "message": "Xことばに心のワンクッション"
   },
-  "popupStatusLabel": {
-    "message": "状態"
-  },
-  "popupStatusOn": {
-    "message": "ON"
-  },
-  "popupStatusOff": {
-    "message": "OFF"
-  },
   "popupOpenOptions": {
     "message": "詳細設定を開く"
   },
@@ -131,17 +122,11 @@
   "optionSensitivityLowDescription": {
     "message": "強い表現を中心に表示します。"
   },
-  "optionSensitivityLowSummary": {
-    "message": "少なめ: 強い表現を中心に表示します。"
-  },
   "optionSensitivityStandard": {
     "message": "標準"
   },
   "optionSensitivityStandardDescription": {
     "message": "通常の設定です。"
-  },
-  "optionSensitivityStandardSummary": {
-    "message": "標準: 通常の設定です。"
   },
   "optionSensitivityHigh": {
     "message": "多め"
@@ -149,8 +134,8 @@
   "optionSensitivityHighDescription": {
     "message": "少し軽めのリスク表現にも表示されやすくします。"
   },
-  "optionSensitivityHighSummary": {
-    "message": "多め: 少し軽めのリスク表現にも表示されやすくします。"
+  "popupSensitivityCompactSummary": {
+    "message": "少なめ＝強い表現中心 ／ 標準＝通常 ／ 多め＝より表示されやすい"
   },
   "optionPrivacyNote": {
     "message": "投稿本文や判定結果は外部送信されません。"
