@@ -552,14 +552,19 @@ function testUiLanguageDocumentation() {
   assertIncludesAll(jaManual, [
     '「自動」「日本語」「English」から表示言語を選べます。',
     'ChromeのUI言語が日本語系の場合は日本語、それ以外は英語',
-    '現在、表示言語設定が適用されるのはpopupとオプション画面です。',
+    'popup、オプション画面、X上のワンクッションUI',
+    '「日本語」を選ぶとワンクッションUIも日本語',
+    '「English」を選ぶとワンクッションUIも英語',
+    'X上のワンクッションUIはXページを再読み込みした後に切り替わります。',
     '<code>uiLanguage</code>'
   ]);
   assertIncludesAll(enManual, [
     'You can choose Auto, 日本語, or English',
     'Chrome&apos;s UI language is Japanese',
-    'popup and options',
-    'page only',
+    'popup, options page, and cushions shown on X',
+    'Choosing\n              日本語 also shows cushions in Japanese',
+    'choosing English shows them\n              in English',
+    'use the new language after you reload the X page',
     '<code>uiLanguage</code>'
   ]);
   assertIncludesAll(jaPrivacy, [

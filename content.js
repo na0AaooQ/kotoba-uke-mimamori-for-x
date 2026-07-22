@@ -21,7 +21,8 @@ const CUSHION_THRESHOLDS = Object.freeze({
 
 const FALLBACK_SETTINGS = Object.freeze({
   enabled: false,
-  cushionSensitivity: 'standard'
+  cushionSensitivity: 'standard',
+  uiLanguage: 'auto'
 });
 
 const ATTRIBUTES = Object.freeze({
@@ -58,7 +59,11 @@ let scanTimerId = null;
 let isScanning = false;
 let hasLoggedInitialScan = false;
 
-async function initialize(settingsApi = getSettingsApi(), featureFlags = FEATURE_FLAGS) {
+async function initialize(
+  settingsApi = getSettingsApi(),
+  featureFlags = FEATURE_FLAGS,
+  i18nApi = getI18nApi()
+) {
   if (initialized) {
     return false;
   }
@@ -74,11 +79,17 @@ async function initialize(settingsApi = getSettingsApi(), featureFlags = FEATURE
     return false;
   }
 
-  observeTimeline(settings, featureFlags);
+  const localization = await prepareContentLocalization(settings, i18nApi);
+
+  observeTimeline(settings, featureFlags, localization);
   return true;
 }
 
-function observeTimeline(settings = getDefaultSettings(), featureFlags = FEATURE_FLAGS) {
+function observeTimeline(
+  settings = getDefaultSettings(),
+  featureFlags = FEATURE_FLAGS,
+  localization = null
+) {
   if (!isCushionFeatureEnabled(settings, featureFlags)) {
     return false;
   }
@@ -90,14 +101,14 @@ function observeTimeline(settings = getDefaultSettings(), featureFlags = FEATURE
     return false;
   }
 
-  scanCandidatePosts(root, settings, featureFlags);
+  scanCandidatePosts(root, settings, featureFlags, localization);
 
   if (timelineObserver || typeof globalThis.MutationObserver !== 'function') {
     return true;
   }
 
   timelineObserver = new globalThis.MutationObserver(() => {
-    scheduleCandidatePostScan(root, settings, featureFlags);
+    scheduleCandidatePostScan(root, settings, featureFlags, localization);
   });
 
   timelineObserver.observe(root, {
@@ -150,7 +161,8 @@ function extractPostText(postNode) {
 function processCandidatePost(
   postNode,
   featureFlags = FEATURE_FLAGS,
-  settings = getDefaultSettings()
+  settings = getDefaultSettings(),
+  localization = null
 ) {
   if (!isCushionFeatureEnabled(settings, featureFlags)) {
     return SKIPPED_PROCESS_RESULT;
@@ -161,7 +173,7 @@ function processCandidatePost(
   }
 
   if (isProcessed(postNode)) {
-    maybeRenderCushionOverlay(postNode, featureFlags, settings);
+    maybeRenderCushionOverlay(postNode, featureFlags, settings, localization);
 
     return SKIPPED_PROCESS_RESULT;
   }
@@ -193,7 +205,7 @@ function processCandidatePost(
   let shouldCushion = false;
 
   for (const textTarget of textTargets) {
-    const processResult = processPostTextTarget(textTarget, featureFlags, settings);
+    const processResult = processPostTextTarget(textTarget, featureFlags, settings, localization);
 
     processed ||= processResult.processed;
     riskChecked ||= processResult.riskChecked;
@@ -210,12 +222,13 @@ function processCandidatePost(
 function processPostTextTarget(
   textTarget,
   featureFlags = FEATURE_FLAGS,
-  settings = getDefaultSettings()
+  settings = getDefaultSettings(),
+  localization = null
 ) {
   const { targetNode, textNode } = textTarget;
 
   if (!isElement(targetNode) || isProcessed(targetNode)) {
-    maybeRenderCushionOverlay(targetNode, featureFlags, settings);
+    maybeRenderCushionOverlay(targetNode, featureFlags, settings, localization);
 
     return SKIPPED_PROCESS_RESULT;
   }
@@ -252,7 +265,7 @@ function processPostTextTarget(
 
   if (shouldCushion) {
     markCushionCandidate(targetNode);
-    maybeRenderCushionOverlay(targetNode, featureFlags, settings);
+    maybeRenderCushionOverlay(targetNode, featureFlags, settings, localization);
   }
 
   markProcessed(targetNode);
@@ -308,7 +321,8 @@ function markCushionRendered(postNode) {
 function maybeRenderCushionOverlay(
   postNode,
   featureFlags = FEATURE_FLAGS,
-  settings = getDefaultSettings()
+  settings = getDefaultSettings(),
+  localization = null
 ) {
   if (!isCushionFeatureEnabled(settings, featureFlags)) {
     return false;
@@ -328,14 +342,18 @@ function maybeRenderCushionOverlay(
   let cushionElement = null;
 
   try {
-    cushionElement = overlay.createCushionElement(createCushionOverlayResult(cushionGuidance), {
-      onShow: () => {
-        revealPostContent(postNode, cushionElement);
+    cushionElement = overlay.createCushionElement(
+      createCushionOverlayResult(cushionGuidance),
+      {
+        onShow: () => {
+          revealPostContent(postNode, cushionElement);
+        },
+        onHide: () => {
+          keepPostContentHidden(postNode);
+        }
       },
-      onHide: () => {
-        keepPostContentHidden(postNode);
-      }
-    });
+      localization
+    );
   } catch (_error) {
     return false;
   }
@@ -531,11 +549,20 @@ function initializeKotobaUkeMimamoriContentScript() {
   return initialize();
 }
 
-function startDomMonitoring(settings = getDefaultSettings(), featureFlags = FEATURE_FLAGS) {
-  return observeTimeline(settings, featureFlags);
+function startDomMonitoring(
+  settings = getDefaultSettings(),
+  featureFlags = FEATURE_FLAGS,
+  localization = null
+) {
+  return observeTimeline(settings, featureFlags, localization);
 }
 
-function scanCandidatePosts(root, settings = getDefaultSettings(), featureFlags = FEATURE_FLAGS) {
+function scanCandidatePosts(
+  root,
+  settings = getDefaultSettings(),
+  featureFlags = FEATURE_FLAGS,
+  localization = null
+) {
   if (!isCushionFeatureEnabled(settings, featureFlags)) {
     return;
   }
@@ -553,7 +580,7 @@ function scanCandidatePosts(root, settings = getDefaultSettings(), featureFlags 
     let cushionCandidateCount = 0;
 
     for (const postNode of candidatePostNodes) {
-      const processResult = processCandidatePost(postNode, featureFlags, settings);
+      const processResult = processCandidatePost(postNode, featureFlags, settings, localization);
 
       if (processResult.processed) {
         processedCount += 1;
@@ -583,7 +610,8 @@ function scanCandidatePosts(root, settings = getDefaultSettings(), featureFlags 
 function scheduleCandidatePostScan(
   root,
   settings = getDefaultSettings(),
-  featureFlags = FEATURE_FLAGS
+  featureFlags = FEATURE_FLAGS,
+  localization = null
 ) {
   if (scanTimerId !== null) {
     return;
@@ -591,7 +619,7 @@ function scheduleCandidatePostScan(
 
   scanTimerId = globalThis.setTimeout(() => {
     scanTimerId = null;
-    scanCandidatePosts(root, settings, featureFlags);
+    scanCandidatePosts(root, settings, featureFlags, localization);
   }, OBSERVER_DEBOUNCE_MS);
 }
 
@@ -609,18 +637,88 @@ async function loadContentSettings(settingsApi = getSettingsApi()) {
 
 function normalizeContentSettings(settings, settingsApi = getSettingsApi()) {
   const defaultSettings = getDefaultSettings(settingsApi);
+  const hasSettingsNormalizer = typeof settingsApi?.normalizeSettings === 'function';
   const normalizedSettings =
-    settingsApi && typeof settingsApi.normalizeSettings === 'function'
-      ? settingsApi.normalizeSettings(settings)
-      : settings;
+    settingsApi && hasSettingsNormalizer ? settingsApi.normalizeSettings(settings) : settings;
 
   return {
     enabled:
       normalizedSettings && typeof normalizedSettings.enabled === 'boolean'
         ? normalizedSettings.enabled
         : defaultSettings.enabled,
-    cushionSensitivity: normalizeCushionSensitivity(normalizedSettings?.cushionSensitivity)
+    cushionSensitivity: normalizeCushionSensitivity(normalizedSettings?.cushionSensitivity),
+    uiLanguage: hasSettingsNormalizer
+      ? (normalizedSettings?.uiLanguage ?? defaultSettings.uiLanguage)
+      : normalizeContentUiLanguage(normalizedSettings?.uiLanguage)
   };
+}
+
+function normalizeContentUiLanguage(uiLanguage, i18nApi = getI18nApi()) {
+  if (typeof i18nApi?.normalizeUiLanguage === 'function') {
+    try {
+      return i18nApi.normalizeUiLanguage(uiLanguage);
+    } catch (_error) {
+      // Fall through to the safe content-script default.
+    }
+  }
+
+  return FALLBACK_SETTINGS.uiLanguage;
+}
+
+async function prepareContentLocalization(settings = getDefaultSettings(), i18nApi = getI18nApi()) {
+  if (
+    typeof i18nApi?.resolveUiLanguage !== 'function' ||
+    typeof i18nApi?.loadLocaleMessages !== 'function'
+  ) {
+    return null;
+  }
+
+  try {
+    const resolvedLanguage = i18nApi.resolveUiLanguage(settings?.uiLanguage);
+    const localeMessages = await i18nApi.loadLocaleMessages(resolvedLanguage);
+
+    return createContentLocalizer(localeMessages, i18nApi);
+  } catch (_error) {
+    return createContentLocalizer({}, i18nApi);
+  }
+}
+
+function createContentLocalizer(localeMessages, i18nApi = getI18nApi()) {
+  if (
+    typeof i18nApi?.getLocaleMessage !== 'function' &&
+    typeof i18nApi?.getMessage !== 'function'
+  ) {
+    return null;
+  }
+
+  const safeLocaleMessages =
+    localeMessages && typeof localeMessages === 'object' ? localeMessages : {};
+
+  return Object.freeze({
+    getMessage(key, substitutions) {
+      if (typeof i18nApi?.getLocaleMessage === 'function') {
+        try {
+          const localeMessage = i18nApi.getLocaleMessage(safeLocaleMessages, key, substitutions);
+
+          if (localeMessage) {
+            return localeMessage;
+          }
+        } catch (_error) {
+          // Fall through to Chrome's active extension locale.
+        }
+      }
+
+      if (typeof i18nApi?.getMessage === 'function') {
+        try {
+          return i18nApi.getMessage(key, substitutions);
+        } catch (_error) {
+          // Fall through to the safe message-key fallback.
+        }
+      }
+
+      return String(key ?? '');
+    }
+  });
 }
 
 function isCushionFeatureEnabled(settings = getDefaultSettings(), featureFlags = FEATURE_FLAGS) {
@@ -639,6 +737,16 @@ function getSettingsApi() {
   }
 
   return settingsApi;
+}
+
+function getI18nApi() {
+  const i18nApi = globalThis.kotobaUkeMimamoriI18n;
+
+  if (!i18nApi || typeof i18nApi !== 'object') {
+    return null;
+  }
+
+  return i18nApi;
 }
 
 function getDocumentRoot() {
@@ -761,6 +869,7 @@ if (typeof module !== 'undefined') {
     FEATURE_FLAGS,
     FALLBACK_SETTINGS,
     applyContentBlur,
+    createContentLocalizer,
     SELECTORS,
     detectPostTextRisk,
     extractPostText,
@@ -781,7 +890,9 @@ if (typeof module !== 'undefined') {
     markRiskChecked,
     maybeRenderCushionOverlay,
     normalizeContentSettings,
+    normalizeContentUiLanguage,
     observeTimeline,
+    prepareContentLocalization,
     processCandidatePost,
     removeContentBlur,
     revealPostContent,

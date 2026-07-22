@@ -26,6 +26,8 @@ function runTests() {
   testOptionsPageIsConfigured();
   testOnlyStoragePermissionIsRequested();
   testHostPermissionsAreNotRequested();
+  testOnlyLocaleMessagesAreWebAccessibleFromX();
+  testContentScriptLoadingOrderIsPreserved();
   testSettingsScriptLoadsBeforeContentScript();
   testCushionGuidanceScriptLoadsBeforeContentScript();
   testLocaleMessagesDoNotIncludeBetaNotice();
@@ -88,6 +90,32 @@ function testHostPermissionsAreNotRequested() {
   const manifest = readManifest();
 
   assert.equal(Object.hasOwn(manifest, 'host_permissions'), false);
+}
+
+function testOnlyLocaleMessagesAreWebAccessibleFromX() {
+  const manifest = readManifest();
+
+  assert.deepEqual(manifest.web_accessible_resources, [
+    {
+      resources: ['_locales/ja/messages.json', '_locales/en/messages.json'],
+      matches: ['https://x.com/*', 'https://twitter.com/*']
+    }
+  ]);
+  assert.equal(JSON.stringify(manifest.web_accessible_resources).includes('<all_urls>'), false);
+  assert.equal(JSON.stringify(manifest.web_accessible_resources).includes('_locales/*'), false);
+}
+
+function testContentScriptLoadingOrderIsPreserved() {
+  const manifest = readManifest();
+
+  assert.deepEqual(manifest.content_scripts[0].js, [
+    'settings.js',
+    'risk-detector.js',
+    'cushion-guidance.js',
+    'i18n.js',
+    'overlay.js',
+    'content.js'
+  ]);
 }
 
 function testSettingsScriptLoadsBeforeContentScript() {

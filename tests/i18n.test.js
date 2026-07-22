@@ -29,6 +29,7 @@ async function runTests() {
   testInvalidUiLanguageFallsBackToAuto();
   testSettingsAndI18nCanLoadInOneGlobalScope();
   await testLocaleMessagesLoadFromExtensionPackage();
+  await testLocaleMessageLoadingFailureIsSafe();
   testLocaleKeysMatch();
   testPopupCompactSensitivitySummaryMessages();
   testRequiredGuidanceMessagesExist();
@@ -98,6 +99,19 @@ async function testLocaleMessagesLoadFromExtensionPackage() {
   assert.deepEqual(requestedUrls, ['chrome-extension://test/_locales/ja/messages.json']);
   assert.equal(getLocaleMessage(localeMessages, 'optionDisplayLanguage'), '表示言語');
   assert.equal(getLocaleMessage(localeMessages, 'missing'), '');
+}
+
+async function testLocaleMessageLoadingFailureIsSafe() {
+  const runtimeApi = { getURL: (pathValue) => `chrome-extension://test/${pathValue}` };
+
+  assert.deepEqual(
+    await loadLocaleMessages('en', runtimeApi, async () => {
+      throw new Error('Locale unavailable');
+    }),
+    {}
+  );
+  assert.deepEqual(await loadLocaleMessages('en', runtimeApi, async () => ({ ok: false })), {});
+  assert.deepEqual(await loadLocaleMessages('en', null, null), {});
 }
 
 function testChromeI18nInvalidatedContextFallsBack() {

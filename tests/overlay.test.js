@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const {
   CUSHION_STYLE_ELEMENT_ID,
   createCushionElement,
@@ -27,6 +29,7 @@ const MESSAGES = Object.freeze({
   buttonShowContent: '内容を表示する',
   buttonHideForNow: '今は見ない'
 });
+const ENGLISH_MESSAGES = readLocaleMessages('en');
 
 function runTests() {
   testCreatesGenericCushionElement();
@@ -39,6 +42,9 @@ function runTests() {
   testIgnoresUnknownStrengthKey();
   testIgnoresUnknownTendencyKey();
   testRendersOnlyKnownGuidanceKeys();
+  testUsesInjectedJapaneseLocalizerForAllFixedMessages();
+  testUsesInjectedEnglishLocalizerThroughDismissedState();
+  testFailedLocalizerFallsBackToChromeI18n();
   testHideButtonCollapsesCushionElement();
   testInjectsCushionStylesOnce();
   testDoesNotRenderPostTextOrInternalRiskDetails();
@@ -355,6 +361,79 @@ function testRendersOnlyKnownGuidanceKeys() {
   });
 }
 
+function testUsesInjectedJapaneseLocalizerForAllFixedMessages() {
+  withFakeDomAndI18n(() => {
+    assertInjectedLocalizationThroughDismissedState(MESSAGES, ENGLISH_MESSAGES);
+  }, ENGLISH_MESSAGES);
+}
+
+function testUsesInjectedEnglishLocalizerThroughDismissedState() {
+  withFakeDomAndI18n(() => {
+    assertInjectedLocalizationThroughDismissedState(ENGLISH_MESSAGES, MESSAGES);
+  });
+}
+
+function assertInjectedLocalizationThroughDismissedState(messages, otherLanguageMessages) {
+  const localization = {
+    getMessage(key) {
+      return messages[key] || '';
+    }
+  };
+  const element = createCushionElement(
+    {
+      reasonMessageKey: 'reasonGeneric',
+      guidance: {
+        strengthKey: 'strong',
+        tendencyKeys: ['personalSafety', 'directedStrongLanguage']
+      }
+    },
+    {},
+    localization
+  );
+
+  assert.equal(element.children[0].textContent, messages.cushionTitle);
+  assert.equal(element.children[1].textContent, messages.cushionBody);
+  assert.equal(element.children[2].textContent, messages.reasonGeneric);
+  assert.ok(element.textContent.includes(messages.cushionGuidanceStrengthLabel));
+  assert.ok(element.textContent.includes(messages.cushionGuidanceStrengthStrong));
+  assert.ok(element.textContent.includes(messages.cushionGuidanceTendencyLabel));
+  assert.ok(element.textContent.includes(messages.cushionGuidanceTendencyPersonalSafety));
+  assert.ok(element.textContent.includes(messages.cushionGuidanceTendencyDirectedStrongLanguage));
+  assert.ok(element.textContent.includes(messages.cushionGuidanceNote));
+  assert.ok(element.textContent.includes(messages.buttonShowContent));
+  assert.ok(element.textContent.includes(messages.buttonHideForNow));
+  assert.equal(element.textContent.includes(otherLanguageMessages.cushionTitle), false);
+
+  element.children[4].children[1].click();
+
+  assert.equal(element.className, 'kum-cushion kum-cushion--dismissed');
+  assert.equal(element.children[0].textContent, messages.cushionDismissedMessage);
+  assert.equal(element.children[1].textContent, messages.cushionDismissedBody);
+  assert.equal(element.children[2].children[0].textContent, messages.buttonShowContent);
+  assert.equal(element.textContent.includes(otherLanguageMessages.cushionDismissedMessage), false);
+  assert.equal(element.textContent.includes(otherLanguageMessages.cushionDismissedBody), false);
+}
+
+function testFailedLocalizerFallsBackToChromeI18n() {
+  withFakeDomAndI18n(() => {
+    const element = createCushionElement(
+      { reasonMessageKey: 'reasonGeneric' },
+      {},
+      {
+        getMessage() {
+          throw new Error('Localizer unavailable');
+        }
+      }
+    );
+
+    assert.ok(element.textContent.includes(MESSAGES.cushionTitle));
+    assert.ok(element.textContent.includes(MESSAGES.cushionBody));
+    assert.ok(element.textContent.includes(MESSAGES.reasonGeneric));
+    assert.ok(element.textContent.includes(MESSAGES.buttonShowContent));
+    assert.ok(element.textContent.includes(MESSAGES.buttonHideForNow));
+  });
+}
+
 function assertDoesNotIncludeInternalGuidanceKeys(element) {
   assert.equal(element.textContent.includes('strong'), false);
   assert.equal(element.textContent.includes('personalSafety'), false);
@@ -410,7 +489,7 @@ function testButtonClickStopsDefaultAndPropagation() {
   });
 }
 
-function withFakeDomAndI18n(callback) {
+function withFakeDomAndI18n(callback, fallbackMessages = MESSAGES) {
   const previousDocument = globalThis.document;
   const previousI18n = globalThis.kotobaUkeMimamoriI18n;
   const fakeDocument = {
@@ -424,7 +503,7 @@ function withFakeDomAndI18n(callback) {
   globalThis.document = fakeDocument;
   globalThis.kotobaUkeMimamoriI18n = {
     getMessage(key) {
-      return MESSAGES[key] || key;
+      return fallbackMessages[key] || key;
     }
   };
 
@@ -434,6 +513,15 @@ function withFakeDomAndI18n(callback) {
     restoreGlobal('document', previousDocument);
     restoreGlobal('kotobaUkeMimamoriI18n', previousI18n);
   }
+}
+
+function readLocaleMessages(locale) {
+  const filePath = path.join(__dirname, '..', '_locales', locale, 'messages.json');
+  const localeMessages = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+  return Object.freeze(
+    Object.fromEntries(Object.entries(localeMessages).map(([key, entry]) => [key, entry.message]))
+  );
 }
 
 function restoreGlobal(key, value) {

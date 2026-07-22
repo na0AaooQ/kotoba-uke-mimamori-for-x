@@ -202,7 +202,7 @@ body[data-color-scheme="dark"] .kum-cushion__button:focus-visible {
 }
 `;
 
-function createCushionElement(result = {}, handlers = {}) {
+function createCushionElement(result = {}, handlers = {}, localization = null) {
   ensureCushionStyles();
 
   const safeHandlers = handlers && typeof handlers === 'object' ? handlers : {};
@@ -213,25 +213,29 @@ function createCushionElement(result = {}, handlers = {}) {
 
   const title = document.createElement('p');
   title.className = 'kum-cushion__title';
-  title.textContent = getLocalizedMessage('cushionTitle');
+  title.textContent = getLocalizedMessage('cushionTitle', localization);
 
   const body = document.createElement('p');
   body.className = 'kum-cushion__body';
-  body.textContent = getLocalizedMessage('cushionBody');
+  body.textContent = getLocalizedMessage('cushionBody', localization);
 
   const reason = document.createElement('p');
   reason.className = 'kum-cushion__reason';
-  reason.textContent = getLocalizedMessage(resolveReasonMessageKey(result));
+  reason.textContent = getLocalizedMessage(resolveReasonMessageKey(result), localization);
 
-  const guidance = createCushionGuidanceElement(result?.guidance);
+  const guidance = createCushionGuidanceElement(result?.guidance, localization);
 
   const actions = document.createElement('div');
   actions.className = 'kum-cushion__actions';
 
-  const showButton = createButton('buttonShowContent', safeHandlers.onShow);
-  const hideButton = createButton('buttonHideForNow', () => {
-    renderDismissedCushionElement(container, safeHandlers);
-  });
+  const showButton = createButton('buttonShowContent', safeHandlers.onShow, localization);
+  const hideButton = createButton(
+    'buttonHideForNow',
+    () => {
+      renderDismissedCushionElement(container, safeHandlers, localization);
+    },
+    localization
+  );
 
   actions.append(showButton, hideButton);
   container.append(title, body, reason);
@@ -245,7 +249,7 @@ function createCushionElement(result = {}, handlers = {}) {
   return container;
 }
 
-function createCushionGuidanceElement(guidance) {
+function createCushionGuidanceElement(guidance, localization) {
   const displayData = resolveGuidanceDisplayData(guidance);
 
   if (!displayData) {
@@ -261,11 +265,11 @@ function createCushionGuidanceElement(guidance) {
 
     const label = document.createElement('span');
     label.className = 'kum-cushion__guidance-label';
-    label.textContent = getLocalizedMessage('cushionGuidanceStrengthLabel');
+    label.textContent = getLocalizedMessage('cushionGuidanceStrengthLabel', localization);
 
     const value = document.createElement('span');
     value.className = 'kum-cushion__guidance-value';
-    value.textContent = getLocalizedMessage(displayData.strengthMessageKey);
+    value.textContent = getLocalizedMessage(displayData.strengthMessageKey, localization);
 
     strength.append(label, value);
     container.append(strength);
@@ -277,7 +281,7 @@ function createCushionGuidanceElement(guidance) {
 
     const label = document.createElement('p');
     label.className = 'kum-cushion__guidance-tendency-label kum-cushion__guidance-label';
-    label.textContent = getLocalizedMessage('cushionGuidanceTendencyLabel');
+    label.textContent = getLocalizedMessage('cushionGuidanceTendencyLabel', localization);
 
     const list = document.createElement('ul');
     list.className = 'kum-cushion__guidance-list';
@@ -285,7 +289,7 @@ function createCushionGuidanceElement(guidance) {
     for (const messageKey of displayData.tendencyMessageKeys) {
       const item = document.createElement('li');
       item.className = 'kum-cushion__guidance-item';
-      item.textContent = getLocalizedMessage(messageKey);
+      item.textContent = getLocalizedMessage(messageKey, localization);
       list.append(item);
     }
 
@@ -295,7 +299,7 @@ function createCushionGuidanceElement(guidance) {
 
   const note = document.createElement('p');
   note.className = 'kum-cushion__guidance-note';
-  note.textContent = getLocalizedMessage('cushionGuidanceNote');
+  note.textContent = getLocalizedMessage('cushionGuidanceNote', localization);
   container.append(note);
 
   return container;
@@ -353,22 +357,22 @@ function resolveSafeMessageKey(messageKeys, key) {
   return messageKeys[key];
 }
 
-function renderDismissedCushionElement(container, handlers) {
+function renderDismissedCushionElement(container, handlers, localization) {
   container.className = 'kum-cushion kum-cushion--dismissed';
   container.textContent = '';
 
   const message = document.createElement('p');
   message.className = 'kum-cushion__dismissed-message';
-  message.textContent = getLocalizedMessage('cushionDismissedMessage');
+  message.textContent = getLocalizedMessage('cushionDismissedMessage', localization);
 
   const body = document.createElement('p');
   body.className = 'kum-cushion__dismissed-body';
-  body.textContent = getLocalizedMessage('cushionDismissedBody');
+  body.textContent = getLocalizedMessage('cushionDismissedBody', localization);
 
   const actions = document.createElement('div');
   actions.className = 'kum-cushion__actions';
 
-  const showButton = createButton('buttonShowContent', handlers.onShow);
+  const showButton = createButton('buttonShowContent', handlers.onShow, localization);
 
   actions.append(showButton);
   container.append(message, body, actions);
@@ -418,11 +422,11 @@ function ensureCushionStyles() {
   return false;
 }
 
-function createButton(messageKey, onClick) {
+function createButton(messageKey, onClick, localization) {
   const button = document.createElement('button');
   button.className = 'kum-cushion__button';
   button.type = 'button';
-  button.textContent = getLocalizedMessage(messageKey);
+  button.textContent = getLocalizedMessage(messageKey, localization);
 
   if (typeof onClick === 'function') {
     button.addEventListener('click', (event) => {
@@ -449,7 +453,19 @@ function resolveReasonMessageKey(result) {
   return GENERIC_REASON_MESSAGE_KEY;
 }
 
-function getLocalizedMessage(key) {
+function getLocalizedMessage(key, localization) {
+  if (typeof localization?.getMessage === 'function') {
+    try {
+      const localizedMessage = localization.getMessage(key);
+
+      if (localizedMessage) {
+        return localizedMessage;
+      }
+    } catch (_error) {
+      // Fall through to Chrome's active extension locale.
+    }
+  }
+
   const i18n = globalThis.kotobaUkeMimamoriI18n;
 
   if (typeof i18n?.getMessage === 'function') {
