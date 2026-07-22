@@ -2,6 +2,8 @@
 
 const assert = require('node:assert/strict');
 const { buildCushionGuidance } = require('../cushion-guidance');
+const i18nApi = require('../i18n');
+const settingsApi = require('../settings');
 
 delete globalThis.kotobaUkeMimamoriCushionGuidance;
 
@@ -11,28 +13,37 @@ const {
   CUSHION_THRESHOLDS,
   DEV_TEST_CUSHION_TEXT,
   FEATURE_FLAGS,
+  FALLBACK_SETTINGS,
   SELECTORS,
+  createContentLocalizer,
   getCushionThreshold,
+  initialize,
   isCushionFeatureEnabled,
   loadContentSettings,
   maybeRenderCushionOverlay,
+  normalizeContentSettings,
+  prepareContentLocalization,
   processCandidatePost,
   scanCandidatePosts
 } = require('../content');
 
 const ENABLED_SETTINGS = Object.freeze({
   enabled: true,
-  cushionSensitivity: 'standard'
+  cushionSensitivity: 'standard',
+  uiLanguage: 'auto'
 });
 
 const DISABLED_SETTINGS = Object.freeze({
   enabled: false,
-  cushionSensitivity: 'standard'
+  cushionSensitivity: 'standard',
+  uiLanguage: 'auto'
 });
 
 async function runTests() {
   testCushionFeatureEnabledBySettingsOrDevFlag();
   await testLoadContentSettingsFallsBackToDisabled();
+  testContentSettingsKeepSupportedUiLanguages();
+  await testPreparesSelectedLocaleAndFallsBackSafely();
   testCushionThresholdMapping();
   testPassesSelectedThresholdToRiskDetector();
   testDoesNotProcessCandidateWhenEnabledFalse();
@@ -52,6 +63,7 @@ async function runTests() {
   testProcessesQuotedPostSourceTextSeparately();
   testPassesCushionGuidanceToQuotedSourceOnly();
   testPassesIndependentCushionGuidanceToQuotedPostTexts();
+  testPassesSameLocalizationToQuotedPostTexts();
   testDoesNotInsertDuplicateCushionForQuotedSource();
   testShowButtonRevealsQuotedSourceOnly();
   testShowButtonRevealsOnlyItsOwnQuotedPostText();
@@ -66,11 +78,13 @@ async function runTests() {
   testRetainsCushionGuidanceWhenCushionElementCreationFails();
   testRetainsAndCleansUpCushionGuidanceAroundOverlayInsertion();
   testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn();
+  await testInitializePreparesAndSharesLocalizationOnce();
 
   console.log('All content tests passed.');
 }
 
 function testCushionFeatureEnabledBySettingsOrDevFlag() {
+  assert.deepEqual(FALLBACK_SETTINGS, DISABLED_SETTINGS);
   assert.equal(isCushionFeatureEnabled(DISABLED_SETTINGS), false);
   assert.equal(isCushionFeatureEnabled(ENABLED_SETTINGS), true);
   assert.equal(
@@ -96,11 +110,98 @@ async function testLoadContentSettingsFallsBackToDisabled() {
   assert.deepEqual(
     await loadContentSettings({
       loadSettings() {
-        return { enabled: true, cushionSensitivity: 'unsupported' };
+        return { enabled: true, cushionSensitivity: 'unsupported', uiLanguage: 'unsupported' };
       }
     }),
     ENABLED_SETTINGS
   );
+}
+
+function testContentSettingsKeepSupportedUiLanguages() {
+  for (const uiLanguage of ['auto', 'ja', 'en']) {
+    assert.deepEqual(
+      normalizeContentSettings(
+        {
+          enabled: true,
+          cushionSensitivity: 'high',
+          uiLanguage
+        },
+        settingsApi
+      ),
+      {
+        enabled: true,
+        cushionSensitivity: 'high',
+        uiLanguage
+      }
+    );
+  }
+
+  for (const uiLanguage of [undefined, null, '', 'unsupported']) {
+    assert.equal(
+      normalizeContentSettings(
+        {
+          enabled: true,
+          cushionSensitivity: 'standard',
+          uiLanguage
+        },
+        settingsApi
+      ).uiLanguage,
+      'auto'
+    );
+  }
+}
+
+async function testPreparesSelectedLocaleAndFallsBackSafely() {
+  const resolvedLanguages = [];
+  const loadedLanguages = [];
+  const fakeI18nApi = {
+    getLocaleMessage: i18nApi.getLocaleMessage,
+    getMessage: (key) => `chrome:${key}`,
+    loadLocaleMessages: async (resolvedLanguage) => {
+      loadedLanguages.push(resolvedLanguage);
+
+      return {
+        cushionTitle: { message: `${resolvedLanguage}:title` }
+      };
+    },
+    resolveUiLanguage(uiLanguage) {
+      const resolvedLanguage = i18nApi.resolveUiLanguage(uiLanguage, {
+        getUILanguage: () => 'ja-JP'
+      });
+
+      resolvedLanguages.push(resolvedLanguage);
+      return resolvedLanguage;
+    }
+  };
+
+  for (const [uiLanguage, expectedLanguage] of [
+    ['auto', 'ja'],
+    ['ja', 'ja'],
+    ['en', 'en']
+  ]) {
+    const localization = await prepareContentLocalization(
+      { ...ENABLED_SETTINGS, uiLanguage },
+      fakeI18nApi
+    );
+
+    assert.equal(localization.getMessage('cushionTitle'), `${expectedLanguage}:title`);
+    assert.equal(localization.getMessage('missingKey'), 'chrome:missingKey');
+  }
+
+  assert.deepEqual(resolvedLanguages, ['ja', 'ja', 'en']);
+  assert.deepEqual(loadedLanguages, ['ja', 'ja', 'en']);
+
+  const failedLocalization = await prepareContentLocalization(ENABLED_SETTINGS, {
+    getLocaleMessage: i18nApi.getLocaleMessage,
+    getMessage: (key) => `fallback:${key}`,
+    loadLocaleMessages: async () => {
+      throw new Error('Locale unavailable');
+    },
+    resolveUiLanguage: () => 'ja'
+  });
+
+  assert.equal(failedLocalization.getMessage('cushionTitle'), 'fallback:cushionTitle');
+  assert.equal(createContentLocalizer({}, null), null);
 }
 
 function testCushionThresholdMapping() {
@@ -713,6 +814,47 @@ function testPassesIndependentCushionGuidanceToQuotedPostTexts() {
       }
     }
   ]);
+}
+
+function testPassesSameLocalizationToQuotedPostTexts() {
+  const receivedLocalizations = [];
+  const localization = Object.freeze({
+    getMessage: (key) => `en:${key}`
+  });
+  const { postNode } = createQuotedPostNodeWithNestedTexts(
+    '引用している側の強い本文です',
+    '引用元の強い本文です'
+  );
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return {
+          shouldCushion: true,
+          score: 85,
+          categories: ['personality_attack']
+        };
+      }
+    },
+    () => {
+      withCushionGuidance({ buildCushionGuidance }, () => {
+        withOverlay(
+          {
+            createCushionElement(_result, _handlers, receivedLocalization) {
+              receivedLocalizations.push(receivedLocalization);
+
+              return createElement('section');
+            }
+          },
+          () => {
+            processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS, localization);
+          }
+        );
+      });
+    }
+  );
+
+  assert.deepEqual(receivedLocalizations, [localization, localization]);
 }
 
 function testDoesNotInsertDuplicateCushionForQuotedSource() {
@@ -1393,6 +1535,88 @@ function testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn() {
   );
 }
 
+async function testInitializePreparesAndSharesLocalizationOnce() {
+  const previousDocument = globalThis.document;
+  const previousMutationObserver = globalThis.MutationObserver;
+  const previousOverlay = globalThis.kotobaUkeMimamoriOverlay;
+  const previousRiskDetector = globalThis.kotobaUkeMimamoriRiskDetector;
+  const previousCushionGuidance = globalThis.kotobaUkeMimamoriCushionGuidance;
+  const firstPostNode = createPostNode(['最初の確認用テキスト']);
+  const secondPostNode = createPostNode(['次の確認用テキスト']);
+  const rootNode = createElement('main');
+  const receivedLocalizations = [];
+  const receivedMessageKeys = [];
+  let localeLoadCount = 0;
+
+  rootNode.querySelectorAll = (selector) =>
+    selector === SELECTORS.post ? [firstPostNode, secondPostNode] : [];
+
+  globalThis.document = { body: rootNode };
+  delete globalThis.MutationObserver;
+  globalThis.kotobaUkeMimamoriRiskDetector = {
+    detectTextRisk() {
+      return {
+        shouldCushion: true,
+        score: 85,
+        categories: ['personality_attack']
+      };
+    }
+  };
+  globalThis.kotobaUkeMimamoriCushionGuidance = { buildCushionGuidance };
+  globalThis.kotobaUkeMimamoriOverlay = {
+    createCushionElement(_result, _handlers, localization) {
+      receivedLocalizations.push(localization);
+      receivedMessageKeys.push(localization.getMessage('cushionTitle'));
+
+      return createElement('section');
+    }
+  };
+
+  const initializationI18nApi = {
+    getLocaleMessage: i18nApi.getLocaleMessage,
+    getMessage: (key) => `fallback:${key}`,
+    loadLocaleMessages: async (resolvedLanguage) => {
+      localeLoadCount += 1;
+      assert.equal(resolvedLanguage, 'en');
+
+      return {
+        cushionTitle: { message: 'English cushion title' }
+      };
+    },
+    resolveUiLanguage: i18nApi.resolveUiLanguage
+  };
+
+  try {
+    const initializedResult = await initialize(
+      {
+        DEFAULT_SETTINGS: settingsApi.DEFAULT_SETTINGS,
+        loadSettings: async () => ({
+          enabled: true,
+          cushionSensitivity: 'standard',
+          uiLanguage: 'en'
+        }),
+        normalizeSettings: settingsApi.normalizeSettings
+      },
+      FEATURE_FLAGS,
+      initializationI18nApi
+    );
+
+    assert.equal(initializedResult, true);
+    assert.equal(localeLoadCount, 1);
+    assert.equal(receivedLocalizations.length, 2);
+    assert.equal(receivedLocalizations[0], receivedLocalizations[1]);
+    assert.deepEqual(receivedMessageKeys, ['English cushion title', 'English cushion title']);
+    assert.equal(receivedMessageKeys.includes('最初の確認用テキスト'), false);
+    assert.equal(receivedMessageKeys.includes('次の確認用テキスト'), false);
+  } finally {
+    restoreGlobalValue('document', previousDocument);
+    restoreGlobalValue('MutationObserver', previousMutationObserver);
+    restoreGlobalValue('kotobaUkeMimamoriOverlay', previousOverlay);
+    restoreGlobalValue('kotobaUkeMimamoriRiskDetector', previousRiskDetector);
+    restoreGlobalValue('kotobaUkeMimamoriCushionGuidance', previousCushionGuidance);
+  }
+}
+
 function createPostNodeWithNestedText(textContent = '') {
   const postNode = createElement('article');
   const bodyNode = createElement('div');
@@ -1585,6 +1809,14 @@ function withCushionGuidance(cushionGuidanceApi, callback) {
     } else {
       globalThis.kotobaUkeMimamoriCushionGuidance = previousCushionGuidanceApi;
     }
+  }
+}
+
+function restoreGlobalValue(key, value) {
+  if (value === undefined) {
+    delete globalThis[key];
+  } else {
+    globalThis[key] = value;
   }
 }
 

@@ -130,7 +130,15 @@ MVPでは、以下を実装しないでください。
 
 `cushionSensitivity` の初期値は `standard` とし、`low` / `standard` / `high` 以外の値は `standard` に正規化してください。ON/OFFと表示されやすさの変更は、現時点ではXページ再読み込み後に反映してください。
 
-`uiLanguage` の初期値は `auto` とし、`auto` / `ja` / `en` 以外の値は `auto` に正規化してください。popup と options は同じ `uiLanguage` を使用し、変更した画面ではただちに表示を切り替えてください。`auto` は Chrome UI 言語が日本語系なら `ja`、それ以外なら `en` に解決します。翻訳文言は `_locales` を正本とし、外部翻訳APIや外部通信を利用しません。工程6では `content.js`、`overlay.js`、ワンクッションUIへ `uiLanguage` を適用しません。
+`uiLanguage` の初期値は `auto` とし、`auto` / `ja` / `en` 以外の値は `auto` に正規化してください。popup、options、X上のワンクッションUIは同じ `uiLanguage` を使用します。popup と options は変更した画面ですぐに切り替え、X上のワンクッションUIはXページ再読み込み後に切り替えてください。`auto` は Chrome UI 言語が日本語系なら `ja`、それ以外なら `en` に解決します。翻訳文言は `_locales` を正本とし、外部翻訳APIや外部通信を利用しません。
+
+`resolvedLanguage` と `localeMessages` はページ実行中のメモリ上だけで扱い、Chrome Storage、Local Storage、IndexedDB、DOM data属性へ永続保存してはいけません。`overlay.js` はStorageを直接読まず、`content.js` がページ初期化時に準備したlocalizerを依存注入してください。localeは初期化時に1回だけ読み込み、投稿ごとに再読み込みしてはいけません。JavaScriptへ日英辞書を重複コピーせず、`_locales/ja/messages.json` と `_locales/en/messages.json` を翻訳文言の正本として維持してください。
+
+X上の既存ワンクッションUIを `chrome.storage.onChanged` でリアルタイム再描画してはいけません。初期表示、ガイダンス、ボタン、「今は見ない」後の表示には同じlocalizerを使い、言語変更はページ再読み込みを反映境界としてください。外部翻訳API、外部CDN、外部localeファイルを利用してはいけません。
+
+Manifest V3の `web_accessible_resources` は、X上のcontent scriptが選択言語のlocale JSONを読み込み、翻訳をJavaScriptへ二重コピーしないためにだけ利用します。公開対象は `_locales/ja/messages.json` と `_locales/en/messages.json`、対象オリジンは `https://x.com/*` と `https://twitter.com/*` だけに限定してください。`_locales/*`、拡張機能全体、不要なドメイン、`<all_urls>` へ安易に広げたり、不要な `host_permissions` を追加したりしてはいけません。
+
+`web_accessible_resources` として公開したファイルは、指定した対象オリジン側からアクセス可能です。公開ファイルには固定UI文言だけを置き、センシティブ情報、秘密情報、ユーザー固有情報、投稿本文、判定結果、URL、Xユーザー情報、`score`、`matchedRules`、`categories`、`reasons`、`riskLevel`、`shouldCushion`、`guidance`、`strengthKey`、`tendencyKeys` を含めてはいけません。将来公開対象を増やす場合は、必要性と安全性を事前に確認してください。この設定は外部通信や外部翻訳APIのためのものではなく、投稿本文や判定結果を外部公開・外部送信するものではありません。
 
 `chrome.storage.onChanged` によるリアルタイム反映を実装する場合は、既存DOM状態、ワンクッションUI、ぼかし、`data-kum-*` 属性を安全に復元・停止できる設計を先に確認してください。投稿本文や投稿DOMは削除しないでください。
 

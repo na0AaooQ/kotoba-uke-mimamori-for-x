@@ -227,11 +227,15 @@ NODE
 
 ON/OFFおよび表示されやすさの変更は、現時点では開いているXページを再読み込みすると反映されます。リアルタイム反映は今後検討予定です。投稿本文・判定結果・URL・ユーザー情報は保存しません。
 
-### 表示言語設定（工程6）
+### 表示言語設定（工程7）
 
-`uiLanguage` は `auto` / `ja` / `en` のみを保存し、不正値または未設定値は `auto` に正規化します。`auto` は Chrome UI 言語が日本語系なら `ja`、それ以外なら `en` に解決します。popup と options はこの設定を共有し、変更した画面では固定UI文言と `document.documentElement.lang` をその場で切り替えます。
+`uiLanguage` は `auto` / `ja` / `en` のみを保存し、不正値または未設定値は `auto` に正規化します。`auto` は Chrome UI 言語が日本語系なら `ja`、それ以外なら `en` に解決します。popup、options、X上のワンクッションUIはこの設定を共有します。popup と options は変更後すぐに切り替わり、X上のワンクッションUIはXページを再読み込みした後に切り替わります。既に表示済みのワンクッションUIはリアルタイム再描画しません。
 
-翻訳文言の正本は `_locales/ja/messages.json` と `_locales/en/messages.json` です。popup と options は拡張機能に同梱した locale メッセージを読み込み、JavaScriptへ日英辞書を重複コピーしません。外部翻訳APIや外部通信は利用しません。工程6時点で `uiLanguage` を適用するのは popup と options のみであり、X上のワンクッションUI、`content.js`、`overlay.js` には適用しません。
+翻訳文言の正本は `_locales/ja/messages.json` と `_locales/en/messages.json` です。JavaScriptへ日英辞書を重複コピーせず、`content.js` の初期化時に選択言語のlocaleを1回準備して同じページ内のワンクッション生成で共有します。投稿ごとにlocaleを再読み込みしません。`overlay.js` はStorageや言語設定を直接読まず、`content.js` から依存注入されたlocalizerだけを使って初期表示、ガイダンス、ボタン、「今は見ない」後の表示を同じ言語に揃えます。localeの読み込みに失敗した場合は、既存の `chrome.i18n.getMessage()` へ安全にフォールバックします。
+
+Manifest V3の `web_accessible_resources` は、X上のcontent scriptが拡張機能内のlocale JSONを `chrome.runtime.getURL()` と `fetch()` で読み込むために利用します。公開対象は `_locales/ja/messages.json` と `_locales/en/messages.json` の2ファイル、アクセス元は `https://x.com/*` と `https://twitter.com/*` だけに限定します。これは外部翻訳APIや外部通信のための設定ではなく、投稿本文や判定結果を外部公開・外部送信するものでもありません。
+
+`web_accessible_resources` のファイルは指定した対象オリジン側からアクセス可能になるため、locale JSONには固定UI文言だけを置き、センシティブ情報、秘密情報、ユーザー固有情報、投稿本文、判定結果を含めません。将来リソースを追加する場合も必要性と安全性を確認し、`_locales/*`、拡張機能全体、不要なドメイン、`<all_urls>` へ公開範囲を広げません。
 
 ## フィルター感度設定の設計
 
@@ -286,6 +290,9 @@ ON/OFFおよび表示されやすさの変更は、現時点では開いてい�
 - `enabled=true` の通常判定開始時に、正規化済みの `settings.cushionSensitivity` を `100` / `80` / `60` のしきい値へ対応付ける。
 - 対応付けた値を `detectTextRisk(postText, { threshold })` に渡す。
 - `enabled=false` の場合は従来どおり通常判定処理を開始しない。
+- 正規化済みの `settings.uiLanguage` を保持し、ページ初期化時に既存のi18n共通処理で言語解決とlocale読み込みを1回だけ行う。
+- 準備したlocalizerを `overlay.js` へ依存注入し、投稿ごとにlocaleを再読み込みしない。`overlay.js` はStorageを直接読まない。
+- 表示言語の変更はXページの再読み込み後に反映し、既存ワンクッションUIを `chrome.storage.onChanged` で再描画しない。
 - 感度変更もON/OFF変更と同様、当面は開いているXページの再読み込み後に反映する。`chrome.storage.onChanged` は本設計の実装対象に含めない。
 
 オプション画面:
