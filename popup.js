@@ -4,7 +4,6 @@ const POPUP_ELEMENTS = Object.freeze({
   enabledCheckbox: 'popup-enabled',
   uiLanguageSelect: 'popup-ui-language',
   sensitivityInputSelector: 'input[name="popup-cushion-sensitivity"]',
-  statusValue: 'popup-status-value',
   versionLabel: 'popup-version',
   saveStatus: 'popup-save-status',
   openOptionsButton: 'popup-open-options'
@@ -30,7 +29,6 @@ function initializePopup(
     !elements.enabledCheckbox ||
     !elements.uiLanguageSelect ||
     elements.sensitivityInputs.length === 0 ||
-    !elements.statusValue ||
     !elements.saveStatus ||
     !elements.openOptionsButton
   ) {
@@ -74,7 +72,7 @@ async function applyPopupSettings(currentDocument, elements, settings, runtimeAp
 
   applyLocalizedMessages(currentDocument, localeMessages);
   applyDocumentLanguage(currentDocument, resolvedLanguage);
-  applySettingsToElements(elements, settings, localeMessages);
+  applySettingsToElements(elements, settings);
 
   return { localeMessages, resolvedLanguage };
 }
@@ -110,7 +108,6 @@ function getPopupElements(currentDocument) {
     sensitivityInputs: Array.from(
       currentDocument.querySelectorAll(POPUP_ELEMENTS.sensitivityInputSelector)
     ),
-    statusValue: currentDocument.getElementById(POPUP_ELEMENTS.statusValue),
     versionLabel: currentDocument.getElementById(POPUP_ELEMENTS.versionLabel),
     saveStatus: currentDocument.getElementById(POPUP_ELEMENTS.saveStatus),
     openOptionsButton: currentDocument.getElementById(POPUP_ELEMENTS.openOptionsButton)
@@ -134,18 +131,12 @@ function applyExtensionVersion(
   return version;
 }
 
-function applySettingsToElements(elements, settings, localeMessages) {
+function applySettingsToElements(elements, settings) {
   const isEnabled = Boolean(settings?.enabled);
   const cushionSensitivity = getCushionSensitivity(settings);
 
   elements.enabledCheckbox.checked = isEnabled;
   elements.uiLanguageSelect.value = getUiLanguage(settings);
-  elements.statusValue.textContent = getLocalizedMessage(
-    isEnabled ? 'popupStatusOn' : 'popupStatusOff',
-    localeMessages
-  );
-  elements.statusValue.dataset.state = isEnabled ? 'on' : 'off';
-
   for (const sensitivityInput of elements.sensitivityInputs) {
     sensitivityInput.checked = sensitivityInput.value === cushionSensitivity;
   }

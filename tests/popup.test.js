@@ -16,9 +16,6 @@ const {
 const MESSAGES = Object.freeze({
   popupTitle: 'ことばうけみまもり',
   popupTagline: 'Xことばに心のワンクッション',
-  popupStatusLabel: '状態',
-  popupStatusOn: 'ON',
-  popupStatusOff: 'OFF',
   popupOpenOptions: '詳細設定を開く',
   optionEnableExtension: 'ことばうけみまもりを有効にする',
   optionDisplayLanguage: '表示言語',
@@ -27,11 +24,9 @@ const MESSAGES = Object.freeze({
   optionLanguageEnglish: 'English',
   optionCushionSensitivity: 'ワンクッションの表示されやすさ',
   optionSensitivityLow: '少なめ',
-  optionSensitivityLowSummary: '少なめ: 強い表現を中心に表示します。',
   optionSensitivityStandard: '標準',
-  optionSensitivityStandardSummary: '標準: 通常の設定です。',
   optionSensitivityHigh: '多め',
-  optionSensitivityHighSummary: '多め: 少し軽めのリスク表現にも表示されやすくします。',
+  popupSensitivityCompactSummary: '少なめ＝強い表現中心 ／ 標準＝通常 ／ 多め＝より表示されやすい',
   optionPrivacyNote: '投稿本文や判定結果は外部送信されません。',
   optionReloadNote:
     'ON/OFFや表示されやすさの変更は、開いているXのページを再読み込みすると反映されます。',
@@ -40,7 +35,8 @@ const MESSAGES = Object.freeze({
 });
 
 async function runTests() {
-  testPopupHtmlContainsRequiredControlsOnly();
+  testPopupHtmlContainsCompactControlsOnly();
+  testPopupCssUsesCompactLayoutWithoutHidingContent();
   await testApplyLocalizedMessages();
   testApplyExtensionVersion();
   testGetExtensionVersionFallsBackWhenUnavailable();
@@ -54,12 +50,14 @@ async function runTests() {
   console.log('All popup tests passed.');
 }
 
-function testPopupHtmlContainsRequiredControlsOnly() {
+function testPopupHtmlContainsCompactControlsOnly() {
   const popupHtml = fs.readFileSync(path.join(__dirname, '..', 'popup.html'), 'utf8');
 
   assert.match(popupHtml, /id="popup-enabled"/);
   assert.match(popupHtml, /id="popup-ui-language"/);
   assert.match(popupHtml, /for="popup-ui-language"/);
+  assert.match(popupHtml, /class="popup-language-label"/);
+  assert.match(popupHtml, /class="popup-language-select"/);
   assert.match(popupHtml, /value="auto"/);
   assert.match(popupHtml, /value="ja"/);
   assert.match(popupHtml, /value="en"/);
@@ -68,12 +66,21 @@ function testPopupHtmlContainsRequiredControlsOnly() {
   assert.match(popupHtml, /value="standard"/);
   assert.match(popupHtml, /value="high"/);
   assert.match(popupHtml, /id="popup-open-options"/);
-  assert.match(popupHtml, /data-i18n="optionSensitivityLowSummary"/);
-  assert.match(popupHtml, /data-i18n="optionSensitivityStandardSummary"/);
-  assert.match(popupHtml, /data-i18n="optionSensitivityHighSummary"/);
+  assert.match(popupHtml, /data-i18n="popupSensitivityCompactSummary"/);
   assert.match(popupHtml, /data-i18n="optionPrivacyNote"/);
   assert.match(popupHtml, /data-i18n="optionReloadNote"/);
+  assert.doesNotMatch(popupHtml, /popup-status|popupStatus(Label|On|Off)/);
+  assert.doesNotMatch(popupHtml, /popup-sensitivity-descriptions/);
   assert.doesNotMatch(popupHtml, /textarea|postText|matchedRules|categories|reasons/);
+}
+
+function testPopupCssUsesCompactLayoutWithoutHidingContent() {
+  const popupCss = fs.readFileSync(path.join(__dirname, '..', 'popup.css'), 'utf8');
+
+  assert.match(popupCss, /grid-template-columns: minmax\(0, 1fr\) minmax\(132px, 144px\)/);
+  assert.match(popupCss, /\.popup-save-status:not\(:empty\)\s*{\s*margin: 8px 0;/);
+  assert.doesNotMatch(popupCss, /\.popup-save-status\s*{[^}]*min-height/);
+  assert.doesNotMatch(popupCss, /overflow:\s*hidden/);
 }
 
 function testApplyExtensionVersion() {
@@ -102,19 +109,10 @@ async function testApplyLocalizedMessages() {
   await withI18n(() => {
     const titleElement = createLocalizedElement('h1', 'popupTitle');
     const taglineElement = createLocalizedElement('p', 'popupTagline');
-    const lowSummaryElement = createLocalizedElement('li', 'optionSensitivityLowSummary');
-    const standardSummaryElement = createLocalizedElement('li', 'optionSensitivityStandardSummary');
-    const highSummaryElement = createLocalizedElement('li', 'optionSensitivityHighSummary');
+    const compactSummaryElement = createLocalizedElement('p', 'popupSensitivityCompactSummary');
     const optionsButton = createLocalizedElement('button', 'popupOpenOptions');
     const fakeDocument = createFakeDocument({
-      localizedElements: [
-        titleElement,
-        taglineElement,
-        lowSummaryElement,
-        standardSummaryElement,
-        highSummaryElement,
-        optionsButton
-      ]
+      localizedElements: [titleElement, taglineElement, compactSummaryElement, optionsButton]
     });
 
     applyLocalizedMessages(fakeDocument);
@@ -122,9 +120,7 @@ async function testApplyLocalizedMessages() {
     assert.equal(fakeDocument.title, MESSAGES.popupTitle);
     assert.equal(titleElement.textContent, MESSAGES.popupTitle);
     assert.equal(taglineElement.textContent, MESSAGES.popupTagline);
-    assert.equal(lowSummaryElement.textContent, MESSAGES.optionSensitivityLowSummary);
-    assert.equal(standardSummaryElement.textContent, MESSAGES.optionSensitivityStandardSummary);
-    assert.equal(highSummaryElement.textContent, MESSAGES.optionSensitivityHighSummary);
+    assert.equal(compactSummaryElement.textContent, MESSAGES.popupSensitivityCompactSummary);
     assert.equal(optionsButton.textContent, MESSAGES.popupOpenOptions);
   });
 }
@@ -140,8 +136,7 @@ async function testInitializePopupLoadsCurrentState() {
 
     assert.equal(result, true);
     assert.equal(fakeDocument.enabledCheckbox.checked, true);
-    assert.equal(fakeDocument.statusValue.textContent, MESSAGES.popupStatusOn);
-    assert.equal(fakeDocument.statusValue.dataset.state, 'on');
+    assert.equal(fakeDocument.documentElement.lang, 'ja');
     assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'high');
     assert.equal(fakeDocument.uiLanguageSelect.value, 'auto');
   });
@@ -167,7 +162,6 @@ async function testSavePopupSettingsStoresAllowedSettingsOnly() {
       { enabled: true, cushionSensitivity: 'low', uiLanguage: 'en' }
     ]);
     assert.deepEqual(result, { enabled: true, cushionSensitivity: 'low', uiLanguage: 'en' });
-    assert.equal(fakeDocument.statusValue.textContent, MESSAGES.popupStatusOn);
     assert.equal(fakeDocument.saveStatus.textContent, 'Settings saved.');
     assert.equal(fakeDocument.saveStatus.dataset.state, 'saved');
   });
@@ -179,8 +173,9 @@ async function testLanguageChangeUpdatesPopupImmediatelyAndKeepsOtherSettings() 
     const autoOption = createLocalizedElement('option', 'optionLanguageAuto');
     const japaneseOption = createLocalizedElement('option', 'optionLanguageJapanese');
     const englishOption = createLocalizedElement('option', 'optionLanguageEnglish');
+    const compactSummary = createLocalizedElement('p', 'popupSensitivityCompactSummary');
     const fakeDocument = createFakeDocument({
-      localizedElements: [languageLabel, autoOption, japaneseOption, englishOption]
+      localizedElements: [languageLabel, autoOption, japaneseOption, englishOption, compactSummary]
     });
     const elements = getInteractiveElements(fakeDocument);
 
@@ -197,6 +192,10 @@ async function testLanguageChangeUpdatesPopupImmediatelyAndKeepsOtherSettings() 
     assert.equal(autoOption.textContent, 'Auto');
     assert.equal(japaneseOption.textContent, '日本語');
     assert.equal(englishOption.textContent, 'English');
+    assert.equal(
+      compactSummary.textContent,
+      'Low = stronger expressions / Standard = usual / High = more sensitive'
+    );
     assert.equal(fakeDocument.enabledCheckbox.checked, true);
     assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'high');
 
@@ -261,7 +260,6 @@ async function testSavePopupSettingsPersistsEnabledStateForTheNextPopup() {
     await initializePopup(reopenedPopupDocument, settingsApi, {});
 
     assert.equal(reopenedPopupDocument.enabledCheckbox.checked, true);
-    assert.equal(reopenedPopupDocument.statusValue.textContent, MESSAGES.popupStatusOn);
     assert.equal(getSelectedSensitivity(reopenedPopupDocument.sensitivityInputs), 'standard');
     assert.equal(reopenedPopupDocument.uiLanguageSelect.value, 'auto');
   });
@@ -311,7 +309,6 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 
     return input;
   });
-  const statusValue = createElement('strong');
   const versionLabel = createElement('span');
   const saveStatus = createElement('p');
   const openOptionsButton = createElement('button');
@@ -320,7 +317,6 @@ function createFakeDocument({ localizedElements = [] } = {}) {
     enabledCheckbox,
     uiLanguageSelect,
     sensitivityInputs,
-    statusValue,
     versionLabel,
     saveStatus,
     openOptionsButton,
@@ -333,10 +329,6 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 
       if (id === 'popup-ui-language') {
         return uiLanguageSelect;
-      }
-
-      if (id === 'popup-status-value') {
-        return statusValue;
       }
 
       if (id === 'popup-version') {
@@ -372,7 +364,6 @@ function getInteractiveElements(fakeDocument) {
     enabledCheckbox: fakeDocument.enabledCheckbox,
     uiLanguageSelect: fakeDocument.uiLanguageSelect,
     sensitivityInputs: fakeDocument.sensitivityInputs,
-    statusValue: fakeDocument.statusValue,
     versionLabel: fakeDocument.versionLabel,
     saveStatus: fakeDocument.saveStatus,
     openOptionsButton: fakeDocument.openOptionsButton
@@ -447,18 +438,15 @@ function createEnglishMessages() {
     ...MESSAGES,
     popupTitle: 'Kotoba Uke Mimamori',
     popupTagline: 'A gentle cushion for words on X',
-    popupStatusLabel: 'Status',
     popupOpenOptions: 'Open detailed settings',
     optionEnableExtension: 'Enable Kotoba Uke Mimamori',
     optionDisplayLanguage: 'Display language',
     optionLanguageAuto: 'Auto',
     optionSensitivityLow: 'Low',
-    optionSensitivityLowSummary: 'Low: Shows cushions mainly for stronger expressions.',
     optionSensitivityStandard: 'Standard',
-    optionSensitivityStandardSummary: 'Standard: The usual setting.',
     optionSensitivityHigh: 'High',
-    optionSensitivityHighSummary:
-      'High: Shows cushions more easily, including for slightly lighter risk expressions.',
+    popupSensitivityCompactSummary:
+      'Low = stronger expressions / Standard = usual / High = more sensitive',
     optionPrivacyNote: 'Post text and detection results are not sent to external servers.',
     optionReloadNote:
       'ON/OFF and display sensitivity changes will take effect after reloading the open X page.',
