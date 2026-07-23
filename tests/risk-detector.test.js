@@ -22,6 +22,8 @@ function runTests() {
   testHealthyCriticismShouldNotCushion();
   testQuotedOrContextualTextShouldNotCushion();
   testHighRiskTextShouldCushion();
+  testHiraganaShineFalsePositivesShouldNotCushionAtStandardSensitivity();
+  testHiraganaShineHarmPhrasesShouldStillCushionAtStandardSensitivity();
   testScoreIsClampedAtOneHundred();
   testKatakanaWordsContainingCasShouldNotBeDetectedAsSevereInsult();
   testFamilyBackgroundSelfDescriptionShouldNotCushion();
@@ -134,6 +136,55 @@ function testHighRiskTextShouldCushion() {
     assert.ok(result.categories.includes(category), `期待カテゴリ ${category} を含める: ${text}`);
 
     assert.ok(result.reasons.length > 0, `高リスク表現には理由を含める: ${text}`);
+  }
+}
+
+function testHiraganaShineFalsePositivesShouldNotCushionAtStandardSensitivity() {
+  const cases = [
+    '分かりやすいしね♪',
+    '散歩行かなくていいしね😂',
+    '今日は快晴で良い天気ですしね。',
+    'いしね',
+    'ですしね'
+  ];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      false,
+      `通常文脈の「〜いしね」「〜ですしね」は標準感度でワンクッション対象外にする: ${text}`
+    );
+
+    assert.ok(
+      !result.matchedRules.includes('threat_or_harm.harm_phrase'),
+      `通常文脈の「〜いしね」「〜ですしね」を harm_phrase に誤一致させない: ${text}`
+    );
+  }
+}
+
+function testHiraganaShineHarmPhrasesShouldStillCushionAtStandardSensitivity() {
+  const cases = ['しね', 'しねよ', 'ほんとにしねばいいのに', '死ね', '氏ね', 'ﾀﾋね'];
+
+  for (const text of cases) {
+    const result = detectTextRisk(text, { threshold: DEFAULT_CUSHION_THRESHOLD });
+
+    assert.equal(
+      result.shouldCushion,
+      true,
+      `害を示す「しね」相当表現は標準感度でワンクッション対象にする: ${text}`
+    );
+
+    assert.ok(
+      result.categories.includes('threat_or_harm'),
+      `threat_or_harm カテゴリを含める: ${text}`
+    );
+
+    assert.ok(
+      result.matchedRules.includes('threat_or_harm.harm_phrase'),
+      `害を示す「しね」相当表現を harm_phrase に一致させる: ${text}`
+    );
   }
 }
 
