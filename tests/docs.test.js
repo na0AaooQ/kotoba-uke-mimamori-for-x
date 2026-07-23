@@ -15,41 +15,33 @@ const CHROME_WEB_STORE_URL =
 const GITHUB_REPOSITORY_URL = 'https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x';
 const JA_MANUAL_IMAGES = Object.freeze([
   './assets/img/manual/005_manual-popup-ja-off.jpeg',
-  './assets/img/manual/006_manual-popup-ja-off.jpeg',
-  './assets/img/manual/007_manual-popup-ja-on.jpeg',
-  './assets/img/manual/008_manual-popup-ja-on-more.png',
-  './assets/img/manual/009_manual-cushion-ja.png',
-  './assets/img/manual/010_manual-collapsed-ja.png',
   './assets/img/manual/011_manual-show-content-ja.png',
-  './assets/img/manual/017_manual-cushion-ja-bigsize.png',
-  './assets/img/manual/018_manual-cushion-ja-bigsize.png',
   './assets/img/manual/019_manual-add-extensions-ja.png',
   './assets/img/manual/020_manual-add-extensions-ja.png',
   './assets/img/manual/021_manual-add-extensions-ja.png',
   './assets/img/manual/022_manual-add-extensions-ja.png',
-  './assets/img/manual/023_manual-add-extensions-ja.png',
-  './assets/img/manual/024_manual-add-extensions-ja.png',
   './assets/img/manual/025_manual-add-extensions-ja.png',
-  './assets/img/manual/026_manual-add-extensions-ja.png',
-  './assets/img/manual/027_manual-add-extensions-ja.png',
-  './assets/img/manual/028_manual-add-extensions-ja.png'
+  './assets/img/manual/028_manual-add-extensions-ja.png',
+  './assets/img/manual/029_manual-popup-ja-off-auto.png',
+  './assets/img/manual/030_manual-popup-ja-on-lang-select.png',
+  './assets/img/manual/031_manual-popup-ja-on-ja.png',
+  './assets/img/manual/032_manual-cushion-ja.png',
+  './assets/img/manual/033_manual-collapsed-ja.png',
+  './assets/img/manual/037_manual-option-ja.png'
 ]);
 const EN_MANUAL_IMAGES = Object.freeze([
-  '../assets/img/manual/012_manual-popup-en-off.jpeg',
-  '../assets/img/manual/013_manual-popup-en-on.jpeg',
-  '../assets/img/manual/014_manual-cushion-en.png',
-  '../assets/img/manual/015_manual-collapsed-en.png',
   '../assets/img/manual/016_manual-show-content-en.png',
   '../assets/img/manual/019_manual-add-extensions-ja.png',
   '../assets/img/manual/020_manual-add-extensions-ja.png',
   '../assets/img/manual/021_manual-add-extensions-ja.png',
   '../assets/img/manual/022_manual-add-extensions-ja.png',
-  '../assets/img/manual/023_manual-add-extensions-ja.png',
-  '../assets/img/manual/024_manual-add-extensions-ja.png',
   '../assets/img/manual/025_manual-add-extensions-ja.png',
-  '../assets/img/manual/026_manual-add-extensions-ja.png',
-  '../assets/img/manual/027_manual-add-extensions-ja.png',
-  '../assets/img/manual/028_manual-add-extensions-ja.png'
+  '../assets/img/manual/028_manual-add-extensions-ja.png',
+  '../assets/img/manual/029_manual-popup-ja-off-auto.png',
+  '../assets/img/manual/034_manual-popup-ja-on-en.png',
+  '../assets/img/manual/035_manual-cushion-en.png',
+  '../assets/img/manual/036_manual-collapsed-en.png',
+  '../assets/img/manual/038_manual-option-en.png'
 ]);
 const MANUAL_ASSET_FILES = Object.freeze([
   'assets/img/manual/001_manual-load-extension.jpeg',
@@ -57,16 +49,11 @@ const MANUAL_ASSET_FILES = Object.freeze([
   'assets/img/manual/003_manual-load-extension.png',
   'assets/img/manual/004_manual-load-extension.png',
   'assets/img/manual/005_manual-popup-ja-off.jpeg',
-  'assets/img/manual/006_manual-popup-ja-off.jpeg',
   'assets/img/manual/007_manual-popup-ja-on.jpeg',
   'assets/img/manual/008_manual-popup-ja-on-more.png',
-  'assets/img/manual/009_manual-cushion-ja.png',
   'assets/img/manual/010_manual-collapsed-ja.png',
   'assets/img/manual/011_manual-show-content-ja.png',
-  'assets/img/manual/012_manual-popup-en-off.jpeg',
-  'assets/img/manual/013_manual-popup-en-on.jpeg',
   'assets/img/manual/014_manual-cushion-en.png',
-  'assets/img/manual/015_manual-collapsed-en.png',
   'assets/img/manual/016_manual-show-content-en.png',
   'assets/img/manual/017_manual-cushion-ja-bigsize.png',
   'assets/img/manual/018_manual-cushion-ja-bigsize.png',
@@ -74,12 +61,30 @@ const MANUAL_ASSET_FILES = Object.freeze([
   'assets/img/manual/020_manual-add-extensions-ja.png',
   'assets/img/manual/021_manual-add-extensions-ja.png',
   'assets/img/manual/022_manual-add-extensions-ja.png',
-  'assets/img/manual/023_manual-add-extensions-ja.png',
-  'assets/img/manual/024_manual-add-extensions-ja.png',
   'assets/img/manual/025_manual-add-extensions-ja.png',
-  'assets/img/manual/026_manual-add-extensions-ja.png',
-  'assets/img/manual/027_manual-add-extensions-ja.png',
-  'assets/img/manual/028_manual-add-extensions-ja.png'
+  'assets/img/manual/028_manual-add-extensions-ja.png',
+  'assets/img/manual/029_manual-popup-ja-off-auto.png',
+  'assets/img/manual/030_manual-popup-ja-on-lang-select.png',
+  'assets/img/manual/031_manual-popup-ja-on-ja.png',
+  'assets/img/manual/032_manual-cushion-ja.png',
+  'assets/img/manual/033_manual-collapsed-ja.png',
+  'assets/img/manual/034_manual-popup-ja-on-en.png',
+  'assets/img/manual/035_manual-cushion-en.png',
+  'assets/img/manual/036_manual-collapsed-en.png',
+  'assets/img/manual/037_manual-option-ja.png',
+  'assets/img/manual/038_manual-option-en.png'
+]);
+const STEP8_MANUAL_ASSET_FILES = Object.freeze([
+  'assets/img/manual/029_manual-popup-ja-off-auto.png',
+  'assets/img/manual/030_manual-popup-ja-on-lang-select.png',
+  'assets/img/manual/031_manual-popup-ja-on-ja.png',
+  'assets/img/manual/032_manual-cushion-ja.png',
+  'assets/img/manual/033_manual-collapsed-ja.png',
+  'assets/img/manual/034_manual-popup-ja-on-en.png',
+  'assets/img/manual/035_manual-cushion-en.png',
+  'assets/img/manual/036_manual-collapsed-en.png',
+  'assets/img/manual/037_manual-option-ja.png',
+  'assets/img/manual/038_manual-option-en.png'
 ]);
 const STORE_LISTING_SCREENSHOT_CANDIDATES = Object.freeze([
   'docs/assets/img/manual/017_manual-cushion-ja-bigsize.png',
@@ -186,6 +191,7 @@ function runTests() {
   testManualAssetsExist();
   testManualImageModal();
   testChromeWebStoreManual();
+  testStep8ManualImageUpdates();
   testDisclaimers();
   testDocsNavigation();
   testGitHubRepositoryLinks();
@@ -341,6 +347,13 @@ function testManualAssetsExist() {
     const filePath = path.join(__dirname, '..', 'docs', assetPath);
     assert.equal(fs.existsSync(filePath), true);
   }
+
+  for (const assetPath of STEP8_MANUAL_ASSET_FILES) {
+    const filePath = path.join(__dirname, '..', 'docs', assetPath);
+
+    assert.equal(path.extname(assetPath), '.png');
+    assert.ok(fs.statSync(filePath).size > 0);
+  }
 }
 
 function testManualImageModal() {
@@ -409,20 +422,20 @@ function testChromeWebStoreManual() {
       'ことばうけみまもりをピン留めします。'
     ],
     [
-      './assets/img/manual/023_manual-add-extensions-ja.png',
-      '初期状態のOFFと表示されやすさの設定を確認します。'
+      './assets/img/manual/029_manual-popup-ja-off-auto.png',
+      '初期状態のOFFと表示言語「自動」を確認します。'
     ],
     [
-      './assets/img/manual/024_manual-add-extensions-ja.png',
-      '拡張機能をONにし、必要な表示されやすさを選びます。'
+      './assets/img/manual/031_manual-popup-ja-on-ja.png',
+      '表示言語「日本語」と必要な表示されやすさを選びます。'
     ],
     [
-      './assets/img/manual/026_manual-add-extensions-ja.png',
-      '読むか、今は見ないかを選べることを確認します。'
+      './assets/img/manual/032_manual-cushion-ja.png',
+      '表現の強さの目安と検知された表現の傾向を確認し、読むか、今は見ないかを選べます。'
     ],
     [
-      './assets/img/manual/027_manual-add-extensions-ja.png',
-      '「今は見ない」を選んだ後も、あとから内容を表示できます。'
+      './assets/img/manual/033_manual-collapsed-ja.png',
+      '本文をぼかしたまま、あとから内容を表示できます。'
     ],
     [
       './assets/img/manual/028_manual-add-extensions-ja.png',
@@ -445,20 +458,20 @@ function testChromeWebStoreManual() {
       'pin Kotoba Uke Mimamori to the toolbar.'
     ],
     [
-      '../assets/img/manual/023_manual-add-extensions-ja.png',
-      'review the initial OFF state and sensitivity options.'
+      '../assets/img/manual/029_manual-popup-ja-off-auto.png',
+      'review the initial OFF state and Auto display language.'
     ],
     [
-      '../assets/img/manual/024_manual-add-extensions-ja.png',
-      'Turn the extension ON and choose the sensitivity you prefer.'
+      '../assets/img/manual/034_manual-popup-ja-on-en.png',
+      'Turn the extension ON, select English, and choose the sensitivity you prefer.'
     ],
     [
-      '../assets/img/manual/026_manual-add-extensions-ja.png',
-      'choose whether to read the post or not read it now.'
+      '../assets/img/manual/035_manual-cushion-en.png',
+      'Confirm the guidance and choose whether to show the content or not read it now.'
     ],
     [
-      '../assets/img/manual/027_manual-add-extensions-ja.png',
-      'you can still show the content later.'
+      '../assets/img/manual/036_manual-collapsed-en.png',
+      'the post stays blurred and you can still show the content later.'
     ],
     [
       '../assets/img/manual/028_manual-add-extensions-ja.png',
@@ -468,6 +481,53 @@ function testChromeWebStoreManual() {
 
   assertStoreFigureOrderAndCaptions(jaManual, jaStoreFigures);
   assertStoreFigureOrderAndCaptions(enManual, enStoreFigures);
+}
+
+function testStep8ManualImageUpdates() {
+  const jaManual = readDoc('manual.html');
+  const enManual = readDoc('en/manual.html');
+  const japaneseVersionNote =
+    '※画面内のバージョン番号は画面撮影時点のものです。バージョン番号の違いは操作方法に影響ありません。';
+  const englishVersionNote =
+    'Note: The version number shown in screenshots reflects the version at the time of capture and does not affect these instructions.';
+  const japaneseManualDate = '最終更新日：<time datetime="2026-07-23">2026年7月23日</time>';
+  const englishManualDate = 'Last updated: <time datetime="2026-07-23">July 23, 2026</time>';
+
+  assertOrderedIncludes(jaManual, [
+    './assets/img/manual/029_manual-popup-ja-off-auto.png',
+    './assets/img/manual/030_manual-popup-ja-on-lang-select.png',
+    './assets/img/manual/031_manual-popup-ja-on-ja.png'
+  ]);
+  assertIncludesAll(jaManual, [
+    './assets/img/manual/032_manual-cushion-ja.png',
+    './assets/img/manual/033_manual-collapsed-ja.png',
+    './assets/img/manual/037_manual-option-ja.png'
+  ]);
+  assertIncludesAll(enManual, [
+    '../assets/img/manual/029_manual-popup-ja-off-auto.png',
+    '../assets/img/manual/034_manual-popup-ja-on-en.png',
+    '../assets/img/manual/035_manual-cushion-en.png',
+    '../assets/img/manual/036_manual-collapsed-en.png',
+    '../assets/img/manual/038_manual-option-en.png'
+  ]);
+
+  assert.equal(countOccurrences(jaManual, japaneseVersionNote), 1);
+  assert.equal(countOccurrences(enManual, englishVersionNote), 1);
+  assert.equal(countOccurrences(jaManual, japaneseManualDate), 1);
+  assert.equal(countOccurrences(enManual, englishManualDate), 1);
+  assert.ok(enManual.includes('<h3>Detailed settings</h3>'));
+  assert.ok(enManual.includes('Select &quot;Open detailed settings&quot; in the popup'));
+  assert.ok(
+    enManual.includes(
+      'The display language is shared by the popup, options page, and cushions on X.'
+    )
+  );
+
+  assert.equal(jaManual.includes('017_manual-cushion-ja-bigsize.png'), false);
+  assert.equal(jaManual.includes('018_manual-cushion-ja-bigsize.png'), false);
+
+  assertManualImageSourcesExist(jaManual, 'manual.html');
+  assertManualImageSourcesExist(enManual, 'en/manual.html');
 }
 
 function testDisclaimers() {
@@ -834,9 +894,11 @@ function testDocumentLastUpdatedDates() {
   for (const pagePath of JAPANESE_PAGE_PATHS) {
     const html = readDoc(pagePath);
     const date =
-      pagePath !== 'disclaimer.html'
-        ? '最終更新日：<time datetime="2026-07-21">2026年7月21日</time>'
-        : '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
+      pagePath === 'manual.html'
+        ? '最終更新日：<time datetime="2026-07-23">2026年7月23日</time>'
+        : pagePath !== 'disclaimer.html'
+          ? '最終更新日：<time datetime="2026-07-21">2026年7月21日</time>'
+          : '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
 
     assert.equal(countOccurrences(html, date), 1);
     assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
@@ -845,9 +907,11 @@ function testDocumentLastUpdatedDates() {
   for (const pagePath of ENGLISH_PAGE_PATHS) {
     const html = readDoc(pagePath);
     const date =
-      pagePath !== 'en/disclaimer.html'
-        ? 'Last updated: <time datetime="2026-07-21">July 21, 2026</time>'
-        : 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
+      pagePath === 'en/manual.html'
+        ? 'Last updated: <time datetime="2026-07-23">July 23, 2026</time>'
+        : pagePath !== 'en/disclaimer.html'
+          ? 'Last updated: <time datetime="2026-07-21">July 21, 2026</time>'
+          : 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
 
     assert.equal(countOccurrences(html, date), 1);
     assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
@@ -886,6 +950,18 @@ function assertImageWithAlt(html, src) {
   const imagePattern = new RegExp(`<img\\s+[^>]*src="${escapedSrc}"[^>]*alt="[^"]+"`, 'u');
 
   assert.match(html, imagePattern);
+}
+
+function assertManualImageSourcesExist(html, manualPath) {
+  const docsDirectory = path.join(__dirname, '..', 'docs');
+  const manualDirectory = path.join(docsDirectory, path.dirname(manualPath));
+  const imageSources = html.matchAll(/<img\s+[^>]*src="([^"]+)"/gu);
+
+  for (const imageSource of imageSources) {
+    const sourcePath = path.resolve(manualDirectory, imageSource[1]);
+
+    assert.equal(fs.existsSync(sourcePath), true, `${manualPath} references a missing image`);
+  }
 }
 
 function assertPdfLink(html, href, text) {
