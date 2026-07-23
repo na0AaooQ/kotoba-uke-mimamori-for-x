@@ -1,6 +1,6 @@
 {
   "name": "kotoba-uke-mimamori-for-x",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」のソースコード管理リポジトリ",
   "private": true,
   "type": "commonjs",
