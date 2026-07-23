@@ -38,7 +38,7 @@ function runTests() {
 function testManifestVersionIsOfficialReleaseVersion() {
   const manifest = readManifest();
 
-  assert.equal(manifest.version, '1.0.0');
+  assert.equal(manifest.version, '1.1.0');
 }
 
 function testLocalizedNameAndDescriptionAreConfigured() {
