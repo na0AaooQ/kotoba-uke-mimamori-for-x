@@ -49,6 +49,7 @@ PACKAGE_ITEMS=(
   "options.js"
   "settings.js"
   "risk-detector.js"
+  "cushion-guidance.js"
   "i18n.js"
   "overlay.js"
   "content.js"

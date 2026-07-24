@@ -533,6 +533,7 @@ ZIP_PATH="$PWD/dist/kotoba-uke-mimamori-for-x-v1.1.0.zip" ./tools/make_webstore_
 - `options.js`
 - `settings.js`
 - `risk-detector.js`
+- `cushion-guidance.js`
 - `i18n.js`
 - `overlay.js`
 - `content.js`

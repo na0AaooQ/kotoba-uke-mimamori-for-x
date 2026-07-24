@@ -30,6 +30,7 @@ function runTests() {
   testContentScriptLoadingOrderIsPreserved();
   testSettingsScriptLoadsBeforeContentScript();
   testCushionGuidanceScriptLoadsBeforeContentScript();
+  testWebStorePackageIncludesAllContentScripts();
   testLocaleMessagesDoNotIncludeBetaNotice();
 
   console.log('All manifest tests passed.');
@@ -133,6 +134,16 @@ function testCushionGuidanceScriptLoadsBeforeContentScript() {
 
   assert.ok(scripts.indexOf('cushion-guidance.js') !== -1);
   assert.ok(scripts.indexOf('cushion-guidance.js') < scripts.indexOf('content.js'));
+}
+
+function testWebStorePackageIncludesAllContentScripts() {
+  const manifest = readManifest();
+  const packageScriptPath = path.join(__dirname, '..', 'tools', 'make_webstore_package.sh');
+  const packageScript = fs.readFileSync(packageScriptPath, 'utf8');
+
+  for (const scriptPath of manifest.content_scripts[0].js) {
+    assert.ok(packageScript.includes(`"${scriptPath}"`));
+  }
 }
 
 function testLocaleMessagesDoNotIncludeBetaNotice() {
