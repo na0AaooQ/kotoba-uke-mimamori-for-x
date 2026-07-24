@@ -337,6 +337,20 @@ Manifest V3の `web_accessible_resources` は、X上のcontent scriptが拡張�
 
 初期案としては正規表現ではなく、1行1語の部分一致から検討します。外部送信は行いません。MVP向けのフィルター感度設定では、ユーザー追加ワードの入力UI、保存処理、判定処理は実装しません。
 
+## ローカル開発環境のセットアップ
+
+ローカルでの開発・検証には、Node.js と npm が必要です。リポジトリを初めて clone した後や clean clone 環境では、リポジトリ直下で `package-lock.json` に基づく依存関係の導入を行ってください。
+
+```sh
+git clone git@github.com:na0AaooQ/kotoba-uke-mimamori-for-x.git
+cd kotoba-uke-mimamori-for-x
+npm ci
+```
+
+`npm ci` は、`package-lock.json` に基づいて依存関係を再現し、`package.json` や `package-lock.json` を意図せず更新しません。`@biomejs/biome` は `devDependencies` として管理しており、`npm run lint` などの npm scripts は、`node_modules/` に導入されたプロジェクトローカルのツールを使用します。Biome をグローバルインストールする必要はありません。
+
+`node_modules/` はローカルでの開発・テスト・lint・フォーマット確認に必要ですが、Gitへコミットせず、Chrome Web Store提出用ZIPにも含めません。依存関係導入後の確認には、[開発用コマンド](#開発用コマンド) に記載した `npm test`、`npm run lint`、`npm run format:check`、`npm run check` を使用してください。
+
 ## Chrome Web Store 公開向け docs 整備
 
 Chrome Web Store正式版の公開に向けて、ユーザー向けdocsにサービス説明資料PDFとスクリーンショット付きマニュアルを追加しています。
@@ -454,6 +468,16 @@ cd tools
 
 Chrome Web StoreへアップロードするZIPには、拡張機能本体として必要なファイルのみを含めます。`.git/`、`.github/`、`node_modules/`、`tests/`、`docs/`、`tools/`、`README.md`、`package.json`、`package-lock.json`、生成元画像、開発用設定ファイル、ローカル確認用ファイル、スクリーンショット素材、サービス説明PDFなどは同梱しません。
 
+リポジトリを clone して、cloneしたディレクトリへ移動した後、依存関係を導入します。
+
+```sh
+git clone git@github.com:na0AaooQ/kotoba-uke-mimamori-for-x.git
+cd kotoba-uke-mimamori-for-x
+npm ci
+```
+
+`npm ci` により、`package-lock.json` に基づいて開発・確認用の依存関係を導入します。Biomeはプロジェクトローカルの `devDependencies` を npm scripts から使用するため、グローバルインストールは不要です。
+
 作業前に、以下を実行して静的確認とテストを通します。
 
 ```sh
@@ -475,14 +499,6 @@ git diff --check
 - `host_permissions` が存在しないこと
 
 ZIP作成用の一時ディレクトリ作成、拡張機能本体ファイルのコピー、ZIP作成、ZIP内容確認は、`tools/make_webstore_package.sh` で実行できます。
-
-リポジトリをgit cloneして、cloneしたディレクトリへ移動します。
-
-```sh
-git clone git@github.com:na0AaooQ/kotoba-uke-mimamori-for-x.git
-
-cd kotoba-uke-mimamori-for-x
-```
 
 リポジトリ直下から実行する場合:
 
