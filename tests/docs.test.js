@@ -199,6 +199,7 @@ function runTests() {
   testManualSensitivityDescriptions();
   testUiLanguageDocumentation();
   testCushionGuidanceDocumentation();
+  testReadmeListsAllContentScriptsInWebStorePackage();
   testRuleBasedExplanation();
   testNotPurposeStatements();
   testDocsDoNotExposeInternalRuleIds();
@@ -714,6 +715,21 @@ function testCushionGuidanceDocumentation() {
     '## 保存・外部送信をしない理由',
     '## 検討した代替案と見送り理由'
   ]);
+}
+
+function testReadmeListsAllContentScriptsInWebStorePackage() {
+  const manifest = JSON.parse(readRepositoryFile('manifest.json'));
+  const readme = readRepositoryFile('README.md');
+  const packageListStart = readme.indexOf('一覧に以下が含まれていることを確認します。');
+  const excludedListStart = readme.indexOf('一覧に以下が含まれていないことを確認します。');
+  const packageList = readme.slice(packageListStart, excludedListStart);
+
+  assert.ok(packageListStart !== -1);
+  assert.ok(excludedListStart > packageListStart);
+
+  for (const scriptPath of manifest.content_scripts[0].js) {
+    assert.ok(packageList.includes(`- \`${scriptPath}\``));
+  }
 }
 
 function testRuleBasedExplanation() {
