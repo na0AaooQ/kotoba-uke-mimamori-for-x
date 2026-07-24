@@ -515,6 +515,19 @@ npm run format
 
 CodexなどのAIコーディングエージェントは、コードを変更した場合、可能な限り `npm run check` が通る状態にしてください。
 
+## ローカル環境構築・リリース手順の維持
+
+README.md は利用者・開発者が実際に実行するローカル環境構築、確認、Chrome Web Store提出用ZIP作成の手順です。AGENTS.md は、AIコーディングエージェントがこれらの手順を実装と同期して維持するためのルールです。README.mdへ操作手順を重複コピーせず、以下を守ってください。
+
+- README.md のローカル環境構築手順、およびChrome Web Store提出用ZIP作成手順を、理由なく削除・省略しない。
+- clean clone 後は、原則としてリポジトリ直下で `npm ci` を実行し、`package-lock.json` に基づいて依存関係を導入する。
+- Biomeなどの開発ツールは、`devDependencies` で管理されたプロジェクトローカル版を npm scripts から使用する。グローバルインストールを前提とする手順へ変更しない。
+- `node_modules/` はローカル検証用であり、Gitへコミットせず、Chrome Web Store提出用ZIPにも含めない。
+- `package.json` の dependencies、devDependencies、npm scripts、`package-lock.json`、または必要な開発ツールを変更した場合は、README.md の環境構築・確認手順への影響を確認し、必要な更新を同じPRへ含める。
+- ZIP生成方法またはZIPの除外対象を変更した場合は、README.md のZIP作成手順も同じPRで更新する。
+- README.md の記載と実際のコマンドが一致することを確認し、可能な限りclean clone相当の環境で手順を検証する。
+- README.md の手順を簡略化・削除する必要がある場合は、独断で進めず青木へ確認する。README.mdとAGENTS.mdの関連ルールは同期して維持する。
+
 ## テスト方針
 
 テストでは、過検知を防ぐことを重視してください。
