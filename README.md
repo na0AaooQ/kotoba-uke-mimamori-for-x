@@ -1,4 +1,4 @@
-# ことばうけみまもり｜Xことばに心のワンクッション
+# ことばうけみまもり｜Xことばに心のワンクッション (英語表記: Kotoba Uke Mimamori｜A gentle pause before words on X)
 Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」のソースコード管理リポジトリです。
 
 - GitHubリポジトリURL: [https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/](https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/)
