@@ -136,43 +136,36 @@ Optionsではユーザー様向けのUX validationを行い、Service Workerで�
 ### 概念アーキテクチャ
 
 ```text
-┌────────────────────────────────────────────────────────────────────┐
-│                         Chrome Extension                             │
-│                                                                    │
-│  ┌───────────────────────┐       mutation intent                   │
-│  │ Options UI            │ ──────────────────────────────────┐    │
-│  │ ・登録/削除            │                                    │    │
-│  │ ・個別ON/OFF           │                                    ▼    │
-│  │ ・Master ON/OFF        │              ┌────────────────────────┐ │
-│  │ ・UX validation        │              │ Extension Service      │ │
-│  └──────────┬────────────┘              │ Worker / Single Writer │ │
-│             │ direct read                │ ・latest read          │ │
-│             ├───────────────────────────▶│ ・validation           │ │
-│             │                            │ ・serialized mutation  │ │
-│             ▼                            │ ・whole-object write   │ │
-│  ┌─────────────────────────┐             └───────────┬────────────┘ │
-│  │ chrome.storage.local    │ ◀────────────────────────┘              │
-│  │ existing settings       │                                          │
-│  │ distanceTermsSettings   │                                          │
-│  └───────────┬─────────────┘                                          │
-│              │ direct read                                             │
-│              ▼                                                         │
-│     ┌──────────────────┐        X posts                               │
-│     │ Content Script   │ ◀──────────────────────────────────────────  │
-│     │ ・snapshot準備    │                                               │
-│     └────────┬─────────┘                                               │
-│              ▼                                                         │
-│       fixed-rule detector                                              │
-│              │ fixed ruleで未確定の場合のみ                           │
-│              ▼                                                         │
-│       distance matcher ───────────────────────────────▶ cushion UI    │
-└────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────┐
+│ Chrome Extension                                               │
+│                                                                │
+│  Options UI                                                    │
+│  ・登録/削除・個別ON/OFF・Master ON/OFF・UX validation          │
+│  ├─ mutation intent ──────────────▶ Extension Service Worker  │
+│  └─ direct read ──────────────────▶ chrome.storage.local      │
+│                                                                │
+│  Extension Service Worker / Single Writer                      │
+│  ・validation・serialized mutation・whole-object write         │
+│  ├─ latest read before mutation ──▶ chrome.storage.local      │
+│  └─ whole-object write ───────────▶ chrome.storage.local      │
+│     distanceTermsSettings sole writer                          │
+│                                                                │
+│  X posts ──▶ Content Script                                    │
+│              ├─ direct read ─────────▶ chrome.storage.local   │
+│              └─ fixed-rule detector                            │
+│                    │ fixed ruleで未確定の場合のみ              │
+│                    ▼                                           │
+│                 distance matcher ─────────────▶ cushion UI     │
+│                                                                │
+│  chrome.storage.local                                          │
+│  ・existing settings ・distanceTermsSettings                    │
+└────────────────────────────────────────────────────────────────┘
 
 外部サーバーは使用しない。
 Conceptual design / Not implemented / Implementation details may change
 ```
 
-Mutationは `Options → Service Worker → chrome.storage.local`、readは `Options → chrome.storage.local` および `Content Script → chrome.storage.local` とします。投稿本文、登録語、一致結果、scoreを外部サーバーへ送信しません。
+Mutationは `Options → Service Worker → chrome.storage.local` とし、`distanceTermsSettings` のwriteはService Workerだけに限定します。readは `Options → chrome.storage.local`、`Content Script → chrome.storage.local`、およびService Workerがmutation直前に行うlatest storage readです。投稿本文、登録語、一致結果、scoreを外部サーバーへ送信しません。
 
 ### 書き込みとSingle Writer
 
