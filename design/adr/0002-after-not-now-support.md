@@ -343,7 +343,7 @@ State 2にはprotect-your-heartページへの補助リンクを1つ追加する
 
 リンク先は、cushion UIで実際に使用されているresolved languageと一致させる。`uiLanguage=auto`の場合も、`auto`という設定値ではなく、すでに解決された実際の表示言語である`ja`または`en`を使用する。URLは利用者入力や動的文字列連結から生成せず、アプリ側の固定された信頼済みURL allowlistとして扱う。
 
-`ja`／`en`以外、または安全にresolved languageを保証できない異常・縮退状態ではURLを推測しない。その場合はprotect-your-heartリンクだけを表示せず、State 2本文と「内容を表示する」は引き続き利用可能とする。
+`ja`／`en`以外、または安全にresolved languageを保証できない異常・縮退状態ではURLを推測しない。これには、locale messageの読み込み失敗等によりresolved language自体が`ja`または`en`として取得できていても、実際にState 2へ表示されるUI文言がChrome側のfallback locale等へ切り替わり、実表示言語とresolved languageの一致を安全に保証できない状態を含む。その場合はprotect-your-heartリンクだけを表示せず、State 2本文と「内容を表示する」は引き続き利用可能とし、localization failureによってExtension本体を停止させない。具体的に実装上どのfailureを識別するかは、実装時に定める。
 
 protect-your-heartページは補助情報へのリンク先であり、Extension本体のruntime依存先ではない。State 2生成時のfetch、URL存在確認、health check、ページ応答待ち、取得成功を条件としたState 2表示、ページ障害検知のための追加通信、analytics、telemetryは行わない。ページが一時的に停止・障害状態でも、初期ワンクッション、「今は見ない」、State 2表示、blur維持、「内容を表示する」、投稿本文revealは正常に利用できる設計とする。リンククリック後のnavigationはブラウザ標準動作へ任せる。これは障害分離だけでなく、不要な外部通信を発生させないPrivacy上の目的を持つ。
 
@@ -394,7 +394,7 @@ fixed width、fixed heightは使用しない。mobile専用で文字を小さく
 
 実装時は、自動テスト、既存回帰、実ブラウザ確認の3層で検証する。`tests/overlay.test.js`を中心に、同じcushionがState 2へ切り替わり新規modalや別cushionを生成しないこと、`onHide`が意図どおり呼ばれること、State 1のtitle/body/reason/strength/tendency/guidance note/「今は見ない」buttonが残らないことを確認する。
 
-State 2については、日本語・英語の確定文言、DOM順、「内容を表示する」buttonを確認する。protect-your-heartについては、native `a`、日本語／英語の固定URL、`target="_blank"`、`rel="noopener noreferrer"`、正しい日英label、buttonより前のDOM順、不明または安全に保証できない言語でのlink省略、link省略時にもState 2本体とshow buttonが利用できることを確認する。
+State 2については、日本語・英語の確定文言、DOM順、「内容を表示する」buttonを確認する。protect-your-heartについては、native `a`、日本語／英語の固定URL、`target="_blank"`、`rel="noopener noreferrer"`、正しい日英label、buttonより前のDOM順、不明または安全に保証できない言語でのlink省略、locale messageの読み込み失敗等により実表示言語との一致を安全に保証できない場合にもリンクだけが省略され、State 2本文とshow buttonが利用でき、Extension本体が正常動作を継続することを確認する。
 
 AccessibilityではState 2側へfocusを移しshow buttonへ直接focusしないこと、accessible nameとの関連、link→buttonのDOM/Tab順、native `a`/`button`、`role="alert"`と`aria-live="assertive"`を使わないこと、`focus-visible` styleを確認する。Security / information boundaryでは、投稿本文、score、matchedRules、categories、reasons、internal guidance keyをState 2へ表示しないことを確認する。`content.js`ではresolvedLanguageの`ja`／`en`をlocalization経由で安全に利用でき、従来の`getMessage()`が壊れず、localization failureでもExtension本体を壊さないことを確認する。State 2生成時にfetch・URL疎通確認をせず、外部ページ応答をState 2表示条件にしないことも確認する。
 
@@ -412,4 +412,4 @@ AccessibilityではState 2側へfocusを移しshow buttonへ直接focusしない
 | 大枠解決・実装詳細のみ残る | Accessibility方針とARIAの方向性は確定した。別タブで開くことの具体的な伝達方法、show content後のfocus挙動は実装時・実ブラウザ確認時に確定し、必要な場合だけ最小調整する。 |
 | 実ブラウザ微調整として残る | `8px`／`10px`等の数px単位のspacing、実際のX DOM上でのfocus感、表示幅・mobile・文字拡大での微調整、画面表示・操作感・体感速度。 |
 
-残る事項は設計思想そのものを再検討するBlocking Issueではなく、実装・実ブラウザ確認フェーズの詳細である。実装、commit、push、Pull Request、merge、releaseは、このADR更新のレビュー・承認後の別工程で扱う。
+残る事項は設計思想そのものを再検討するBlocking Issueではなく、実装・実ブラウザ確認フェーズの詳細である。コード実装、およびコード実装に伴うcommit、push、Pull Request、merge、releaseは、このADR更新のレビュー・承認後の別工程で扱う。
