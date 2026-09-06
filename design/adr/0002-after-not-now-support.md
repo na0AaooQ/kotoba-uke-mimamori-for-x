@@ -2,10 +2,13 @@
 
 - Status: Accepted
 - Date: 2026-09-04
-- Implementation status: Not implemented
-- 実装状況: 未実装
+- Implementation status: Implemented
+- Implementation date: 2026-09-06
+- 実装状況: 実装済み（Chrome Web Store未リリース）
 
 `Accepted` は、このADRに記録した設計判断が採用されたことを意味します。v1.1.0へ実装済みであることは意味しません。以下のUI、状態遷移、文言は概念設計です。実装ファイル名、具体的なARIA属性、CSS、最終i18n文言は将来の実装・レビューで確定します。
+
+上記は2026-09-04のAccepted時点の記録である。その後、2026-09-06までに詳細設計を確定し、PR #100でState 2を実装してmainへマージした。現在のリポジトリ上では実装済みだが、Chrome Web Storeへのリリースはまだ行っていない。
 
 ## Context
 
@@ -316,6 +319,49 @@ Learn more about protecting your peace of mind
 - `protecting your peace of mind` は、既存英語版protect-your-heartページの表現と整合させる。
 - 既存英語UIの `You chose not to read this for now.`、`You can show the content later if you want to read it.`、`Show content` は可能な限り維持・再利用する。
 
+#### 最新UIイメージ（テキスト）
+
+以下はState 1で「今は見ない」選択後、同じcushion内へ差し替えるState 2の最新UIイメージである。投稿本文はこのcushionの外側でblurを維持し、図中には表示しない。表示幅に応じた行折り返しはブラウザに任せる。
+
+日本語UI:
+
+```text
+┌────────────────────────────────────────────┐
+│ 今は読まないようにしました。                │
+│ 読みたくなったら、あとから内容を表示できます。│
+│                                            │
+│ このまま内容を見ずに、この投稿から離れることも│
+│ できます。                                 │
+│                                            │
+│ 必要なら、Xのミュートやブロックなどを使って、 │
+│ そのアカウントと距離を取る方法もあります。   │
+│                                            │
+│ 心を守る使い方を見る ↗                      │
+│                                            │
+│ [内容を表示する]                            │
+└────────────────────────────────────────────┘
+```
+
+英語UI:
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│ You chose not to read this for now.                                │
+│ You can show the content later if you want to read it.             │
+│                                                                    │
+│ You can also leave this post without viewing the content.          │
+│                                                                    │
+│ If needed, you can use features on X, such as mute or block, to    │
+│ give yourself some distance from that account.                     │
+│                                                                    │
+│ Learn more about protecting your peace of mind ↗                   │
+│                                                                    │
+│ [Show content]                                                     │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+補助リンクはnew tabへ開くnative link、`↗`は視覚indicator、「内容を表示する」/`Show content`はnative buttonである。DOM、視覚、Tab順はいずれも補助リンクからshow buttonの順とする。
+
 ### State 2の状態遷移とDOM境界
 
 「今は見ない」選択後をState 2として扱う。
@@ -413,3 +459,70 @@ AccessibilityではState 2側へfocusを移しshow buttonへ直接focusしない
 | 実ブラウザ微調整として残る | `8px`／`10px`等の数px単位のspacing、実際のX DOM上でのfocus感、表示幅・mobile・文字拡大での微調整、画面表示・操作感・体感速度。 |
 
 残る事項は設計思想そのものを再検討するBlocking Issueではなく、実装・実ブラウザ確認フェーズの詳細である。コード実装、およびコード実装に伴うcommit、push、Pull Request、merge、releaseは、このADR更新のレビュー・承認後の別工程で扱う。
+
+## 2026-09-06 実装完了記録
+
+この節は、2026-09-04のAccepted時点および同日の詳細設計記録を変更せず、その後に確定した実装結果を記録するものである。
+
+### 実装情報
+
+- 実装PR: [#100 「ことばうけみまもり」新機能 ADR-0002 「今は見ない」クリック後のセルフケア・距離の取り方支援機能の実装](https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/pull/100)
+- PR #100でADR-0002のState 2を実装し、2026-09-06にmainへマージした。
+- merge commit: `446347d050b438c1c71cf10988d375c6623da728`
+
+### State 2の実装結果
+
+- State 1で「今は見ない」を選ぶと、同じcushion内の内容をState 2へ差し替える。新しいmodal、別overlay、別cushionは作らない。
+- 投稿本文のblurを維持し、State 1固有のreason、guidance、表現の強さ、傾向等はState 2から除去する。State 2には投稿本文や内部判定情報を表示しない。
+- State 2からは、あとから「内容を表示する」で投稿本文をrevealできる。State 1で直接「内容を表示する」を選んだ場合はState 2を経由しない。
+- 最終の日本語・英語UI文言を実装した。Xのmute / block等は選択肢として案内するだけで、優先順位付けや自動操作は行わない。
+
+### protect-your-heart補助リンク
+
+- State 2に補助リンクを1つ追加した。日本語labelは「心を守る使い方を見る」、英語labelは「Learn more about protecting your peace of mind」とする。
+- JA/ENの固定URLをtrusted mappingとして扱い、native `a` element、`target="_blank"`、`rel="noopener noreferrer"`を使用する。`window.open()`は使用しない。
+- State 2表示時にprotect-your-heartページへの自動fetch、URLのhealth check、外部ページの応答待ちは行わない。外部ページの稼働状態をExtension本体のState 2表示条件にしない。
+
+### 新しいタブのアクセシビリティ
+
+- 視覚indicatorとして`↗`を表示し、重複読み上げを避けるため`aria-hidden`とする。
+- visually-hiddenなlocalized説明を併記し、日本語では「新しいタブで開きます」、英語では「Opens in a new tab」と伝える。`title`属性だけには依存しない。
+
+### State 2のfocusとAccessibility
+
+- State 2 containerを`tabindex="-1"`でprogrammatic focus可能にし、「今は見ない」後はshow buttonではなくState 2 containerへfocusする。
+- 状態文言を`aria-labelledby`でaccessible nameに関連付け、複数cushionでもIDが重複しないよう一意なIDを生成する。
+- DOMおよびTab順はprotect-your-heart補助リンクから「内容を表示する」とする。positive `tabindex`、`role="alert"`、`aria-live="assertive"`は使用しない。
+- link / buttonの`focus-visible`をlight / dark双方で維持した。
+
+### show content後のfocus判断
+
+State 2から「内容を表示する」実行後のfocusは実Chrome/Xで確認した。既存ブラウザ挙動で実利用上の問題は確認されなかったため、X本体DOMへ追加の`tabindex`やfocus制御を実装していない。将来、実利用上の問題が確認された場合だけ、Xの操作モデルを不必要に変えない最小修正を別途検討する。
+
+### レイアウトの確定結果
+
+- State 2 outer paddingは`12px 14px`、font-sizeは`14px`、line-heightは`1.6`とした。意味グループ間および補助リンク周辺のspacingは基本`8px`とする。
+- fixed widthおよびfixed heightを設けず、mobile専用で文字を小さくしない。PC/mobileで情報順を変えず、browserの折り返しに任せて固定`br`に依存しない。
+- light / dark双方に対応し、実ブラウザ確認の結果、追加の大きなUI調整は不要と判断した。
+
+### localization縮退の実装結果
+
+localizerに`resolvedLanguage`と`isResolvedLanguageReliable`を追加した。`resolvedLanguage`は既存の言語解決結果であり、解決後の`ja`または`en`を保持する。`isResolvedLanguageReliable`は、State 2に必要なlocalized messageを指定localeから安全に取得でき、現在のState 2 UI文言と`resolvedLanguage`の一致を保証できるかを表す。
+
+reliabilityを保証できない場合はprotect-your-heart補助リンクだけを省略し、State 2本文、「内容を表示する」、blur、revealは継続する。URLを推測せず、Extension全体を停止させない。`isResolvedLanguageReliable`はlocalization全体の成功・失敗を表す万能flagではなく、protect-your-heartリンク先の言語を安全に決定するための境界である。
+
+### Privacy / Security境界の実装確認
+
+- 新しいStorage、「今は見ない」履歴、投稿本文、投稿URL、X user情報、link click trackingを追加していない。
+- analytics、telemetry、external API、protect-your-heartへのruntime fetch、health checkを追加していない。
+- Xのmute / block / reportを自動操作せず、新しいpermission、host_permission、manifest変更も追加していない。
+
+### 検証結果
+
+自動検証として、`npm run check`（JavaScript syntax check、全テスト、Biome lint、Biome format check）および`git diff --check`の成功を確認した。
+
+実Chrome/Xでは、日本語・英語、light / dark、PC幅、mobile相当幅、browser zoom / 文字拡大、State 1、State 2、blur維持、show content、protect-your-heartリンク、新しいタブnavigation、Xへ戻った際のState 2維持、keyboard / focus、show content後のfocus、複数投稿、体感速度を確認した。console errorはなく、Chrome拡張機能の読み込み画面でもエラーは確認されなかった。現時点で、既知の不具合や未対応修正事項はない。
+
+### 現在の公開状態
+
+State 2実装はmainへマージ済みである。一方、Chrome Web Storeへはまだリリースしておらず、現在の公開版v1.1.0にはADR-0002のState 2実装は含まれない。Chrome Web Storeへの審査・リリースは、ADR-0001対応完了後に別工程として扱う予定である。
