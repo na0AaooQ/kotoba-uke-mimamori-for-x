@@ -319,6 +319,49 @@ Learn more about protecting your peace of mind
 - `protecting your peace of mind` は、既存英語版protect-your-heartページの表現と整合させる。
 - 既存英語UIの `You chose not to read this for now.`、`You can show the content later if you want to read it.`、`Show content` は可能な限り維持・再利用する。
 
+#### 最新UIイメージ（テキスト）
+
+以下はState 1で「今は見ない」選択後、同じcushion内へ差し替えるState 2の最新UIイメージである。投稿本文はこのcushionの外側でblurを維持し、図中には表示しない。表示幅に応じた行折り返しはブラウザに任せる。
+
+日本語UI:
+
+```text
+┌────────────────────────────────────────────┐
+│ 今は読まないようにしました。                │
+│ 読みたくなったら、あとから内容を表示できます。│
+│                                            │
+│ このまま内容を見ずに、この投稿から離れることも│
+│ できます。                                 │
+│                                            │
+│ 必要なら、Xのミュートやブロックなどを使って、 │
+│ そのアカウントと距離を取る方法もあります。   │
+│                                            │
+│ 心を守る使い方を見る ↗                      │
+│                                            │
+│ [内容を表示する]                            │
+└────────────────────────────────────────────┘
+```
+
+英語UI:
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│ You chose not to read this for now.                                │
+│ You can show the content later if you want to read it.             │
+│                                                                    │
+│ You can also leave this post without viewing the content.          │
+│                                                                    │
+│ If needed, you can use features on X, such as mute or block, to    │
+│ give yourself some distance from that account.                     │
+│                                                                    │
+│ Learn more about protecting your peace of mind ↗                   │
+│                                                                    │
+│ [Show content]                                                     │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+補助リンクはnew tabへ開くnative link、`↗`は視覚indicator、「内容を表示する」/`Show content`はnative buttonである。DOM、視覚、Tab順はいずれも補助リンクからshow buttonの順とする。
+
 ### State 2の状態遷移とDOM境界
 
 「今は見ない」選択後をState 2として扱う。
