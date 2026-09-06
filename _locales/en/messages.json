@@ -17,6 +17,18 @@
   "cushionDismissedBody": {
     "message": "You can show the content later if you want to read it."
   },
+  "cushionDismissedLeavePost": {
+    "message": "You can also leave this post without viewing the content."
+  },
+  "cushionDismissedDistanceOptions": {
+    "message": "If needed, you can use features on X, such as mute or block, to give yourself some distance from that account."
+  },
+  "cushionProtectYourHeartLink": {
+    "message": "Learn more about protecting your peace of mind"
+  },
+  "linkOpensInNewTab": {
+    "message": "Opens in a new tab"
+  },
   "buttonShowContent": {
     "message": "Show content"
   },

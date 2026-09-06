@@ -160,9 +160,7 @@ async function testPreparesSelectedLocaleAndFallsBackSafely() {
     loadLocaleMessages: async (resolvedLanguage) => {
       loadedLanguages.push(resolvedLanguage);
 
-      return {
-        cushionTitle: { message: `${resolvedLanguage}:title` }
-      };
+      return createState2LocaleMessages(resolvedLanguage);
     },
     resolveUiLanguage(uiLanguage) {
       const resolvedLanguage = i18nApi.resolveUiLanguage(uiLanguage, {
@@ -186,6 +184,8 @@ async function testPreparesSelectedLocaleAndFallsBackSafely() {
 
     assert.equal(localization.getMessage('cushionTitle'), `${expectedLanguage}:title`);
     assert.equal(localization.getMessage('missingKey'), 'chrome:missingKey');
+    assert.equal(localization.resolvedLanguage, expectedLanguage);
+    assert.equal(localization.isResolvedLanguageReliable, true);
   }
 
   assert.deepEqual(resolvedLanguages, ['ja', 'ja', 'en']);
@@ -201,6 +201,40 @@ async function testPreparesSelectedLocaleAndFallsBackSafely() {
   });
 
   assert.equal(failedLocalization.getMessage('cushionTitle'), 'fallback:cushionTitle');
+  assert.equal(failedLocalization.resolvedLanguage, 'ja');
+  assert.equal(failedLocalization.isResolvedLanguageReliable, false);
+
+  const incompleteLocalization = await prepareContentLocalization(ENABLED_SETTINGS, {
+    getLocaleMessage: i18nApi.getLocaleMessage,
+    getMessage: (key) => `fallback:${key}`,
+    loadLocaleMessages: async () => ({
+      cushionDismissedMessage: { message: '今は読まないようにしました。' }
+    }),
+    resolveUiLanguage: () => 'ja'
+  });
+
+  assert.equal(incompleteLocalization.resolvedLanguage, 'ja');
+  assert.equal(incompleteLocalization.isResolvedLanguageReliable, false);
+  assert.equal(
+    incompleteLocalization.getMessage('cushionDismissedMessage'),
+    '今は読まないようにしました。'
+  );
+  assert.equal(
+    incompleteLocalization.getMessage('cushionDismissedLeavePost'),
+    'fallback:cushionDismissedLeavePost'
+  );
+
+  const unresolvedLocalization = await prepareContentLocalization(ENABLED_SETTINGS, {
+    getLocaleMessage: i18nApi.getLocaleMessage,
+    getMessage: (key) => `fallback:${key}`,
+    loadLocaleMessages: async () => createState2LocaleMessages('en'),
+    resolveUiLanguage() {
+      throw new Error('Language resolution unavailable');
+    }
+  });
+
+  assert.equal(unresolvedLocalization.resolvedLanguage, null);
+  assert.equal(unresolvedLocalization.isResolvedLanguageReliable, false);
   assert.equal(createContentLocalizer({}, null), null);
 }
 
@@ -1580,6 +1614,7 @@ async function testInitializePreparesAndSharesLocalizationOnce() {
       assert.equal(resolvedLanguage, 'en');
 
       return {
+        ...createState2LocaleMessages('en'),
         cushionTitle: { message: 'English cushion title' }
       };
     },
@@ -1605,6 +1640,8 @@ async function testInitializePreparesAndSharesLocalizationOnce() {
     assert.equal(localeLoadCount, 1);
     assert.equal(receivedLocalizations.length, 2);
     assert.equal(receivedLocalizations[0], receivedLocalizations[1]);
+    assert.equal(receivedLocalizations[0].resolvedLanguage, 'en');
+    assert.equal(receivedLocalizations[0].isResolvedLanguageReliable, true);
     assert.deepEqual(receivedMessageKeys, ['English cushion title', 'English cushion title']);
     assert.equal(receivedMessageKeys.includes('最初の確認用テキスト'), false);
     assert.equal(receivedMessageKeys.includes('次の確認用テキスト'), false);
@@ -1615,6 +1652,19 @@ async function testInitializePreparesAndSharesLocalizationOnce() {
     restoreGlobalValue('kotobaUkeMimamoriRiskDetector', previousRiskDetector);
     restoreGlobalValue('kotobaUkeMimamoriCushionGuidance', previousCushionGuidance);
   }
+}
+
+function createState2LocaleMessages(language) {
+  return {
+    cushionTitle: { message: `${language}:title` },
+    cushionDismissedMessage: { message: `${language}:dismissed` },
+    cushionDismissedBody: { message: `${language}:later` },
+    cushionDismissedLeavePost: { message: `${language}:leave` },
+    cushionDismissedDistanceOptions: { message: `${language}:distance` },
+    cushionProtectYourHeartLink: { message: `${language}:protect-link` },
+    linkOpensInNewTab: { message: `${language}:new-tab` },
+    buttonShowContent: { message: `${language}:show` }
+  };
 }
 
 function createPostNodeWithNestedText(textContent = '') {

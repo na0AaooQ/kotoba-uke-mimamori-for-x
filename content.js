@@ -49,6 +49,16 @@ const SKIPPED_PROCESS_RESULT = Object.freeze({
   shouldCushion: false
 });
 
+const STATE_2_LOCALIZATION_MESSAGE_KEYS = Object.freeze([
+  'cushionDismissedMessage',
+  'cushionDismissedBody',
+  'cushionDismissedLeavePost',
+  'cushionDismissedDistanceOptions',
+  'cushionProtectYourHeartLink',
+  'linkOpensInNewTab',
+  'buttonShowContent'
+]);
+
 // UI表示に必要な安全な情報だけを、対応する本文ノードへ一時的に紐付けます。
 // 生の判定結果や投稿本文はこの経路に保持しません。
 const cushionGuidanceByTargetNode = new WeakMap();
@@ -673,17 +683,20 @@ async function prepareContentLocalization(settings = getDefaultSettings(), i18nA
     return null;
   }
 
-  try {
-    const resolvedLanguage = i18nApi.resolveUiLanguage(settings?.uiLanguage);
-    const localeMessages = await i18nApi.loadLocaleMessages(resolvedLanguage);
+  let resolvedLanguage = null;
+  let localeMessages = {};
 
-    return createContentLocalizer(localeMessages, i18nApi);
+  try {
+    resolvedLanguage = i18nApi.resolveUiLanguage(settings?.uiLanguage);
+    localeMessages = await i18nApi.loadLocaleMessages(resolvedLanguage);
   } catch (_error) {
-    return createContentLocalizer({}, i18nApi);
+    // Chrome's active extension locale remains available as a safe text fallback.
   }
+
+  return createContentLocalizer(localeMessages, i18nApi, resolvedLanguage);
 }
 
-function createContentLocalizer(localeMessages, i18nApi = getI18nApi()) {
+function createContentLocalizer(localeMessages, i18nApi = getI18nApi(), resolvedLanguage = null) {
   if (
     typeof i18nApi?.getLocaleMessage !== 'function' &&
     typeof i18nApi?.getMessage !== 'function'
@@ -693,8 +706,15 @@ function createContentLocalizer(localeMessages, i18nApi = getI18nApi()) {
 
   const safeLocaleMessages =
     localeMessages && typeof localeMessages === 'object' ? localeMessages : {};
+  const isResolvedLanguageReliable = hasReliableState2Localization(
+    safeLocaleMessages,
+    i18nApi,
+    resolvedLanguage
+  );
 
   return Object.freeze({
+    resolvedLanguage,
+    isResolvedLanguageReliable,
     getMessage(key, substitutions) {
       if (typeof i18nApi?.getLocaleMessage === 'function') {
         try {
@@ -719,6 +739,23 @@ function createContentLocalizer(localeMessages, i18nApi = getI18nApi()) {
       return String(key ?? '');
     }
   });
+}
+
+function hasReliableState2Localization(localeMessages, i18nApi, resolvedLanguage) {
+  if (
+    (resolvedLanguage !== 'ja' && resolvedLanguage !== 'en') ||
+    typeof i18nApi?.getLocaleMessage !== 'function'
+  ) {
+    return false;
+  }
+
+  try {
+    return STATE_2_LOCALIZATION_MESSAGE_KEYS.every(
+      (key) => i18nApi.getLocaleMessage(localeMessages, key).trim() !== ''
+    );
+  } catch (_error) {
+    return false;
+  }
 }
 
 function isCushionFeatureEnabled(settings = getDefaultSettings(), featureFlags = FEATURE_FLAGS) {
