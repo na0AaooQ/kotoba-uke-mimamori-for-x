@@ -16,6 +16,11 @@ const SAFE_TENDENCY_MESSAGE_KEYS = Object.freeze({
   possiblyPressuringLanguage: 'cushionGuidanceTendencyPossiblyPressuringLanguage'
 });
 const MAX_TENDENCY_MESSAGES = 2;
+const PROTECT_YOUR_HEART_URLS = Object.freeze({
+  ja: 'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/protect-your-heart.html',
+  en: 'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/protect-your-heart.html'
+});
+let state2AccessibleNameIdSequence = 0;
 const CUSHION_STYLES = `
 .kum-cushion {
   box-sizing: border-box;
@@ -34,19 +39,18 @@ const CUSHION_STYLES = `
 }
 
 .kum-cushion--dismissed {
-  padding: 10px 14px;
+  padding: 12px 14px;
 }
 
 .kum-cushion__title,
 .kum-cushion__body,
 .kum-cushion__reason,
-.kum-cushion__dismissed-message,
-.kum-cushion__dismissed-body {
+.kum-cushion__state-2-group {
   padding: 0;
 }
 
 .kum-cushion__title,
-.kum-cushion__dismissed-message {
+.kum-cushion__state-2-status {
   color: #7c4a03;
   font-weight: 700;
 }
@@ -93,9 +97,49 @@ const CUSHION_STYLES = `
   font-size: 13px;
 }
 
-.kum-cushion__dismissed-message,
-.kum-cushion__dismissed-body {
+.kum-cushion__state-2-group {
   margin: 0;
+}
+
+.kum-cushion__state-2-status,
+.kum-cushion__state-2-later {
+  display: block;
+}
+
+.kum-cushion__state-2-group + .kum-cushion__state-2-group {
+  margin-top: 8px;
+}
+
+.kum-cushion__protect-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: #7c4a03;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.kum-cushion__protect-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+.kum-cushion__protect-link:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid rgba(245, 158, 11, 0.85);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.16);
+}
+
+.kum-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .kum-cushion__actions {
@@ -146,8 +190,17 @@ const CUSHION_STYLES = `
   }
 
   .kum-cushion__title,
-  .kum-cushion__dismissed-message {
+  .kum-cushion__state-2-status {
     color: #fde68a;
+  }
+
+  .kum-cushion__protect-link {
+    color: #fde68a;
+  }
+
+  .kum-cushion__protect-link:focus-visible {
+    outline-color: rgba(252, 211, 77, 0.95);
+    box-shadow: 0 0 0 4px rgba(252, 211, 77, 0.2);
   }
 
   .kum-cushion__guidance-note {
@@ -178,8 +231,17 @@ body[data-color-scheme="dark"] .kum-cushion {
 }
 
 body[data-color-scheme="dark"] .kum-cushion__title,
-body[data-color-scheme="dark"] .kum-cushion__dismissed-message {
+body[data-color-scheme="dark"] .kum-cushion__state-2-status {
   color: #fde68a;
+}
+
+body[data-color-scheme="dark"] .kum-cushion__protect-link {
+  color: #fde68a;
+}
+
+body[data-color-scheme="dark"] .kum-cushion__protect-link:focus-visible {
+  outline-color: rgba(252, 211, 77, 0.95);
+  box-shadow: 0 0 0 4px rgba(252, 211, 77, 0.2);
 }
 
 body[data-color-scheme="dark"] .kum-cushion__guidance-note {
@@ -229,9 +291,15 @@ function createCushionElement(result = {}, handlers = {}, localization = null) {
   actions.className = 'kum-cushion__actions';
 
   const showButton = createButton('buttonShowContent', safeHandlers.onShow, localization);
+  let hasEnteredState2 = false;
   const hideButton = createButton(
     'buttonHideForNow',
     () => {
+      if (hasEnteredState2) {
+        return;
+      }
+
+      hasEnteredState2 = true;
       renderDismissedCushionElement(container, safeHandlers, localization);
     },
     localization
@@ -360,30 +428,105 @@ function resolveSafeMessageKey(messageKeys, key) {
 function renderDismissedCushionElement(container, handlers, localization) {
   container.className = 'kum-cushion kum-cushion--dismissed';
   container.textContent = '';
+  container.setAttribute('tabindex', '-1');
 
-  const message = document.createElement('p');
-  message.className = 'kum-cushion__dismissed-message';
-  message.textContent = getLocalizedMessage('cushionDismissedMessage', localization);
+  const summary = document.createElement('p');
+  summary.className = 'kum-cushion__state-2-group kum-cushion__state-2-summary';
 
-  const body = document.createElement('p');
-  body.className = 'kum-cushion__dismissed-body';
-  body.textContent = getLocalizedMessage('cushionDismissedBody', localization);
+  const status = document.createElement('span');
+  const accessibleNameId = createState2AccessibleNameId();
+  status.className = 'kum-cushion__state-2-status';
+  status.setAttribute('id', accessibleNameId);
+  status.textContent = getLocalizedMessage('cushionDismissedMessage', localization);
+
+  const later = document.createElement('span');
+  later.className = 'kum-cushion__state-2-later';
+  later.textContent = getLocalizedMessage('cushionDismissedBody', localization);
+
+  summary.append(status, later);
+  container.setAttribute('aria-labelledby', accessibleNameId);
+
+  const leavePost = document.createElement('p');
+  leavePost.className = 'kum-cushion__state-2-group kum-cushion__state-2-leave';
+  leavePost.textContent = getLocalizedMessage('cushionDismissedLeavePost', localization);
+
+  const distance = document.createElement('p');
+  distance.className = 'kum-cushion__state-2-group kum-cushion__state-2-distance';
+  distance.textContent = getLocalizedMessage('cushionDismissedDistanceOptions', localization);
 
   const actions = document.createElement('div');
   actions.className = 'kum-cushion__actions';
 
   const showButton = createButton('buttonShowContent', handlers.onShow, localization);
+  const protectYourHeartLink = createProtectYourHeartLink(localization);
 
   actions.append(showButton);
-  container.append(message, body, actions);
+  container.append(summary, leavePost, distance);
 
-  if (typeof showButton.focus === 'function') {
-    showButton.focus();
+  if (protectYourHeartLink) {
+    container.append(protectYourHeartLink);
+  }
+
+  container.append(actions);
+
+  if (typeof container.focus === 'function') {
+    container.focus();
   }
 
   if (typeof handlers.onHide === 'function') {
     handlers.onHide();
   }
+}
+
+function createProtectYourHeartLink(localization) {
+  const url = resolveProtectYourHeartUrl(localization);
+
+  if (!url) {
+    return null;
+  }
+
+  const link = document.createElement('a');
+  link.className = 'kum-cushion__protect-link';
+  link.setAttribute('href', url);
+  link.setAttribute('target', '_blank');
+  link.setAttribute('rel', 'noopener noreferrer');
+
+  const label = document.createElement('span');
+  label.className = 'kum-cushion__protect-link-label';
+  label.textContent = getLocalizedMessage('cushionProtectYourHeartLink', localization);
+
+  const indicator = document.createElement('span');
+  indicator.className = 'kum-cushion__new-tab-indicator';
+  indicator.setAttribute('aria-hidden', 'true');
+  indicator.textContent = ' ↗';
+
+  const newTabDescription = document.createElement('span');
+  newTabDescription.className = 'kum-visually-hidden';
+  newTabDescription.textContent = ` (${getLocalizedMessage('linkOpensInNewTab', localization)})`;
+
+  link.append(label, indicator, newTabDescription);
+
+  return link;
+}
+
+function resolveProtectYourHeartUrl(localization) {
+  if (localization?.isResolvedLanguageReliable !== true) {
+    return null;
+  }
+
+  const resolvedLanguage = localization.resolvedLanguage;
+
+  if (!Object.hasOwn(PROTECT_YOUR_HEART_URLS, resolvedLanguage)) {
+    return null;
+  }
+
+  return PROTECT_YOUR_HEART_URLS[resolvedLanguage];
+}
+
+function createState2AccessibleNameId() {
+  state2AccessibleNameIdSequence += 1;
+
+  return `kum-cushion-state-2-status-${state2AccessibleNameIdSequence}`;
 }
 
 function ensureCushionStyles() {

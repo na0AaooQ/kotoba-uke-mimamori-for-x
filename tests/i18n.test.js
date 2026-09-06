@@ -19,6 +19,28 @@ const REQUIRED_GUIDANCE_KEYS = Object.freeze([
   'cushionGuidanceTendencyDirectedStrongLanguage',
   'cushionGuidanceTendencyPossiblyPressuringLanguage'
 ]);
+const REQUIRED_STATE_2_MESSAGES = Object.freeze({
+  ja: Object.freeze({
+    cushionDismissedMessage: '今は読まないようにしました。',
+    cushionDismissedBody: '読みたくなったら、あとから内容を表示できます。',
+    cushionDismissedLeavePost: 'このまま内容を見ずに、この投稿から離れることもできます。',
+    cushionDismissedDistanceOptions:
+      '必要なら、Xのミュートやブロックなどを使って、そのアカウントと距離を取る方法もあります。',
+    cushionProtectYourHeartLink: '心を守る使い方を見る',
+    linkOpensInNewTab: '新しいタブで開きます',
+    buttonShowContent: '内容を表示する'
+  }),
+  en: Object.freeze({
+    cushionDismissedMessage: 'You chose not to read this for now.',
+    cushionDismissedBody: 'You can show the content later if you want to read it.',
+    cushionDismissedLeavePost: 'You can also leave this post without viewing the content.',
+    cushionDismissedDistanceOptions:
+      'If needed, you can use features on X, such as mute or block, to give yourself some distance from that account.',
+    cushionProtectYourHeartLink: 'Learn more about protecting your peace of mind',
+    linkOpensInNewTab: 'Opens in a new tab',
+    buttonShowContent: 'Show content'
+  })
+});
 
 async function runTests() {
   testFallbackWithoutChromeI18n();
@@ -33,6 +55,7 @@ async function runTests() {
   testLocaleKeysMatch();
   testPopupCompactSensitivitySummaryMessages();
   testRequiredGuidanceMessagesExist();
+  testRequiredState2MessagesMatchFinalCopy();
   testRequiredEnglishMessagesExist();
   testEnglishMessagesAvoidStrongPhrases();
 
@@ -225,6 +248,16 @@ function testRequiredGuidanceMessagesExist() {
     for (const key of REQUIRED_GUIDANCE_KEYS) {
       assert.equal(typeof messages[key]?.message, 'string');
       assert.notEqual(messages[key].message.trim(), '');
+    }
+  }
+}
+
+function testRequiredState2MessagesMatchFinalCopy() {
+  for (const locale of ['ja', 'en']) {
+    const messages = readLocaleMessages(locale);
+
+    for (const [key, expectedMessage] of Object.entries(REQUIRED_STATE_2_MESSAGES[locale])) {
+      assert.equal(messages[key]?.message, expectedMessage);
     }
   }
 }

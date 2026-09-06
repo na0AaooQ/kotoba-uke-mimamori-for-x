@@ -26,6 +26,11 @@ const MESSAGES = Object.freeze({
   cushionGuidanceTendencyPossiblyPressuringLanguage: '圧を感じる可能性のある表現',
   cushionDismissedMessage: '今は読まないようにしました。',
   cushionDismissedBody: '読みたくなったら、あとから内容を表示できます。',
+  cushionDismissedLeavePost: 'このまま内容を見ずに、この投稿から離れることもできます。',
+  cushionDismissedDistanceOptions:
+    '必要なら、Xのミュートやブロックなどを使って、そのアカウントと距離を取る方法もあります。',
+  cushionProtectYourHeartLink: '心を守る使い方を見る',
+  linkOpensInNewTab: '新しいタブで開きます',
   buttonShowContent: '内容を表示する',
   buttonHideForNow: '今は見ない'
 });
@@ -46,10 +51,14 @@ function runTests() {
   testUsesInjectedEnglishLocalizerThroughDismissedState();
   testFailedLocalizerFallsBackToChromeI18n();
   testHideButtonCollapsesCushionElement();
+  testOmitsProtectLinkWhenLocalizationIsUnreliable();
+  testOmitsProtectLinkWhenResolvedLanguageIsUnknown();
+  testState2AccessibleNamesUseUniqueIds();
   testInjectsCushionStylesOnce();
   testDoesNotRenderPostTextOrInternalRiskDetails();
   testShowButtonHandler();
   testButtonClickStopsDefaultAndPropagation();
+  testDoesNotAddRuntimeCommunicationOrScriptedNavigation();
 
   console.log('All overlay tests passed.');
 }
@@ -109,19 +118,42 @@ function testHideButtonCollapsesCushionElement() {
         onHide: () => {
           hideCount += 1;
         }
-      }
+      },
+      createReliableLocalization(MESSAGES, 'ja')
     );
     const hideButton = element.children[4].children[1];
 
     hideButton.click();
 
     assert.equal(element.className, 'kum-cushion kum-cushion--dismissed');
-    assert.equal(element.children.length, 3);
-    assert.equal(element.children[0].className, 'kum-cushion__dismissed-message');
-    assert.equal(element.children[1].className, 'kum-cushion__dismissed-body');
-    assert.equal(element.children[2].className, 'kum-cushion__actions');
+    assert.equal(element.children.length, 5);
+    assert.equal(
+      element.children[0].className,
+      'kum-cushion__state-2-group kum-cushion__state-2-summary'
+    );
+    assert.equal(
+      element.children[1].className,
+      'kum-cushion__state-2-group kum-cushion__state-2-leave'
+    );
+    assert.equal(
+      element.children[2].className,
+      'kum-cushion__state-2-group kum-cushion__state-2-distance'
+    );
+    assert.equal(element.children[3].className, 'kum-cushion__protect-link');
+    assert.equal(element.children[4].className, 'kum-cushion__actions');
+    assert.deepEqual(
+      element.children.slice(0, 3).map((childNode) => childNode.tagName),
+      ['P', 'P', 'P']
+    );
+    assert.equal(element.children[0].children[0].textContent, MESSAGES.cushionDismissedMessage);
+    assert.equal(element.children[0].children[1].textContent, MESSAGES.cushionDismissedBody);
+    assert.equal(element.children[1].textContent, MESSAGES.cushionDismissedLeavePost);
+    assert.equal(element.children[2].textContent, MESSAGES.cushionDismissedDistanceOptions);
     assert.ok(element.textContent.includes(MESSAGES.cushionDismissedMessage));
     assert.ok(element.textContent.includes(MESSAGES.cushionDismissedBody));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedLeavePost));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedDistanceOptions));
+    assert.ok(element.textContent.includes(MESSAGES.cushionProtectYourHeartLink));
     assert.ok(element.textContent.includes(MESSAGES.buttonShowContent));
     assert.equal(element.textContent.includes(MESSAGES.buttonHideForNow), false);
     assert.equal(element.textContent.includes(MESSAGES.cushionTitle), false);
@@ -135,13 +167,49 @@ function testHideButtonCollapsesCushionElement() {
     );
     assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceNote), false);
     assert.equal(hideCount, 1);
+    assert.equal(element.getAttribute('tabindex'), '-1');
+    assert.equal(element.getAttribute('role'), 'group');
+    assert.equal(element.getAttribute('aria-live'), null);
+    assert.equal(
+      element.getAttribute('aria-labelledby'),
+      element.children[0].children[0].getAttribute('id')
+    );
+    assert.equal(element._focused, true);
 
-    const showButton = element.children[2].children[0];
+    const protectLink = element.children[3];
+    const showButton = element.children[4].children[0];
 
+    assert.equal(protectLink.tagName, 'A');
+    assert.equal(
+      protectLink.getAttribute('href'),
+      'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/protect-your-heart.html'
+    );
+    assert.equal(protectLink.getAttribute('target'), '_blank');
+    assert.deepEqual(protectLink.getAttribute('rel').split(/\s+/u).sort(), [
+      'noopener',
+      'noreferrer'
+    ]);
+    assert.equal(protectLink.children[0].textContent, MESSAGES.cushionProtectYourHeartLink);
+    assert.equal(protectLink.children[1].textContent, ' ↗');
+    assert.equal(protectLink.children[1].getAttribute('aria-hidden'), 'true');
+    assert.equal(protectLink.children[2].className, 'kum-visually-hidden');
+    assert.ok(protectLink.children[2].textContent.includes(MESSAGES.linkOpensInNewTab));
+    let linkPreventDefaultCount = 0;
+    protectLink.click({
+      preventDefault() {
+        linkPreventDefaultCount += 1;
+      }
+    });
+    assert.equal(linkPreventDefaultCount, 0);
+    assert.equal(protectLink.getAttribute('tabindex'), null);
     assert.equal(showButton.tagName, 'BUTTON');
     assert.equal(showButton.type, 'button');
     assert.equal(showButton.className, 'kum-cushion__button');
-    assert.equal(showButton._focused, true);
+    assert.equal(showButton._focused, false);
+    assert.equal(showButton.getAttribute('tabindex'), null);
+
+    hideButton.click();
+    assert.equal(hideCount, 1);
 
     showButton.click();
 
@@ -165,15 +233,76 @@ function testInjectsCushionStylesOnce() {
     assert.ok(styleElement.textContent.includes('.kum-cushion__guidance'));
     assert.ok(styleElement.textContent.includes('.kum-cushion__guidance-note'));
     assert.ok(styleElement.textContent.includes('padding-left: 1.2em'));
-    assert.ok(styleElement.textContent.includes('.kum-cushion__dismissed-message'));
+    assert.ok(styleElement.textContent.includes('.kum-cushion__state-2-group'));
+    assert.ok(styleElement.textContent.includes('.kum-cushion__protect-link:focus-visible'));
+    assert.ok(styleElement.textContent.includes('.kum-visually-hidden'));
+    assert.equal(styleElement.textContent.includes('display: none'), false);
+    assert.equal(styleElement.textContent.includes('visibility: hidden'), false);
     assert.ok(styleElement.textContent.includes('.kum-cushion__button:focus-visible'));
     assert.ok(styleElement.textContent.includes('outline-offset: 2px'));
     assert.ok(styleElement.textContent.includes('outline: 2px solid rgba(245, 158, 11, 0.85)'));
     assert.ok(styleElement.textContent.includes('@media (prefers-color-scheme: dark)'));
     assert.ok(styleElement.textContent.includes('body[data-color-scheme="dark"] .kum-cushion'));
+    assert.ok(
+      styleElement.textContent.includes('body[data-color-scheme="dark"] .kum-cushion__protect-link')
+    );
     assert.ok(styleElement.textContent.includes('background: rgba(43, 35, 27, 0.96)'));
     assert.ok(styleElement.textContent.includes('color: #d6c9a8'));
     assert.ok(styleElement.textContent.includes('outline-color: rgba(252, 211, 77, 0.95)'));
+  });
+}
+
+function testOmitsProtectLinkWhenLocalizationIsUnreliable() {
+  withFakeDomAndI18n(() => {
+    const localization = {
+      ...createReliableLocalization(MESSAGES, 'ja'),
+      isResolvedLanguageReliable: false
+    };
+    const element = createCushionElement({}, {}, localization);
+
+    element.children[3].children[1].click();
+
+    assert.equal(findElementByClass(element, 'kum-cushion__protect-link'), null);
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedMessage));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedBody));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedLeavePost));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedDistanceOptions));
+    assert.equal(element.children[3].className, 'kum-cushion__actions');
+    assert.equal(element.children[3].children[0].textContent, MESSAGES.buttonShowContent);
+  });
+}
+
+function testOmitsProtectLinkWhenResolvedLanguageIsUnknown() {
+  withFakeDomAndI18n(() => {
+    const localization = createReliableLocalization(MESSAGES, 'unknown');
+    const element = createCushionElement({}, {}, localization);
+
+    element.children[3].children[1].click();
+
+    assert.equal(findElementByClass(element, 'kum-cushion__protect-link'), null);
+    assert.equal(element.children[3].children[0].tagName, 'BUTTON');
+  });
+}
+
+function testState2AccessibleNamesUseUniqueIds() {
+  withFakeDomAndI18n(() => {
+    const localization = createReliableLocalization(MESSAGES, 'ja');
+    const firstElement = createCushionElement({}, {}, localization);
+    const secondElement = createCushionElement({}, {}, localization);
+
+    firstElement.children[3].children[1].click();
+    secondElement.children[3].children[1].click();
+
+    const firstLabelId = firstElement.getAttribute('aria-labelledby');
+    const secondLabelId = secondElement.getAttribute('aria-labelledby');
+
+    assert.notEqual(firstLabelId, secondLabelId);
+    assert.equal(firstElement.children[0].children[0].getAttribute('id'), firstLabelId);
+    assert.equal(secondElement.children[0].children[0].getAttribute('id'), secondLabelId);
+    assert.equal(firstElement.getAttribute('tabindex'), '-1');
+    assert.equal(secondElement.getAttribute('tabindex'), '-1');
+    assert.equal(firstElement._focused, true);
+    assert.equal(secondElement._focused, true);
   });
 }
 
@@ -363,22 +492,22 @@ function testRendersOnlyKnownGuidanceKeys() {
 
 function testUsesInjectedJapaneseLocalizerForAllFixedMessages() {
   withFakeDomAndI18n(() => {
-    assertInjectedLocalizationThroughDismissedState(MESSAGES, ENGLISH_MESSAGES);
+    assertInjectedLocalizationThroughDismissedState(MESSAGES, ENGLISH_MESSAGES, 'ja');
   }, ENGLISH_MESSAGES);
 }
 
 function testUsesInjectedEnglishLocalizerThroughDismissedState() {
   withFakeDomAndI18n(() => {
-    assertInjectedLocalizationThroughDismissedState(ENGLISH_MESSAGES, MESSAGES);
+    assertInjectedLocalizationThroughDismissedState(ENGLISH_MESSAGES, MESSAGES, 'en');
   });
 }
 
-function assertInjectedLocalizationThroughDismissedState(messages, otherLanguageMessages) {
-  const localization = {
-    getMessage(key) {
-      return messages[key] || '';
-    }
-  };
+function assertInjectedLocalizationThroughDismissedState(
+  messages,
+  otherLanguageMessages,
+  resolvedLanguage
+) {
+  const localization = createReliableLocalization(messages, resolvedLanguage);
   const element = createCushionElement(
     {
       reasonMessageKey: 'reasonGeneric',
@@ -407,11 +536,33 @@ function assertInjectedLocalizationThroughDismissedState(messages, otherLanguage
   element.children[4].children[1].click();
 
   assert.equal(element.className, 'kum-cushion kum-cushion--dismissed');
-  assert.equal(element.children[0].textContent, messages.cushionDismissedMessage);
-  assert.equal(element.children[1].textContent, messages.cushionDismissedBody);
-  assert.equal(element.children[2].children[0].textContent, messages.buttonShowContent);
+  assert.equal(element.children[0].children[0].textContent, messages.cushionDismissedMessage);
+  assert.equal(element.children[0].children[1].textContent, messages.cushionDismissedBody);
+  assert.equal(element.children[1].textContent, messages.cushionDismissedLeavePost);
+  assert.equal(element.children[2].textContent, messages.cushionDismissedDistanceOptions);
+  assert.equal(element.children[3].children[0].textContent, messages.cushionProtectYourHeartLink);
+  assert.equal(element.children[3].children[2].textContent, ` (${messages.linkOpensInNewTab})`);
+  assert.equal(element.children[4].children[0].textContent, messages.buttonShowContent);
+  assert.equal(
+    element.children[3].getAttribute('href'),
+    resolvedLanguage === 'ja'
+      ? 'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/protect-your-heart.html'
+      : 'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/protect-your-heart.html'
+  );
   assert.equal(element.textContent.includes(otherLanguageMessages.cushionDismissedMessage), false);
   assert.equal(element.textContent.includes(otherLanguageMessages.cushionDismissedBody), false);
+  assert.equal(
+    element.textContent.includes(otherLanguageMessages.cushionDismissedLeavePost),
+    false
+  );
+  assert.equal(
+    element.textContent.includes(otherLanguageMessages.cushionDismissedDistanceOptions),
+    false
+  );
+  assert.equal(
+    element.textContent.includes(otherLanguageMessages.cushionProtectYourHeartLink),
+    false
+  );
 }
 
 function testFailedLocalizerFallsBackToChromeI18n() {
@@ -431,6 +582,15 @@ function testFailedLocalizerFallsBackToChromeI18n() {
     assert.ok(element.textContent.includes(MESSAGES.reasonGeneric));
     assert.ok(element.textContent.includes(MESSAGES.buttonShowContent));
     assert.ok(element.textContent.includes(MESSAGES.buttonHideForNow));
+
+    element.children[3].children[1].click();
+
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedMessage));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedBody));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedLeavePost));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedDistanceOptions));
+    assert.equal(findElementByClass(element, 'kum-cushion__protect-link'), null);
+    assert.equal(element.children[3].children[0].textContent, MESSAGES.buttonShowContent);
   });
 }
 
@@ -438,6 +598,16 @@ function assertDoesNotIncludeInternalGuidanceKeys(element) {
   assert.equal(element.textContent.includes('strong'), false);
   assert.equal(element.textContent.includes('personalSafety'), false);
   assert.equal(element.textContent.includes('directedStrongLanguage'), false);
+}
+
+function createReliableLocalization(messages, resolvedLanguage) {
+  return Object.freeze({
+    resolvedLanguage,
+    isResolvedLanguageReliable: true,
+    getMessage(key) {
+      return messages[key] || '';
+    }
+  });
 }
 
 function testShowButtonHandler() {
@@ -486,7 +656,16 @@ function testButtonClickStopsDefaultAndPropagation() {
     assert.equal(preventDefaultCount, 1);
     assert.equal(stopPropagationCount, 1);
     assert.equal(receivedEvent, event);
+    assert.equal(element.className, 'kum-cushion');
   });
+}
+
+function testDoesNotAddRuntimeCommunicationOrScriptedNavigation() {
+  const overlaySource = fs.readFileSync(path.join(__dirname, '..', 'overlay.js'), 'utf8');
+
+  assert.equal(overlaySource.includes('window.open'), false);
+  assert.equal(overlaySource.includes('fetch('), false);
+  assert.equal(overlaySource.includes('XMLHttpRequest'), false);
 }
 
 function withFakeDomAndI18n(callback, fallbackMessages = MESSAGES) {
