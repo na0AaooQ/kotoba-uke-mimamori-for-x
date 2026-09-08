@@ -8,7 +8,7 @@
 
 `Accepted` は、このADRに記録した設計判断を採用したことを意味します。Chrome拡張機能へ実装済みであることは意味しません。2026-09-04はAccepted時点の概念設計、2026-09-08は実装前詳細設計レビューの確定日です。Accepted時点の設計判断・検討履歴は本ADR内に保持しますが、概念例と2026-09-08の詳細設計が異なる場合は、後者を今後の実装仕様として扱います。
 
-Implementation statusは引き続き `Not implemented`（未実装）です。今回の文書更新は実装完了を意味しません。具体的な実装ファイル名やmodule分割など、本ADRで明示的に未決とした事項は将来の実装レビューで確定します。
+Implementation statusは引き続き `Not implemented`（未実装）です。今回の文書更新は実装完了を意味しません。2026-09-08のv2.0.0実装構成レビューで、module構成・module API・Service Worker契約・Options state machine / DOM / dialog / focus・Content Script統合・Overlay統合・テスト責務・実装file scope・実装phaseを確定しました。具体的な実装契約は [「距離を置きたい言葉」実装設計](../distance-terms-implementation-design.md) を正本とします。
 
 ## Context
 
@@ -231,7 +231,7 @@ readをService Workerへ集中させる必要はなく、停止中にもreadの�
 | Content Script | direct read、共通validation、snapshot準備、`preparedTerms`作成、distance matcher利用。settings writeをしない。 |
 | Fixed rule detector | 既存固定ルール判定のみ。distance termをscoreへ統合しない。 |
 
-この責務は概念上のものであり、具体的なファイル名やmodule名は未決です。たとえば `distance-terms-core.js` のような名前は概念例に留めます。
+この表は長期的な責務境界を示します。具体的なファイル名、module分割、公開API、依存方向は、2026-09-08の実装構成レビューで確定した [「距離を置きたい言葉」実装設計](../distance-terms-implementation-design.md) を正本とします。
 
 ### message securityとresponse contract
 
@@ -543,7 +543,7 @@ distance-term pathでは、次を行いません。
 
 ### 5. Storage validator / classifier contract
 
-Options、Content Script、Service Workerは、同じ共通pure validator / classifierロジックを利用します。同一の `distanceTermsSettings` 入力に対して、3者は同じstate、usable valid items、invalid items、ID / canonical termのconflict結果を得なければなりません。3か所で判定を別実装し、結果がずれる構成を禁止します。具体的な実装ファイル名やmodule名は実装レビューで決めます。
+Options、Content Script、Service Workerは、同じ共通pure validator / classifierロジックを利用します。同一の `distanceTermsSettings` 入力に対して、3者は同じstate、usable valid items、invalid items、ID / canonical termのconflict結果を得なければなりません。3か所で判定を別実装し、結果がずれる構成を禁止します。具体的な実装ファイル名、module名、公開APIは、2026-09-08の実装構成レビューで確定した [「距離を置きたい言葉」実装設計](../distance-terms-implementation-design.md) を正本とします。
 
 validator / classifierは入力を分類するだけで、repair、write、default補完を行いません。`usable valid item` はitem単体validationを通過し、cross-item conflictにも参加していないitemです。`invalid items` には、item単体validationに失敗したitemだけでなく、IDまたはcanonical termのconflictに参加して利用不能となったitemをすべて含めます。
 
@@ -814,7 +814,7 @@ payload: ...
 | `deleteInvalidItems` | payloadなし |
 | `resetInvalidSettings` | explicit confirmation marker/valueを含むstrictなpayload |
 
-toggle operationは作らず、desired state operationだけを使用します。`resetInvalidSettings` の具体的marker名は実装レビューで決めてよいものの、曖昧なreset requestを許可しません。
+toggle operationは作らず、desired state operationだけを使用します。`resetInvalidSettings` のexplicit confirmation marker / valueは `confirmation: "RESET_DISTANCE_TERMS_SETTINGS"` として2026-09-08に確定済みです。具体的な実装契約は [「距離を置きたい言葉」実装設計](../distance-terms-implementation-design.md) を正本とし、曖昧なreset requestを許可しません。
 
 #### 8.1 operation state matrix
 
@@ -897,7 +897,7 @@ Optionsが送るitem index、古いinvalid count、古いsnapshot上のinvalid�
 
 #### 8.7 `resetInvalidSettings`
 
-Service Workerがoperation実行時のlatest Storageを `whole_invalid` と分類し、かつexplicit confirmation marker / valueが正しい場合だけ許可します。marker / valueの具体的なfield名は実装レビューで決めます。marker不正は `INVALID_REQUEST` です。
+Service Workerがoperation実行時のlatest Storageを `whole_invalid` と分類し、かつexplicit confirmation marker / valueが正しい場合だけ許可します。marker / valueは2026-09-08に確定した `confirmation: "RESET_DISTANCE_TERMS_SETTINGS"` とし、具体的な実装契約は [「距離を置きたい言葉」実装設計](../distance-terms-implementation-design.md) を正本とします。marker不正は `INVALID_REQUEST` です。
 
 成功時に変更するのは `distanceTermsSettings` だけで、次のvalid初期状態へresetします。
 
@@ -1141,7 +1141,7 @@ success時:
 [キャンセル] [削除する]
 ```
 
-- native `<dialog>` を第一候補とし、実装時に既存構成と整合させる。
+- v2.0.0ではnative `<dialog>` を採用する。
 - 初期focusは「キャンセル」とする。
 - Tab順は「キャンセル」→「削除」とする。
 - Escapeはキャンセルとして扱う。
@@ -1357,7 +1357,7 @@ distance-only理由説明では、登録term自体を評価しないため、「
 | Body | この投稿には、あなたが登録した「距離を置きたい言葉」に一致する文字列が含まれているため、ワンクッションを表示しています。 | This cushion is shown because this post contains text matching something you registered under “Words you'd like some distance from.” |
 | Buttons | 内容を表示する<br>今は見ない | Show content<br>Not now |
 
-本節にないgeneric Recovery failure等は、behavior、focus、retry policy、data preservationだけが本ADRで確定済みです。過去の詳細設計でexact copyまで確定していないfallback文言を新たに正式仕様とせず、日本語・英語のexact copyは実装レビューで確定します。この未確定copyを理由に、確定済みの動作・安全境界を変更してはいけません。
+本節にないgeneric Recovery failure等は、behavior、focus、retry policy、data preservationを本ADRの不変条件とします。日本語・英語のexact copyは後続の実装構成レビューで確定しており、[「距離を置きたい言葉」実装設計](../distance-terms-implementation-design.md) を正本とします。文言実装を理由に、本ADRの動作・安全境界を変更してはいけません。
 
 ### 24. ADR-0002 State 2との接続
 
@@ -1901,12 +1901,12 @@ stale snapshotによるLost Updateの余地があります。そのため、`dis
 | ZWJ emojiを壊さず、不要な不可視文字のみを拒否する具体方式 | Resolved。禁止文字と許可文字の境界を確定し、ZWJ / ZWNJ、combining marks、variation selectors、通常のRTL文字を許可する。 |
 | stable unique IDの具体形式と生成API | Resolved。Service Workerが `crypto.randomUUID()` でUUID v4を生成し、全itemとの衝突時は再生成する。 |
 | Service Worker sender validationの具体実装 | Resolved。`sender.id`、`sender.url`、利用可能な場合の`sender.origin`を検証し、Optionsページだけを許可する。 |
-| mutation queueの具体的なJavaScript実装 | 方針Resolved。Service Worker memory内のFIFO Promise queue相当とし、各mutationはqueue開始後にlatest Storageをreadする。具体的な関数名等は実装レビューで決める。 |
+| mutation queueの具体的なJavaScript実装 | Resolved。Service Worker memory内のFIFO Promise queue相当とし、各mutationはqueue開始後にlatest Storageをreadする。具体的な実装契約は、2026-09-08の実装構成レビューで確定した [「距離を置きたい言葉」実装設計](../distance-terms-implementation-design.md) を正本とする。 |
 | migration関数/APIの具体構成 | v2.0.0についてResolved。schemaVersion 1の初回導入でmigrationは実装しない。将来schema変更時に別設計とする。 |
 | error codeの最終一覧 | Resolved。response contract節の固定code allowlistを使用する。 |
 | 30件表示時の具体的な折りたたみUI | Resolved。折りたたみなしで最大30件を登録順にすべて通常表示する。 |
-| 実装ファイル名とmodule名 | Open。責務境界は確定したが、具体的なファイル名とmodule分割は実装レビューで決める。 |
-| 詳細なテストケース | 主要部分Resolved。主要テストカテゴリ・重要境界ケース・安全不変条件を確定した。実際の全test fileと全parameter組み合わせは実装レビューで確定する。 |
+| 実装ファイル名とmodule名 | Resolved。新規6 module、公開API、依存方向を実装構成レビューで確定した。具体的な契約は実装設計書を正本とする。 |
+| 詳細なテストケース | Resolved。新規6 test file、既存testへの追加責務、test layer間の責務境界を実装構成レビューで確定した。具体的な契約は実装設計書を正本とする。 |
 
 今回のレビューで追加された設計論点の解決状況は次のとおりです。
 
@@ -1916,11 +1916,15 @@ stale snapshotによるLost Updateの余地があります。そのため、`dis
 | Recovery state matrix | Resolved。6 operation × 6 Storage stateの許可、拒否、no-op、error code、および成功時のstate遷移を確定した。 |
 | `addTerm` response loss | 主要方針Resolved。再read時のdesired-state convergence条件と、証明できない場合にblind retryしない安全境界を確定した。 |
 
-### Implementation review items as of 2026-09-08
+### 実装構成レビュー結果（2026-09-08）
 
-- 実装ファイル名、module名、および責務を維持した具体的なmodule分割
-- `resetInvalidSettings` のexplicit confirmation marker / valueの具体的なfield名
-- 本ADRでexact copyを確定していないgeneric Recovery failure等の日本語・英語fallback文言
-- 実際の全test fileと全parameter組み合わせ
+v2.0.0実装構成レビューで、次の具体的実装契約を確定しました。
 
-これらは、strict payload、曖昧なreset拒否、確定済みのbehavior / focus / retry policy / data preservation、および本ADRの安全不変条件を守る範囲で実装レビュー時に決めます。
+- `core`、`mutations`、`reader`、`matcher`、`options`、`service-worker` の新規6 moduleへ責務を分離する。
+- 現行の `globalThis` + CommonJS互換方式を維持し、v2.0.0ではESM化、bundler導入、TypeScript化を行わない。module systemの刷新は別工程とする。
+- `distanceTermsSettings` のwriteはService Workerだけが行う。`core`はpureなvalidation / canonicalization / classification、`mutations`はpure mutation planning、`reader`はread専用、`matcher`はboolean literal matchingだけを担当する。
+- fixed ruleをdistance matchingより優先し、fixed-rule State 1とdistance-only State 1を意味的に分離する。「今は見ない」後は、ADR-0002の既存State 2を唯一の共通実装として利用する。
+- resetは `confirmation: "RESET_DISTANCE_TERMS_SETTINGS"` をstrict payloadとして使用する。
+- Service Worker、Options、Content Script、Overlay、Recovery、テスト責務、実装file scope、Phase 1〜6の実装順序を確定した。
+
+具体的なmodule / API / UI / test契約の正本は [「距離を置きたい言葉」実装設計](../distance-terms-implementation-design.md) です。本ADRの安全上・意味上の不変条件が上位であり、実装都合で本ADRを曲げてはなりません。原則変更が必要な場合は、コードだけを変更せずADRレビューへ戻ります。
