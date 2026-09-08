@@ -67,7 +67,7 @@ Implementation statusは引き続き `Not implemented`（未実装）です。�
 
 Accepted時点では、文字数をユーザー様が認識する文字単位に近いgrapheme clusterとし、具体的なJavaScript実装方法をOpen Questionとしていました。2026-09-08の詳細設計で、`Intl.Segmenter`、2〜50 extended grapheme clusters、最大512 Unicode code pointsという境界を確定しました。
 
-### Storageデータモデル（Accepted時点の概念と詳細設計による更新）
+### Storageデータモデル（Accepted時点の概念）
 
 既存の3設定 `enabled`、`cushionSensitivity`、`uiLanguage` はそのまま維持します。距離ワード用設定は次の概念構造を採用します。
 
@@ -78,13 +78,12 @@ distanceTermsSettings
 └─ items
    ├─ {
    │    id: "stable-unique-id",
-   │    term: "NFKC + trim後の文字列",
+   │    term: "ユーザー様が登録した元表記",
    │    enabled: true
    │  }
    └─ ...
 
 Accepted-time conceptual data model / 2026-09-04
-The storage-term detail is refined by the 2026-09-08 design below.
 Not implemented
 ```
 
@@ -92,7 +91,7 @@ Not implemented
 - `masterEnabled` の初期値は `true` とする。
 - itemにはstable unique IDを持たせる。
 - Accepted時点では、`term` に前後空白を除いた元表記を保存し、全角等の表記も保持する概念例としていた。
-- 2026-09-08の詳細設計でこの点を更新し、正式な実装仕様では `term` に **NFKC + trim後の文字列** を保存する。ASCII英字の大文字・小文字は保存時には保持する。
+- 2026-09-08の詳細設計でこの点を更新した。正式な実装仕様と最新版Storageモデルは後述の実装前詳細設計に分離して記録する。
 - `enabled` はbooleanとし、配列順は登録順とする。
 - `normalizedTerm`、`type`、`category`、`score`、`reason`、`matchedCount`、`lastMatchedAt`、`createdAt`等の日時は第一版で保存しない。
 - `distanceTermsSettings` が未登録である状態は、正常な「未設定」とする。
@@ -373,7 +372,7 @@ Not implemented
 
 ### 1. 登録termの文字列仕様
 
-登録入力は、必ず次の順で処理します。
+登録入力は、必ず次の順で処理します。OptionsとService Workerでこの順序を変えません。
 
 ```text
 入力
@@ -396,7 +395,9 @@ duplicate check
 - 内部安全上限は、NFKC + trim後で最大512 Unicode code pointsとする。513 code points以上はrejectする。
 - 前後空白はtrimする。
 - 内部空白、連続空白、記号は保持する。
-- 禁止文字を自動削除・自動置換して登録可能なtermへ変換しない。禁止文字が1つでもあれば登録自体をrejectする。
+- forbidden-character validationは、NFKC + trim後のcanonical candidateに対して実行する。
+- NFKC + trim後の値にforbidden characterが1つでも残っていれば登録自体をrejectする。
+- trim以外の追加sanitizationで禁止文字を削除・置換し、登録可能な別termへ変換しない。
 
 保存する `term` はNFKC + trim後の文字列です。ASCII英字のcaseは保存時には変換しません。
 
@@ -407,6 +408,29 @@ duplicate check
 | `HELLO` | `HELLO` |
 
 `normalizedTerm` は永続保存しません。保存済み `term` を唯一のSource of Truthとし、duplicateやmatchingに使うcomparison keyはruntimeで生成します。
+
+最新版のStorageモデルは次のとおりです。
+
+```text
+distanceTermsSettings
+├─ schemaVersion: 1
+├─ masterEnabled: true
+└─ items
+   └─ {
+        id: "UUID-v4",
+        term: "NFKC + trim後のcanonical term",
+        enabled: true
+      }
+
+Implementation-ready storage model / 2026-09-08
+Not implemented
+```
+
+#### outer trimと内部禁止文字の境界
+
+JavaScriptの `trim()` 相当で境界から除去される文字は、trim後のcanonical candidateには残らないため、forbidden-character validationの対象にはなりません。たとえばraw inputが「LF + `仕事` + TAB」で、trim後が `仕事` となり、ほかの条件も満たす場合は登録できます。U+FEFF等、JavaScriptのtrimによって境界から除去されるcode pointも同じです。
+
+一方、`仕 + LF + 事`、`仕 + CR + 事`、`仕 + TAB + 事` のようにtrim後も内部へ残る禁止文字はrejectします。trim後に残った禁止文字を追加のstrip処理で削除してはいけません。前後空白だけをtrimし、内部空白、連続空白、記号は保持します。
 
 ### 2. 禁止文字と許可文字
 
@@ -455,7 +479,7 @@ duplicate check
 
 英語:
 
-> This entry contains a character that cannot be registered. Some characters that are not visible on screen cannot be registered. Please review your entry.
+> This entry contains characters that cannot be registered. Some non-visible characters cannot be registered. Please check your input.
 
 ### 3. duplicate仕様
 
@@ -517,20 +541,113 @@ distance-term pathでは、次を行いません。
 
 登録termが `今日は  雨` のように内部spaceを2個含む場合、投稿 `今日は  雨です` にはmatchしますが、spaceが1個の `今日は 雨です` にはmatchしません。意図的なZWSP等による回避も、第一版では広義matchへ変換せず、literal substringの境界を維持します。
 
-### 5. Storage state classification
+### 5. Storage validator / classifier contract
 
-`distanceTermsSettings` のread結果を、正式に次の6状態へ分類します。
+Options、Content Script、Service Workerは、同じ共通pure validator / classifierロジックを利用します。同一の `distanceTermsSettings` 入力に対して、3者は同じstate、usable valid items、invalid items、ID / canonical termのconflict結果を得なければなりません。3か所で判定を別実装し、結果がずれる構成を禁止します。具体的な実装ファイル名やmodule名は実装レビューで決めます。
 
-| 状態 | 判定と距離ワード機能 | fixed rule | 保存データへの扱い |
-| --- | --- | --- | --- |
-| `missing` | 正常な未設定。0件として扱う | 継続 | readだけでauto-writeしない |
-| `valid` | 通常利用 | 継続 | 通常mutationが可能 |
-| `partially_invalid` | safely validなitemだけdistance protectionへ利用 | 継続 | invalid itemを自動修正・自動削除しない |
-| `whole_invalid` | distance protection停止、normal editing停止 | 継続 | explicit recoveryだけを許可 |
-| `unsupported_schema` | distance protection停止 | 継続 | データを保持し、corruption扱い、reset、downgradeをしない |
-| `read_error` | distance protectionを一時利用不可とする | 継続 | corruption扱いせず、retryを優先する |
+validator / classifierは入力を分類するだけで、repair、write、default補完を行いません。`usable valid item` はitem単体validationを通過し、cross-item conflictにも参加していないitemです。`invalid items` には、item単体validationに失敗したitemだけでなく、IDまたはcanonical termのconflictに参加して利用不能となったitemをすべて含めます。
 
-raw `items.length` が31件以上の場合は、どの30件を利用するか推測せず、`whole_invalid` とします。
+#### 5.1 classification順序
+
+少なくとも次の順序で判定し、先に確定したtop-level stateより後の構造を推測しません。
+
+1. `chrome.storage.local` read自体が成功したか。
+2. read結果に `distanceTermsSettings` keyが存在するか。
+3. rootが安全にobjectとして読めるか。
+4. `schemaVersion` を安全に判定できるか。
+5. future schemaか。
+6. `schemaVersion: 1` のroot validation。
+7. item単体validation。
+8. cross-item conflict validation。
+
+Storage readがreject、例外等で完了できない場合は `read_error` とし、corruption扱いしません。readが成功しても `distanceTermsSettings` key自体が存在しない場合は正常な `missing` とし、readだけではauto-writeしません。
+
+keyが存在する場合、rootはnullではないobjectかつArrayではない必要があります。満たさない場合は `whole_invalid` です。
+
+#### 5.2 `schemaVersion`
+
+`schemaVersion` は必須です。
+
+- integerかつ現在対応する `1` より大きい場合は `unsupported_schema` とする。
+- `unsupported_schema` と判定した後は、`schemaVersion: 1` の `masterEnabled`、`items`、unknown field等を深く解釈せず、corruption判定、downgrade、resetをしない。
+- missing、number以外、non-integer、`0`、負数、その他 `1` またはfuture versionとして安全に解釈できない値は `whole_invalid` とする。
+- `schemaVersion === 1` の場合だけ、以下のversion 1 validationを続ける。
+
+#### 5.3 `schemaVersion: 1` root validation
+
+version 1で許可するroot fieldは、次の3つだけです。
+
+- `schemaVersion`
+- `masterEnabled`
+- `items`
+
+unknown root fieldが1つでも存在する場合は `whole_invalid` とします。将来root fieldを増やす場合は、schemaVersion変更を伴う設計を別途行います。
+
+`masterEnabled` はstrict booleanだけをvalidとします。`"true"`、`"false"`、`0`、`1`、`null`、missing / `undefined` 相当をbooleanへcoerceせず、これらの場合は `whole_invalid` とします。
+
+`items` はArrayである必要があります。Arrayでなければ `whole_invalid` です。raw `items.length` は0〜30だけを許可し、31以上は `whole_invalid` とします。30件を超えた場合、どの30件を残すか推測しません。
+
+#### 5.4 `schemaVersion: 1` item validation
+
+各itemはnullではないobjectかつArrayではない必要があります。itemで許可するfieldは `id`、`term`、`enabled` の3つだけです。field不足またはunknown item fieldがあるitemはinvalidです。rootが安全に読める場合、item単位の問題だけを理由にroot全体を `whole_invalid` へ格上げしません。
+
+`id`:
+
+- stringであること。
+- canonicalなhyphenated UUID形式で、version nibbleが `4`、RFC 4122 variant nibbleが `8` / `9` / `a` / `b` であるUUID v4としてvalidであること。
+- 概念上のvalidation patternは `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$` とする。
+- UUIDのhex比較では大文字小文字を同一視してよいが、readしただけで保存表記をlowercaseへ書き換えない。
+
+`enabled`:
+
+- strict booleanだけをvalidとする。
+- `"true"`、`"false"`、`0`、`1`、`null` をbooleanへcoerceしない。
+
+保存済み `term`:
+
+1. stringである。
+2. `term.normalize("NFKC").trim()` と保存されている `term` 自身が一致し、すでにcanonicalである。
+3. canonicalな保存値にforbidden characterが残っていない。
+4. 2〜50 extended grapheme clustersである。
+5. 512 Unicode code points以下である。
+
+評価順は1節の正式pipeline（NFKC → trim → forbidden-character validation → grapheme count → code-point limit）と一致させます。たとえば保存値が前後空白を含む ` Ｈello ` のように、NFKC + trimで別値になる場合、そのitemはinvalidです。read時に `Hello` へ自動修正したり、writebackしたりしません。
+
+#### 5.5 safe-readable invalid term
+
+item全体がinvalidでも、その `term` からduplicate comparison keyだけを安全に生成できる場合は、duplicate namespaceを占有します。safe-readable termの条件は次のすべてです。
+
+- `term` がstringである。
+- NFKCを安全に適用できる。
+- trimを安全に適用できる。
+- NFKC + trim後にforbidden characterが残っていない。
+- NFKC + trim後が2〜50 extended grapheme clustersである。
+- NFKC + trim後が512 Unicode code points以下である。
+
+この条件を満たすcanonical candidateからASCII case-fold済みのduplicate comparison keyを生成します。たとえば `id` が壊れていても `term: "Hello"` がsafe-readableなら、item自体はusableではありませんがduplicate key `hello` を予約します。また、保存term ` Ｈello ` はnoncanonicalなのでitemとしてinvalidですが、canonical candidate `Hello` が上記条件を満たすため、duplicate key `hello` を予約します。term自体を安全に解釈できない場合はduplicate keyを推測しません。
+
+#### 5.6 cross-item conflict validation
+
+item単体validation後に、raw items全体で次を検証します。
+
+- valid UUID v4として安全に読める同一IDが複数itemにある場合、そのID conflictに参加するitemを**すべて**利用不能とする。hexの大文字小文字だけが異なるIDも同一として比較する。
+- safe-readable termから生成した同一duplicate comparison keyが複数itemにある場合、そのterm conflictに参加するitemを**すべて**利用不能とする。
+- conflict参加itemからwinnerを選ばない。単体validationを通ったitemでも、invalid itemとのconflictに参加すればusable itemsから除外する。
+
+たとえば、validなitem Aの `term` が `Hello`、`enabled` の型が不正なitem Bのsafe-readable `term` が `hello` の場合、Aだけをdistance matcherへ利用しません。AとBをともに利用不能とし、corruption時にどちらが正しい登録かを推測しません。
+
+#### 5.7 正式classification表
+
+| state | 正式条件 | distance protection / mutationの基礎扱い |
+| --- | --- | --- |
+| `missing` | Storage read成功、`distanceTermsSettings` keyなし | 正常な0件。read-time writeなし |
+| `read_error` | Storage read自体が失敗、reject、例外等で未完了 | 一時利用不可。corruption扱いしない |
+| `unsupported_schema` | rootが安全なobject、`schemaVersion` がintegerかつ `> 1` | distance protection停止。version 1として深掘りせずデータ保持 |
+| `whole_invalid` | root不正、`schemaVersion` missing / 型不正 / non-integer / `<= 0`、version 1のunknown root field、`masterEnabled` 型不正、`items` non-Array、raw `items.length > 30`、その他top-level構造を安全に解釈不能 | distance protectionとnormal editing停止。明示的reset以外のmutation拒否 |
+| `valid` | version 1 rootがvalid、raw `items.length <= 30`、全itemが単体validationを通り、cross-item conflictなし | 通常利用 |
+| `partially_invalid` | version 1 rootがvalid、raw `items.length <= 30`、1件以上が単体validationまたはcross-item conflictで利用不能 | usable valid itemsだけ利用。invalid raw dataを保持 |
+
+rootがvalidであれば、全itemがinvalidでusable valid itemsが0件でも `partially_invalid` です。たとえばraw items 10件すべてがinvalidでも `whole_invalid` へ格上げせず、`deleteInvalidItems` による明示的Recoveryを可能にします。
 
 ### 6. Never repair on readとraw-preserving mutation
 
@@ -699,6 +816,99 @@ payload: ...
 
 toggle operationは作らず、desired state operationだけを使用します。`resetInvalidSettings` の具体的marker名は実装レビューで決めてよいものの、曖昧なreset requestを許可しません。
 
+#### 8.1 operation state matrix
+
+次のmatrixは、strict request validationとsender validationを通過し、FIFO queue開始後のlatest Storage readを共通validator / classifierで分類した時点の正式契約です。Options UIにRecovery buttonが表示されているかどうかに依存せず、Service Worker自身がこの許可・拒否条件を強制します。
+
+`NO_CHANGE` の場合は `storage.set` を行いません。拒否時もStorageを変更しません。`whole_invalid` に対する通常operationは `SETTINGS_INVALID`、`unsupported_schema` は `UNSUPPORTED_SCHEMA`、`read_error` は `STORAGE_READ_FAILED` を固定codeとします。
+
+| operation | `missing` | `valid` | `partially_invalid` | `whole_invalid` | `unsupported_schema` | `read_error` |
+| --- | --- | --- | --- | --- | --- | --- |
+| `addTerm` | 許可。version 1初期Storageへ新規itemを追加 | 条件を満たせば許可 | raw件数、term、duplicate、integrity条件を満たす場合だけ許可 | `SETTINGS_INVALID` | `UNSUPPORTED_SCHEMA` | `STORAGE_READ_FAILED` |
+| `setMasterEnabled` | desired `true` は `NO_CHANGE`、`false` はversion 1初期Storageを作成 | 許可。成立済みは `NO_CHANGE` | invalid raw itemsを保持して許可。成立済みは `NO_CHANGE` | `SETTINGS_INVALID` | `UNSUPPORTED_SCHEMA` | `STORAGE_READ_FAILED` |
+| `setItemEnabled` | `ITEM_NOT_FOUND` | 一意なusable valid itemだけ許可。成立済みは `NO_CHANGE` | 一意なusable valid itemだけ許可。invalid / ambiguous targetは `ITEM_NOT_EDITABLE` | `SETTINGS_INVALID` | `UNSUPPORTED_SCHEMA` | `STORAGE_READ_FAILED` |
+| `deleteItem` | `NO_CHANGE` | 一意なusable valid itemを削除。不存在は `NO_CHANGE` | 一意なusable valid itemだけ削除。invalid / ambiguous targetは `ITEM_NOT_EDITABLE`、不存在は `NO_CHANGE` | `SETTINGS_INVALID` | `UNSUPPORTED_SCHEMA` | `STORAGE_READ_FAILED` |
+| `deleteInvalidItems` | `NO_CHANGE` | `NO_CHANGE` | 許可 | `RECOVERY_NOT_ALLOWED` | `UNSUPPORTED_SCHEMA` | `STORAGE_READ_FAILED` |
+| `resetInvalidSettings` | `RECOVERY_NOT_ALLOWED` | `RECOVERY_NOT_ALLOWED` | `RECOVERY_NOT_ALLOWED` | 正しいexplicit confirmationがある場合だけ許可 | `UNSUPPORTED_SCHEMA` | `STORAGE_READ_FAILED` |
+
+成功時の基本state遷移は、`addTerm` の `missing` / `valid` から `valid`、`setMasterEnabled(false)` の `missing` から `valid`、`partially_invalid` に対する通常mutationから `partially_invalid`、`deleteInvalidItems` の `partially_invalid` から `valid`、`resetInvalidSettings` の `whole_invalid` から `valid` です。
+
+#### 8.2 `addTerm`
+
+`missing` では次のversion 1 Storageを1回のwhole-object writeで作成します。新規itemの `id` はService Workerが生成した衝突のないUUID v4、`term` はvalidation済みcanonical termです。
+
+```text
+schemaVersion: 1
+masterEnabled: true
+items:
+  - id: generated UUID v4
+    term: NFKC + trim後のcanonical term
+    enabled: true
+```
+
+`valid` と `partially_invalid` では、少なくとも次をすべて満たす場合だけ許可します。
+
+- raw `items.length < 30`。30件なら `LIMIT_REACHED` とする。
+- 新termが登録pipelineのvalidationを通る。
+- usable itemsだけでなく、safe-readable invalid itemsを含むduplicate namespaceとも競合しない。
+- UUIDが既存全itemのvalid UUIDと衝突しない。
+- 新しいinvalidityを導入しない。
+- `partially_invalid` では既存invalid raw dataを変更しない。
+
+duplicateなら `DUPLICATE_TERM` とし、Storageを変更しません。
+
+#### 8.3 `setMasterEnabled`
+
+`missing` でdesired `true` の場合、semantic default `masterEnabled: true` がすでに成立しているため `NO_CHANGE` とし、readだけでStorageを作りません。desired `false` の場合だけ、次を作成します。
+
+```text
+schemaVersion: 1
+masterEnabled: false
+items: []
+```
+
+`valid` と `partially_invalid` ではstrict booleanのdesired値を設定し、成立済みなら `NO_CHANGE` とします。`partially_invalid` の既存invalid raw itemsはそのまま保持します。
+
+#### 8.4 `setItemEnabled`
+
+`valid` では、対象IDに対応する一意なusable valid itemだけを変更し、desired値が成立済みなら `NO_CHANGE`、不存在なら `ITEM_NOT_FOUND` とします。
+
+`partially_invalid` でも、対象が安全で一意なusable valid itemの場合だけ変更できます。対象IDがinvalid item、ID conflict、canonical term conflict、その他ambiguous itemに関係する場合は `ITEM_NOT_EDITABLE` とします。安全に一致するitemが存在しない場合は `ITEM_NOT_FOUND` です。
+
+#### 8.5 `deleteItem`
+
+`valid` と `partially_invalid` で、一意なusable valid itemだけを削除できます。`partially_invalid` のinvalid raw itemsと、削除対象以外のvalid itemのraw内容・相対順序を保持します。
+
+対象IDがinvalid / ambiguous / conflict itemに関係する場合は `ITEM_NOT_EDITABLE` とします。対象が存在しない場合は、`missing` を含め `NO_CHANGE` とします。
+
+#### 8.6 `deleteInvalidItems`
+
+Service Workerはoperation実行時にlatest Storageを再read・再classificationし、`partially_invalid` の場合だけmutationします。現在invalidと判定されたitemをすべて削除し、usable valid itemsの次を完全に維持します。
+
+- raw内容
+- `id`
+- `term`
+- `enabled`
+- 相対順序
+
+Optionsが送るitem index、古いinvalid count、古いsnapshot上のinvalid一覧を信用しません。削除後は `valid` Storageになることをpost-conditionとして要求し、満たさなければwriteせず `INTEGRITY_CHECK_FAILED` とします。
+
+`missing` と `valid` は `NO_CHANGE`、`whole_invalid` は `RECOVERY_NOT_ALLOWED`、`unsupported_schema` は `UNSUPPORTED_SCHEMA`、`read_error` は `STORAGE_READ_FAILED` です。
+
+#### 8.7 `resetInvalidSettings`
+
+Service Workerがoperation実行時のlatest Storageを `whole_invalid` と分類し、かつexplicit confirmation marker / valueが正しい場合だけ許可します。marker / valueの具体的なfield名は実装レビューで決めます。marker不正は `INVALID_REQUEST` です。
+
+成功時に変更するのは `distanceTermsSettings` だけで、次のvalid初期状態へresetします。
+
+```text
+schemaVersion: 1
+masterEnabled: true
+items: []
+```
+
+既存の `enabled`、`cushionSensitivity`、`uiLanguage` には触れません。`missing`、`valid`、`partially_invalid` は `RECOVERY_NOT_ALLOWED`、`unsupported_schema` は `UNSUPPORTED_SCHEMA`、`read_error` は `STORAGE_READ_FAILED` とします。
+
 ### 9. sender validation
 
 `distanceTermsSettings` mutationはOptionsページだけから許可します。少なくとも次を検証します。
@@ -713,7 +923,7 @@ message payload内のsender申告値を信用せず、`sender.tab` の有無だ�
 
 - IDはService Workerが `crypto.randomUUID()` でUUID v4として生成する。
 - OptionsはIDを生成せず、Optionsが提供する新規IDを信用しない。
-- 生成したUUIDが既存の全item IDと衝突した場合は再生成する。
+- 生成したUUIDが既存の全itemのうちvalid UUID v4として安全に読めるIDと衝突した場合は再生成する。invalid item内のvalid UUIDも対象とし、hexの大文字小文字を同一視して比較する。
 
 ### 11. FIFO mutation queue
 
@@ -804,13 +1014,27 @@ write成功後にresponseだけが失われる場合を考慮します。Options
 
 | operation | 収束済みと扱うdesired state |
 | --- | --- |
-| `addTerm` | 同じcanonical termが存在する |
+| `addTerm` | 下記のsafe convergence条件をすべて満たす |
 | `setItemEnabled` | 対象itemがdesired `enabled` 値である |
-| `setMasterEnabled` | `masterEnabled` がdesired値である |
+| `setMasterEnabled` | `masterEnabled` がdesired値である。`missing` + desired `true` はsemantic defaultが成立しているため収束済み |
 | `deleteItem` | 対象itemが存在しない |
 | `deleteInvalidItems` | invalid itemが残っていない |
 
 desired stateが成立していなければ、自動再送せず利用者様へ再操作を案内します。
+
+#### `addTerm` のsafe convergence条件
+
+`COMMUNICATION_FAILED` 等で `addTerm` responseを取得できなかった場合、OptionsはStorageを再readし、共通validator / classifierで再評価します。収束済みと扱うには、次をすべて満たす必要があります。
+
+1. Storage再readが成功している。
+2. stateが `valid` または `partially_invalid` である。
+3. request termのcanonical duplicate keyと一致するusable valid itemがちょうど1件存在する。
+4. そのitemの `enabled === true` である。
+5. 同じduplicate keyを持つ別のsafe-readable itemが存在せず、duplicate conflict状態ではない。
+
+同じtermを持つinvalid itemしか存在しない場合、duplicate conflictがある場合、usable valid itemが0件または一意でない場合、`enabled` が `true` でない場合、Storageを安全に再readできない場合は、成功相当としません。
+
+この確認は「今回のrequestがそのitemを作成したこと」の証明ではありません。利用者様が求めたdesired stateが安全に成立しているため、blind retryせず収束済みとして扱う、という意味です。「新規追加に成功した」と断定する必要がない場面では、desired stateがすでに成立している旨として扱います。
 
 `resetInvalidSettings` は破壊的操作のため、通信結果不明時のblind auto retryを絶対に行いません。Storage再read後の最新状態を表示し、必要なら改めてstrong confirmationを求めます。第一版ではpersistent request ID ledgerを導入しません。
 
@@ -1051,6 +1275,89 @@ Implementation-ready distance-term-only State 1 / 2026-09-08
 ```
 
 distance-only理由説明では、登録term自体を評価しないため、「危険」「強い」「不適切」「心に負荷がかかる可能性」「リスク」という評価語を使用しません。
+
+### Implementation-ready i18n copy / 2026-09-08
+
+この節に収録する文言を、2026-09-08時点で確定済みのexact copy contractとします。用途ごとに日本語と英語を必ずペアで実装します。件数の `8`、問題件数の `2`、削除対象の `仕事` / `Work` はruntime値の表示例であり、固定値ではありません。
+
+#### 通常Options
+
+| 用途 | 日本語 | English |
+| --- | --- | --- |
+| Section | 距離を置きたい言葉 | Words you'd like some distance from |
+| Description | 今は距離を置きたい言葉や短いフレーズ、ハッシュタグを登録できます。登録した言葉を含む投稿には、読む前にワンクッションを表示します。 | You can register words, short phrases, or hashtags you'd like some distance from for now. When a post contains registered text, a gentle cushion appears before you read it. |
+| Privacy | 登録した言葉はこのブラウザ内に保存され、外部送信されません。 | Registered text is stored in this browser and is not sent externally. |
+| Master | 登録した言葉によるワンクッション | Cushions for registered words |
+| Master note | この機能をOFFにしても、登録した言葉と個別のON/OFF設定は保持されます。 | Turning this feature off does not delete registered words or their individual ON/OFF settings. |
+| Add heading | 距離を置きたい言葉を追加 | Add a word, phrase, or hashtag |
+| Placeholder | 言葉・短いフレーズ・ハッシュタグ | Word, short phrase, or hashtag |
+| Add button | 追加する | Add |
+| Count example | 登録数：8 / 30 | Registered: 8 / 30 |
+| List | 登録した言葉 | Registered words |
+| Delete | 削除 | Delete |
+| Empty | まだ登録されている言葉はありません。今は距離を置きたい言葉があれば、上の入力欄から追加できます。 | No words are registered yet. If there's something you'd like some distance from for now, you can add it above. |
+| Max | 登録できるのは最大30件です。新しく追加する場合は、不要になった登録を削除してください。 | You can register up to 30 entries. To add another, delete an entry you no longer need. |
+
+#### validation / status
+
+| 用途 | 日本語 | English |
+| --- | --- | --- |
+| Length | 2〜50文字で入力してください。 | Enter between 2 and 50 characters. |
+| Internal safety length | 入力内容が長すぎます。より短い文字列で入力してください。 | This entry is too long. Please enter a shorter one. |
+| Line break / tab | 改行やタブを含めず、1行で入力してください。 | Enter the text on one line without line breaks or tabs. |
+| Forbidden | 登録できない文字が含まれています。画面上に表示されない一部の文字は登録できません。入力内容を確認してください。 | This entry contains characters that cannot be registered. Some non-visible characters cannot be registered. Please check your input. |
+| Duplicate | この言葉はすでに登録されています。 | This word is already registered. |
+| Add success | 距離を置きたい言葉を追加しました。 | Added to your registered words. |
+| Add failure | 登録できませんでした。入力内容はそのまま残しています。もう一度お試しください。 | Could not add this entry. Your input has been kept. Please try again. |
+| Setting change failure | 設定を変更できませんでした。もう一度お試しください。 | Could not change this setting. Please try again. |
+| Delete success | 登録した言葉を削除しました。 | Registered word deleted. |
+| Delete failure | 削除できませんでした。もう一度お試しください。 | Could not delete this entry. Please try again. |
+
+#### 通常削除dialog
+
+| 日本語 | English |
+| --- | --- |
+| 登録した言葉を削除しますか？<br><br>「仕事」を削除します。<br><br>登録から削除した言葉は元に戻せません。<br><br>必要に応じて、再登録していただく必要があります。<br><br>[キャンセル] [削除する] | Delete this registered word?<br><br>Delete “Work”.<br><br>Once deleted, this entry cannot be restored.<br><br>If you need it again, you'll need to register it again.<br><br>[Cancel] [Delete] |
+
+#### `partially_invalid`
+
+| 用途 | 日本語 | English |
+| --- | --- | --- |
+| State UI | 一部の登録設定を読み込めませんでした<br><br>読み込めた設定だけでワンクッションを続けています。保存されているデータは自動では変更していません。<br><br>問題のある登録：2件<br><br>[問題のある登録を削除する] | Some registered settings could not be read<br><br>Cushions will continue using the settings that could be read. Saved data has not been changed automatically.<br><br>Problem entries: 2<br><br>[Delete problem entries] |
+| Recovery success | 問題のある登録を削除しました。 | Problem entries deleted. |
+| `deleteInvalidItems` confirmation | 問題のある登録を削除しますか？<br><br>正常に読み込めなかった登録を削除します。<br><br>削除した登録は元に戻せません。<br><br>正常に読み込めている登録は削除されません。<br><br>[キャンセル] [問題のある登録を削除する] | Delete problem entries?<br><br>Entries that could not be read correctly will be deleted.<br><br>Deleted entries cannot be restored.<br><br>Entries that were read correctly will not be deleted.<br><br>[Cancel] [Delete problem entries] |
+
+#### `whole_invalid`
+
+| 用途 | 日本語 | English |
+| --- | --- | --- |
+| State UI | 「距離を置きたい言葉」の設定を読み込めませんでした<br><br>保存されている設定を安全に読み取れないため、登録した言葉によるワンクッションを一時停止しています。<br><br>既存の固定ルールによるワンクッションは引き続き動作します。<br><br>[「距離を置きたい言葉」の設定を初期化する] | Could not read “Words you'd like some distance from” settings<br><br>Cushions based on registered words are temporarily paused because the saved settings could not be read safely.<br><br>Cushions based on the existing fixed rules will continue to work.<br><br>[Reset these settings] |
+| Reset success | 「距離を置きたい言葉」の設定を初期化しました。 | “Words you'd like some distance from” settings have been reset. |
+| `resetInvalidSettings` confirmation | 「距離を置きたい言葉」の設定を初期化しますか？<br><br>登録した言葉と、その個別ON/OFF設定をすべて削除し、初期状態に戻します。<br><br>この操作は元に戻せません。<br><br>「ことばうけみまもり」のその他の設定は変更されません。<br><br>[キャンセル] [設定を初期化する] | Reset “Words you'd like some distance from” settings?<br><br>All registered words and their individual ON/OFF settings will be deleted, and this feature will return to its initial state.<br><br>This action cannot be undone.<br><br>Other Kotoba Uke Mimamori settings will not be changed.<br><br>[Cancel] [Reset settings] |
+
+#### `unsupported_schema` / `read_error`
+
+| state | 日本語 | English |
+| --- | --- | --- |
+| `unsupported_schema` | この設定形式は現在のバージョンでは読み込めません<br><br>「距離を置きたい言葉」の設定は変更せず、そのまま保持しています。<br><br>登録した言葉によるワンクッションは一時停止しています。 | This settings format cannot be read by the current version<br><br>Your “Words you'd like some distance from” settings have been left unchanged.<br><br>Cushions based on registered words are temporarily paused. |
+| `read_error` | 設定を読み込めませんでした<br><br>一時的に設定を読み込めない可能性があります。保存されている設定は変更していません。<br><br>[もう一度読み込む] | Could not load settings<br><br>This may be a temporary issue. Your saved settings have not been changed.<br><br>[Try again] |
+
+#### manual link
+
+| 用途 | 日本語 | English |
+| --- | --- | --- |
+| Link | 操作方法を見る | View the user manual |
+| 支援技術向け新規タブ説明 | 新しいタブで開きます | Opens in a new tab |
+
+#### distance-only State 1
+
+| 用途 | 日本語 | English |
+| --- | --- | --- |
+| Title | 読む前に、少しだけワンクッションを置きました | A gentle cushion before reading |
+| Body | この投稿には、あなたが登録した「距離を置きたい言葉」に一致する文字列が含まれているため、ワンクッションを表示しています。 | This cushion is shown because this post contains text matching something you registered under “Words you'd like some distance from.” |
+| Buttons | 内容を表示する<br>今は見ない | Show content<br>Not now |
+
+本節にないgeneric Recovery failure等は、behavior、focus、retry policy、data preservationだけが本ADRで確定済みです。過去の詳細設計でexact copyまで確定していないfallback文言を新たに正式仕様とせず、日本語・英語のexact copyは実装レビューで確定します。この未確定copyを理由に、確定済みの動作・安全境界を変更してはいけません。
 
 ### 24. ADR-0002 State 2との接続
 
@@ -1303,6 +1610,151 @@ pure domain
 - test runner対象
 - version `2.0.0` の整合
 
+#### 28.1 文字列とduplicateの重要境界
+
+- 保存時はNFKC + trim後の `term` にASCII caseを保持する。`Hello` は `Hello`、`HELLO` は `HELLO` として保存する。
+- 比較時だけASCII `A-Z` をcase-insensitiveにする。非ASCII文字へ独自case変換を適用しない。
+- grapheme countはNFKC + trim後に行う。
+- outer whitespaceをtrimし、internal whitespaceとconsecutive whitespaceを保持する。
+- `#topic` と `topic` を別termとして扱う。
+- 1 graphemeはreject、2 graphemesはaccept、50 graphemesはaccept、51 graphemesはrejectする。
+- ほかの条件を満たすfixtureで512 code pointsはaccept、513 code pointsはrejectする。
+- outer LF / CR / TABはtrim後のcanonical candidateが正常ならacceptする。
+- internal LF / CR / TABはrejectする。
+- trim後に残る各forbidden characterをrejectする。
+- forbidden characterを追加stripして別termとしてacceptしない。
+- ZWJ / ZWNJ、Arabic / Hebrew、combining marks、variation selectorsの許可境界を確認する。
+- emoji、combining sequence、ZWJ emojiをextended grapheme clusterとして正しく数える。
+- exact、NFKC equivalent、ASCII case difference、enabled / disabled間、safe-readable invalid termとのduplicateをrejectする。
+- containmentは許可し、`テスト` と `Xワンクッションテスト文字列` が共存できる。
+
+#### 28.2 Storage validator / classifier
+
+- rootがnon-object、`null`、Arrayの場合は `whole_invalid` とする。
+- `schemaVersion` missing、wrong type、non-integer、`0`、negativeは `whole_invalid` とする。
+- future integer versionは `unsupported_schema` とし、version 1構造としてmaster、items、unknown fieldsを深く解釈してcorruption判定しない。
+- `schemaVersion: 1` のunknown root fieldは `whole_invalid` とする。
+- `masterEnabled` のwrong typeをrejectし、`"true"` / `"false"` / `0` / `1` / `null` をbooleanとして受理しない。
+- `items` がArrayでなければ `whole_invalid` とする。
+- raw `items.length === 30` は、ほかの条件を満たせば許可する。`items.length === 31` は `whole_invalid` とする。
+- itemがnon-object、`null`、Array、field不足、unknown item fieldの場合、そのitemをinvalidとする。
+- item unknown fieldだけを理由にrootを `whole_invalid` へ格上げしない。
+- `id` がnon-string、malformed UUID、non-v4 UUID、RFC 4122 variant不正の場合、そのitemをinvalidとする。
+- uppercase / lowercase hexのvalid UUIDを受理し、read時に保存表記を書き換えない。
+- `enabled` のwrong typeをrejectし、`"false"` / `0` / `null` をbooleanとして受理しない。
+- NFKC + trimで別値になるnoncanonical stored termをinvalidとし、自動修正・writebackしない。
+- itemはinvalidでもtermがsafe-readableならduplicate keyを生成し、namespaceを占有する。
+- valid UUIDの重複に参加する全itemをusable itemsから除外し、winnerを選ばない。
+- canonical term重複に参加する全safe-readable itemをusable itemsから除外し、winnerを選ばない。
+- 全itemがinvalidでもrootがvalidなら `partially_invalid` とする。
+- usable valid itemsの登録順を維持する。
+- 同一fixtureに対し、Options、Content Script、Service Workerが同じstate、usable valid items、invalid items、conflict結果を得る。
+
+#### 28.3 Recoveryとoperation state matrix
+
+6状態と6 operationのmatrixについて、各cellの許可、拒否、`NO_CHANGE`、固定error code、write回数を確認します。特に次を必須とします。
+
+- `addTerm` の `missing` はversion 1 Storageを作成する。
+- `addTerm` の `partially_invalid` はraw件数、term、全safe-readable namespace、integrity条件を満たす場合だけ許可する。
+- raw 30件の `addTerm` は `LIMIT_REACHED` でwriteしない。
+- `setMasterEnabled(true)` の `missing` は `NO_CHANGE` でStorageを作らない。
+- `setMasterEnabled(false)` の `missing` は `masterEnabled: false` のversion 1 Storageを作る。
+- `setItemEnabled` の `missing` は `ITEM_NOT_FOUND` とする。
+- `partially_invalid` では一意なusable valid itemだけを変更できる。
+- invalid / ambiguous / conflict targetは `ITEM_NOT_EDITABLE` とする。
+- `deleteItem` の不存在は `NO_CHANGE` とする。
+- `deleteInvalidItems` の `missing` / `valid` は `NO_CHANGE` とする。
+- `deleteInvalidItems` は `partially_invalid` の場合だけmutationする。
+- `deleteInvalidItems` 後もsurvivorのraw内容、`id`、`term`、`enabled`、相対順序を維持する。
+- `deleteInvalidItems` 後は `valid` になる。
+- `resetInvalidSettings` はlatest stateが `whole_invalid` かつconfirmation markerが正しい場合だけ成功する。
+- `unsupported_schema` をresetしない。
+- `read_error` ではRecoveryせず `STORAGE_READ_FAILED` とする。
+- reset後も既存の `enabled`、`cushionSensitivity`、`uiLanguage` を変更しない。
+- confirmation marker不正は `INVALID_REQUEST` とする。
+- 成功mutationはexactly one whole-object `storage.set`、`NO_CHANGE` と拒否はwrite 0回とする。
+
+#### 28.4 Service Worker message
+
+- messageがnon-object。
+- `type` が不正。
+- `protocolVersion` が不正。
+- unknown operation。
+- top-level unknown field。
+- payload unknown field。
+- payload shape / typeが不正。
+- string / booleanの型不正。
+- `"false"` / `0` / `null` をbooleanとして受理しない。
+- 正しいOptions senderは許可する。
+- Content Script、Popup、別extensionのsenderをrejectする。
+- invalid `sender.url` / `sender.origin` をrejectする。
+- UUID collision時に再生成する。invalid item内のvalid UUIDとのcase-insensitive collisionも対象とする。
+- FIFO順序、各mutation開始後のlatest read、Lost Update防止。
+- storage read failure、storage write failure、integrity failure。
+- responseにterm、item、Storage、投稿本文、exception、stack、filename、schema詳細を含めない。
+
+#### 28.5 response loss
+
+`addTerm`:
+
+- invalid itemのsafe-readable termだけが存在する場合は収束済みとしない。
+- request keyに一致するusable valid itemがちょうど1件、`enabled === true`、同keyの別safe-readable itemなしの場合だけdesired state成立とする。
+- duplicate conflict、usable item 0件、usable item複数、`enabled !== true`、Storage再read失敗は収束済みとしない。
+- desired state成立は今回のrequestによる作成成功の証明ではないことを確認する。
+
+その他:
+
+- `setItemEnabled` は対象がdesired `enabled` 値なら収束済みとする。
+- `setMasterEnabled` はmasterがdesired値なら収束済みとする。`missing` + desired `true` もsemantic default成立として収束済みとする。
+- `deleteItem` は対象がabsentなら収束済みとする。
+- `deleteInvalidItems` はinvalid itemがなければ収束済みとする。
+- `resetInvalidSettings` はblind auto retryせず、再read後に必要ならfresh strong confirmationを求める。
+
+#### 28.6 Options / Accessibility
+
+- 0件、1件、複数件、30 / 30件を表示する。
+- 30件時はadd不可だが、delete、Master、individual switchを操作できる。
+- 30件でも全件表示し、古い登録を自動削除しない。
+- Master OFFでもadd、delete、individual switchを操作できる。
+- native button、checkbox-based switch、natural DOM Tab orderを使用し、positive `tabindex` を使わない。
+- dialog initial focusはCancel、Escapeはcancel、cancel後は操作元へfocusを戻す。
+- delete success時は新規登録inputへfocusする。
+- delete failure時はdialogを維持し、dialog内action付近へfocusを残す。
+- Recovery success / failure時も20節のfocus原則に従う。
+- light / dark双方で `:focus-visible` を確認する。
+- `aria-live="polite"` / `role="status"` の通知を確認する。
+- IME composition中のEnterではaddせず、composition終了後のEnterではaddできる。
+
+#### 28.7 Content / Overlay
+
+- fixed-only、distance-only、fixed + distance両方該当、no match。
+- fixed + distance両方に該当する場合、既存fixed State 1だけを表示する。
+- fixed rule成立時、spy等でdistance matcherが実際に呼ばれないことを確認する。
+- distance matcher failure / exception時もfixed protectionが継続する。
+- multiple posts、quote postで既存の投稿単位・引用元単位のprocessing unitを維持する。
+- distance matcherへraw `textContent` 専用経路を渡す。
+- 登録termの内部space 2個に対し、投稿space 2個はmatch、1個はno matchとする。
+- fixed-rule用 `normalizeExtractedText()` をdistance matcherへ流用しない。
+- distance-only State 1、Show content、Not nowを確認する。
+- Not now後はADR-0002 State 2を共通利用する。
+- matched term、ID、count、position、score、reason、category、guidance、fixed / distance由来を表示しない。
+- ADR-0002の既存保証を弱める目的で既存テストを書き換えない。
+
+#### 28.8 Manifest / package / distribution
+
+将来実装時に次を完了条件として確認します。
+
+- Manifest V3を維持する。
+- `background.service_worker` を正しく設定する。
+- existing `storage` permissionを維持する。
+- 不要permissionを追加しない。
+- `host_permissions` を追加しない。
+- Service Workerを配布ZIPへ含める。
+- 必要なshared moduleを配布ZIPへ含める。
+- 新規JavaScriptをsyntax check対象にする。
+- 新規testsをtest runner対象にする。
+- `manifest.json`、`package.json` 等のversionを `2.0.0` で整合させる。
+
 ### 29. 将来の実装完了条件
 
 ADR-0001の実装完了には、少なくとも次をすべて満たす必要があります。
@@ -1454,6 +1906,21 @@ stale snapshotによるLost Updateの余地があります。そのため、`dis
 | error codeの最終一覧 | Resolved。response contract節の固定code allowlistを使用する。 |
 | 30件表示時の具体的な折りたたみUI | Resolved。折りたたみなしで最大30件を登録順にすべて通常表示する。 |
 | 実装ファイル名とmodule名 | Open。責務境界は確定したが、具体的なファイル名とmodule分割は実装レビューで決める。 |
-| 詳細なテストケース | Resolved。テスト設計節にカテゴリと重要境界値を確定した。 |
+| 詳細なテストケース | 主要部分Resolved。主要テストカテゴリ・重要境界ケース・安全不変条件を確定した。実際の全test fileと全parameter組み合わせは実装レビューで確定する。 |
 
-`resetInvalidSettings` のexplicit confirmation markerの具体的なfield名も、strict payloadと曖昧なreset拒否という不変条件を守る範囲で実装レビュー時に決めます。
+今回のレビューで追加された設計論点の解決状況は次のとおりです。
+
+| 今回のレビュー論点 | 2026-09-08時点の解決状況 |
+| --- | --- |
+| Storage classification | Resolved。6状態の分類順序、root / itemのvalidity、conflict参加itemの扱い、および3コンポーネントで同一pure validator / classifierを共有する不変条件を確定した。 |
+| Recovery state matrix | Resolved。6 operation × 6 Storage stateの許可、拒否、no-op、error code、および成功時のstate遷移を確定した。 |
+| `addTerm` response loss | 主要方針Resolved。再read時のdesired-state convergence条件と、証明できない場合にblind retryしない安全境界を確定した。 |
+
+### Implementation review items as of 2026-09-08
+
+- 実装ファイル名、module名、および責務を維持した具体的なmodule分割
+- `resetInvalidSettings` のexplicit confirmation marker / valueの具体的なfield名
+- 本ADRでexact copyを確定していないgeneric Recovery failure等の日本語・英語fallback文言
+- 実際の全test fileと全parameter組み合わせ
+
+これらは、strict payload、曖昧なreset拒否、確定済みのbehavior / focus / retry policy / data preservation、および本ADRの安全不変条件を守る範囲で実装レビュー時に決めます。
