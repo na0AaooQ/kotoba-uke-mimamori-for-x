@@ -8,7 +8,8 @@ const reader = require('../distance-terms-reader');
 const {
   readDistanceTermsOptionsView,
   readDistanceTermsContentView,
-  readDistanceTermsMutationSnapshot
+  readDistanceTermsMutationSnapshot,
+  readDistanceTermsOptionsReconciliationSnapshot
 } = reader;
 
 const ID_A = '00000000-0000-4000-8000-000000000001';
@@ -50,6 +51,7 @@ test('公開APIが正式契約に一致する', async () => {
   assert.deepEqual(Object.keys(reader).sort(), [
     'readDistanceTermsContentView',
     'readDistanceTermsMutationSnapshot',
+    'readDistanceTermsOptionsReconciliationSnapshot',
     'readDistanceTermsOptionsView'
   ]);
   assert.equal(globalThis.kotobaUkeMimamoriDistanceTermsReader, reader);
@@ -79,6 +81,31 @@ test('Storage keyを指定してcore経由のOptions viewを返す', async () =>
     rawItemCount: 2
   });
   assert.deepEqual(calls, ['distanceTermsSettings']);
+});
+
+test('Options reconciliation snapshotはvalidな同一1回のreadからviewとclassificationだけを返す', async () => {
+  const first = validSettings([validItem(ID_A, '仕事', true)]);
+  const second = validSettings([validItem(ID_B, '休息', false)], false);
+  let readCount = 0;
+  useStorageGet(async () => {
+    readCount += 1;
+    return { distanceTermsSettings: readCount === 1 ? first : second };
+  });
+
+  const snapshot = await readDistanceTermsOptionsReconciliationSnapshot();
+
+  assert.equal(readCount, 1);
+  assert.deepEqual(Object.keys(snapshot).sort(), ['classification', 'view']);
+  assert.equal(Object.hasOwn(snapshot, 'rawValue'), false);
+  assert.deepEqual(snapshot.view, {
+    state: 'valid',
+    masterEnabled: true,
+    items: [{ id: ID_A, term: '仕事', enabled: true }],
+    invalidCount: 0,
+    rawItemCount: 1
+  });
+  assert.equal(snapshot.classification.state, 'valid');
+  assert.equal(snapshot.classification.usableItems[0].term, '仕事');
 });
 
 test('key absentだけをmissingとして既定Options viewへ投影する', async () => {
@@ -114,6 +141,50 @@ test('partially_invalidではusable itemだけをOptionsへ返す', async () => 
   const serialized = JSON.stringify(view);
   assert.equal(serialized.includes(invalidRawTerm), false);
   assert.equal(serialized.includes('RAW_SECRET'), false);
+});
+
+test('Options reconciliation snapshotはpartialのrich classificationを保ちviewをdata minimizationする', async () => {
+  const invalidRawTerm = 'SECRET\u200bINVALID';
+  useStorageGet(async () => ({
+    distanceTermsSettings: validSettings([
+      validItem(),
+      { id: ID_B, term: invalidRawTerm, enabled: 'true', secret: 'RAW_SECRET' }
+    ])
+  }));
+
+  const snapshot = await readDistanceTermsOptionsReconciliationSnapshot();
+
+  assert.deepEqual(snapshot.view, {
+    state: 'partially_invalid',
+    masterEnabled: true,
+    items: [{ id: ID_A, term: '仕事', enabled: true }],
+    invalidCount: 1,
+    rawItemCount: 2
+  });
+  assert.equal(snapshot.classification.state, 'partially_invalid');
+  assert.deepEqual(snapshot.classification.invalidItems, [
+    {
+      index: 1,
+      reasonCodes: ['INVALID_ITEM_FIELDS', 'INVALID_TERM', 'INVALID_ENABLED']
+    }
+  ]);
+  assert.equal(snapshot.classification.rawItemCount, 2);
+  assert.equal(snapshot.classification.usableItems[0].index, 0);
+  assert.equal(JSON.stringify(snapshot).includes(invalidRawTerm), false);
+  assert.equal(JSON.stringify(snapshot).includes('RAW_SECRET'), false);
+
+  for (const internalField of [
+    'index',
+    'reasonCodes',
+    'idKey',
+    'termKey',
+    'idKeyCounts',
+    'termKeyCounts',
+    'classification',
+    'rawValue'
+  ]) {
+    assert.equal(JSON.stringify(snapshot.view).includes(internalField), false);
+  }
 });
 
 test('Options viewへ内部index reason duplicate key等を漏らさない', async () => {
@@ -153,6 +224,49 @@ test('whole_invalid unsupported_schema read_errorはstateだけをOptionsへ返�
   assert.deepEqual(await readDistanceTermsOptionsView(), { state: 'read_error' });
 });
 
+test('Options reconciliation snapshotはmissing whole_invalid unsupported_schemaを正しく投影する', async () => {
+  const cases = [
+    [
+      {},
+      {
+        view: {
+          state: 'missing',
+          masterEnabled: true,
+          items: [],
+          invalidCount: 0,
+          rawItemCount: 0
+        },
+        classification: { state: 'missing' }
+      }
+    ],
+    [
+      { distanceTermsSettings: null },
+      {
+        view: { state: 'whole_invalid' },
+        classification: { state: 'whole_invalid' }
+      }
+    ],
+    [
+      { distanceTermsSettings: { schemaVersion: 2, future: true } },
+      {
+        view: { state: 'unsupported_schema' },
+        classification: { state: 'unsupported_schema', schemaVersion: 2 }
+      }
+    ]
+  ];
+
+  for (const [storageResult, expected] of cases) {
+    let readCount = 0;
+    useStorageGet(async () => {
+      readCount += 1;
+      return storageResult;
+    });
+
+    assert.deepEqual(await readDistanceTermsOptionsReconciliationSnapshot(), expected);
+    assert.equal(readCount, 1);
+  }
+});
+
 test('get rejectionと同期throwをread_errorへ縮退する', async () => {
   useStorageGet(async () => {
     throw new Error('rejected');
@@ -169,6 +283,34 @@ test('null primitive Array resolveをmissingでなくread_errorにする', async
   for (const value of [null, undefined, true, 1, 'result', []]) {
     useStorageGet(async () => value);
     assert.deepEqual(await readDistanceTermsOptionsView(), { state: 'read_error' });
+  }
+});
+
+test('Options reconciliation snapshotはget rejection throw 異常resolveを1回のread_errorへ縮退する', async () => {
+  const getImplementations = [
+    async () => {
+      throw new Error('rejected');
+    },
+    () => {
+      throw new Error('thrown');
+    },
+    ...[null, undefined, true, 1, 'result', []].map((value) => {
+      return async () => value;
+    })
+  ];
+
+  for (const implementation of getImplementations) {
+    let readCount = 0;
+    useStorageGet(() => {
+      readCount += 1;
+      return implementation();
+    });
+
+    assert.deepEqual(await readDistanceTermsOptionsReconciliationSnapshot(), {
+      view: { state: 'read_error' },
+      classification: { state: 'read_error' }
+    });
+    assert.equal(readCount, 1);
   }
 });
 
@@ -254,6 +396,32 @@ test('read_error Mutation snapshotはraw undefinedを返す', async () => {
   });
 });
 
+test('既存Options viewとreconciliation viewは全stateで同じprojection規則を使う', async () => {
+  const results = [
+    {},
+    { distanceTermsSettings: validSettings([validItem()]) },
+    {
+      distanceTermsSettings: validSettings([
+        validItem(),
+        { id: ID_B, term: 'INVALID\u200bTERM', enabled: true }
+      ])
+    },
+    { distanceTermsSettings: null },
+    { distanceTermsSettings: { schemaVersion: 2 } },
+    null
+  ];
+
+  for (const result of results) {
+    useStorageGet(async () => result);
+    const optionsView = await readDistanceTermsOptionsView();
+
+    useStorageGet(async () => result);
+    const reconciliationSnapshot = await readDistanceTermsOptionsReconciliationSnapshot();
+
+    assert.deepEqual(reconciliationSnapshot.view, optionsView);
+  }
+});
+
 test('projectionをfreezeするがraw Storageはdeep-freezeしない', async () => {
   const rawValue = validSettings([validItem()]);
   useStorageGet(async () => ({ distanceTermsSettings: rawValue }));
@@ -261,6 +429,7 @@ test('projectionをfreezeするがraw Storageはdeep-freezeしない', async () 
   const optionsView = await readDistanceTermsOptionsView();
   const contentView = await readDistanceTermsContentView();
   const mutationSnapshot = await readDistanceTermsMutationSnapshot();
+  const reconciliationSnapshot = await readDistanceTermsOptionsReconciliationSnapshot();
 
   assert.equal(Object.isFrozen(optionsView), true);
   assert.equal(Object.isFrozen(optionsView.items), true);
@@ -268,6 +437,11 @@ test('projectionをfreezeするがraw Storageはdeep-freezeしない', async () 
   assert.equal(Object.isFrozen(contentView), true);
   assert.equal(Object.isFrozen(contentView.terms), true);
   assert.equal(Object.isFrozen(mutationSnapshot), true);
+  assert.equal(Object.isFrozen(reconciliationSnapshot), true);
+  assert.equal(Object.isFrozen(reconciliationSnapshot.view), true);
+  assert.equal(Object.isFrozen(reconciliationSnapshot.view.items), true);
+  assert.equal(Object.isFrozen(reconciliationSnapshot.view.items[0]), true);
+  assert.equal(Object.isFrozen(reconciliationSnapshot.classification), true);
   assert.equal(Object.isFrozen(rawValue), false);
   assert.equal(Object.isFrozen(rawValue.items), false);
 });

@@ -69,6 +69,10 @@
   async function readDistanceTermsOptionsView() {
     const { classification } = await readDistanceTermsSnapshot();
 
+    return createOptionsView(classification);
+  }
+
+  function createOptionsView(classification) {
     if (classification.state === STATES.MISSING) {
       return Object.freeze({
         state: STATES.MISSING,
@@ -101,6 +105,15 @@
     });
   }
 
+  async function readDistanceTermsOptionsReconciliationSnapshot() {
+    const { classification } = await readDistanceTermsSnapshot();
+
+    return Object.freeze({
+      view: createOptionsView(classification),
+      classification
+    });
+  }
+
   async function readDistanceTermsContentView() {
     const { classification } = await readDistanceTermsSnapshot();
     let terms = [];
@@ -129,7 +142,8 @@
   const distanceTermsReader = Object.freeze({
     readDistanceTermsOptionsView,
     readDistanceTermsContentView,
-    readDistanceTermsMutationSnapshot
+    readDistanceTermsMutationSnapshot,
+    readDistanceTermsOptionsReconciliationSnapshot
   });
 
   if (typeof globalThis !== 'undefined') {

@@ -400,7 +400,7 @@ rich internal resultの代表schema:
 }
 ```
 
-- classificationはmutation判断に必要なrich internal resultであり、Options / Contentへそのまま渡しません。
+- classificationはmutation判断とOptionsのresponse-loss reconciliationに必要なrich internal resultです。通常のOptions view / Content viewへそのまま渡さず、Optionsでは7.5の専用snapshotを通じて一時的なcontrol-plane情報としてだけ使用します。
 - `invalidItems` にraw term、raw object、X post、URLを含めません。
 - root result、array、usable / invalid itemは可能な範囲でfreezeします。
 - raw Storage valueはclassificationへ埋め込まず、Mutation snapshotで別に扱います。
@@ -531,7 +531,8 @@ readerは `chrome.storage.local.get()` だけを使用し、`set()` またはrep
 globalThis.kotobaUkeMimamoriDistanceTermsReader = {
   readDistanceTermsOptionsView,
   readDistanceTermsContentView,
-  readDistanceTermsMutationSnapshot
+  readDistanceTermsMutationSnapshot,
+  readDistanceTermsOptionsReconciliationSnapshot
 }
 ```
 
@@ -592,7 +593,25 @@ globalThis.kotobaUkeMimamoriDistanceTermsReader = {
 }
 ```
 
-Service Workerだけが使用します。`rawValue` と `classification` は必ず同一Storage read由来です。missing / read errorでは `rawValue` は `undefined` です。reader生成projectionは可能な範囲でfreezeしますが、raw valueをdeep-freezeせず、mutationsがraw value自体を書き換えず新しい `nextValue` を作ります。
+Service Workerだけが使用し、Optionsからは使用しません。`rawValue` と `classification` は必ず同一Storage read由来です。missing / read errorでは `rawValue` は `undefined` です。reader生成projectionは可能な範囲でfreezeしますが、raw valueをdeep-freezeせず、mutationsがraw value自体を書き換えず新しい `nextValue` を作ります。
+
+### 7.5 Options reconciliation snapshot
+
+```text
+readDistanceTermsOptionsReconciliationSnapshot() -> {
+  view,
+  classification
+}
+```
+
+Optionsのresponse-loss reconciliation専用APIです。通常loadには `readDistanceTermsOptionsView()` を使用します。
+
+- privateの共通readを1回だけ実行し、`view` と `classification` を同じ `chrome.storage.local.get()` のsnapshotから生成します。別々のreadを組み合わせてはなりません。
+- `view` は7.2のOptions viewと同じ共有projectionを使用します。
+- `classification` はcoreの `classifyDistanceTermsSnapshot()` が生成した既存contractを改変せず、`isDistanceTermsDesiredStateSatisfied(...)` の判定にだけ使用します。
+- resultに `rawValue`、raw `distanceTermsSettings`、Storage result objectを含めません。
+- classificationはUI表示、DOM / dataset、Storage、runtime message、consoleへ出さず、long-lived controller stateとして保持しません。
+- result root、`view`、`view.items`、itemを可能な範囲でfreezeし、classificationはcoreのfreeze contractを維持します。
 
 ## 8. `distance-matcher.js`
 
@@ -991,11 +1010,14 @@ communication failure:
 ```text
 sendMessage responseなし
 → activity = reconciling
-→ latest Storage read
-→ isDistanceTermsDesiredStateSatisfied(...)
-→ latest viewを描画
+→ readDistanceTermsOptionsReconciliationSnapshot()
+→ same-read由来の { view, classification }
+→ classificationをisDistanceTermsDesiredStateSatisfied(...)へ渡す
+→ same-read由来のviewを描画
 → automatic retryなし
 ```
+
+reconciliationではOptions view APIとMutation snapshot APIを別々に呼ばず、1回のStorage readから得た専用snapshotを使用します。classificationはdesired-state判定後に保持せず、描画には同じsnapshotの `view` だけを使用します。
 
 - desired state成立時はblind retryせず、通常の成功後と同じfocus規則を使います。
 - desired state不成立でも自動再送せず、利用者様が必要なら再操作します。
@@ -1654,7 +1676,7 @@ Real browser
 | --- | --- |
 | `tests/distance-terms-core.test.js` | canonicalization、Unicode境界、Storage schema、6 states、duplicate / conflict |
 | `tests/distance-terms-mutations.test.js` | 6 states × 6 operations、raw preservation、`NO_CHANGE`、post-condition、desired-state確認 |
-| `tests/distance-terms-reader.test.js` | Storage read、missing / read_error、3 consumer views、data minimization |
+| `tests/distance-terms-reader.test.js` | Storage read、missing / read_error、4公開API、Options reconciliation same-read、data minimization |
 | `tests/distance-matcher.test.js` | raw本文normalization、ASCII fold、literal substring、boolean-only |
 | `tests/distance-terms-service-worker.test.js` | message / sender / FIFO / latest read / UUID / write / error response |
 | `tests/distance-terms-options.test.js` | UI state machine、dialog、focus、IME、Recovery、response loss |
@@ -1714,6 +1736,9 @@ reader:
 - Options viewにinvalid raw dataを含めない。
 - Content viewを `{ terms: [...] }` だけに限定。
 - Mutation snapshotのraw / classificationが同一read由来。
+- Options reconciliation snapshotが1回のStorage readから `{ view, classification }` だけを返す。
+- Options reconciliation snapshotに `rawValue` とinvalid raw dataを含めず、`view` が通常Options viewと同じprojectionを使用する。
+- Options reconciliation snapshotのclassificationがcore由来のrich contractとfreezeを維持する。
 
 matcher:
 
