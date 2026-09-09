@@ -204,6 +204,313 @@
         color: #9f1239;
       }
 
+      .distance-terms-card {
+        margin-top: 20px;
+      }
+
+      .distance-terms-title,
+      .distance-terms-subtitle,
+      .distance-terms-state-title {
+        margin: 0;
+        color: #7c4a03;
+        line-height: 1.45;
+      }
+
+      .distance-terms-title {
+        font-size: 22px;
+      }
+
+      .distance-terms-subtitle,
+      .distance-terms-state-title {
+        font-size: 18px;
+      }
+
+      .distance-terms-description,
+      .distance-terms-privacy,
+      .distance-terms-master-note,
+      .distance-terms-empty,
+      .distance-terms-maximum,
+      .distance-terms-state-copy {
+        color: #57534e;
+      }
+
+      .distance-terms-description {
+        margin: 8px 0 0;
+      }
+
+      .distance-terms-privacy {
+        margin: 12px 0 0;
+        font-weight: 600;
+      }
+
+      .distance-terms-manual-link {
+        display: inline-block;
+        margin-top: 10px;
+        border-radius: 4px;
+        color: #9a5b05;
+        font-weight: 700;
+        text-underline-offset: 3px;
+      }
+
+      .distance-terms-manual-link:focus-visible,
+      .distance-terms-button:focus-visible,
+      .distance-terms-secondary-button:focus-visible,
+      .distance-terms-delete-button:focus-visible,
+      .distance-terms-dialog button:focus-visible,
+      .distance-terms-add-input:focus-visible,
+      .distance-terms-item-checkbox:focus-visible {
+        outline: 2px solid rgba(245, 158, 11, 0.86);
+        outline-offset: 3px;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .distance-terms-storage-state,
+      .distance-terms-management {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(245, 158, 11, 0.2);
+      }
+
+      .distance-terms-state-card {
+        padding: 16px;
+        border: 1px solid rgba(180, 83, 9, 0.3);
+        border-radius: 8px;
+        background: rgba(255, 247, 237, 0.86);
+      }
+
+      .distance-terms-state-copy {
+        margin: 10px 0 0;
+      }
+
+      .distance-terms-state-card button {
+        margin-top: 14px;
+      }
+
+      .distance-terms-master {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 0 12px;
+        align-items: start;
+      }
+
+      .distance-terms-master .options-checkbox {
+        margin-top: 4px;
+      }
+
+      .distance-terms-master-label {
+        font-weight: 700;
+      }
+
+      .distance-terms-master-note {
+        grid-column: 2;
+        margin: 4px 0 0;
+        font-size: 14px;
+      }
+
+      .distance-terms-add {
+        margin-top: 22px;
+      }
+
+      .distance-terms-add-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .distance-terms-add-input {
+        min-width: 0;
+        min-height: 44px;
+        padding: 9px 11px;
+        border: 1px solid rgba(245, 158, 11, 0.38);
+        border-radius: 8px;
+        background: #ffffff;
+        color: #3f3f46;
+        font: inherit;
+      }
+
+      .distance-terms-button,
+      .distance-terms-secondary-button,
+      .distance-terms-delete-button,
+      .distance-terms-dialog button {
+        min-height: 42px;
+        padding: 8px 14px;
+        border: 1px solid rgba(180, 83, 9, 0.42);
+        border-radius: 8px;
+        background: #d97706;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .distance-terms-secondary-button,
+      .distance-terms-delete-button,
+      .distance-terms-dialog-cancel {
+        background: #ffffff;
+        color: #8a4d04;
+      }
+
+      .distance-terms-button:disabled,
+      .distance-terms-secondary-button:disabled,
+      .distance-terms-delete-button:disabled,
+      .distance-terms-dialog button:disabled,
+      .distance-terms-add-input:disabled,
+      .distance-terms-item-checkbox:disabled,
+      .distance-terms-master input:disabled {
+        cursor: not-allowed;
+        opacity: 0.58;
+      }
+
+      .distance-terms-validation {
+        grid-column: 1 / -1;
+        margin: 0;
+        color: #9f1239;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .distance-terms-maximum {
+        margin: 10px 0 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .distance-terms-count {
+        margin: 22px 0 0;
+        color: #7c4a03;
+        font-weight: 700;
+      }
+
+      .distance-terms-list-title {
+        margin-top: 16px;
+      }
+
+      .distance-terms-empty {
+        margin: 10px 0 0;
+      }
+
+      .distance-terms-list {
+        display: grid;
+        gap: 10px;
+        margin: 10px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .distance-terms-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid rgba(245, 158, 11, 0.28);
+        border-radius: 8px;
+        background: rgba(255, 247, 237, 0.54);
+      }
+
+      .distance-terms-item--off {
+        border-style: dashed;
+        border-color: rgba(120, 113, 108, 0.5);
+        background: rgba(231, 229, 228, 0.58);
+      }
+
+      .distance-terms-item-toggle {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        min-width: 0;
+      }
+
+      .distance-terms-item-checkbox {
+        width: 20px;
+        height: 20px;
+        margin: 4px 0 0;
+        accent-color: #d97706;
+      }
+
+      .distance-terms-item-copy {
+        display: grid;
+        min-width: 0;
+      }
+
+      .distance-terms-item-term {
+        overflow-wrap: anywhere;
+        font-weight: 650;
+      }
+
+      .distance-terms-item-status {
+        color: #57534e;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .distance-terms-status {
+        min-height: 1.7em;
+        margin: 14px 0 0;
+        color: #7c4a03;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .distance-terms-dialog {
+        width: min(calc(100% - 32px), 520px);
+        max-height: calc(100vh - 32px);
+        padding: 22px;
+        overflow: auto;
+        border: 1px solid rgba(245, 158, 11, 0.42);
+        border-radius: 10px;
+        background: #ffffff;
+        color: #3f3f46;
+        box-shadow: 0 18px 48px rgba(67, 34, 10, 0.24);
+      }
+
+      .distance-terms-dialog::backdrop {
+        background: rgba(41, 37, 36, 0.54);
+      }
+
+      .distance-terms-dialog-title {
+        margin: 0;
+        color: #7c4a03;
+        font-size: 20px;
+        line-height: 1.45;
+      }
+
+      .distance-terms-dialog p {
+        margin: 12px 0 0;
+      }
+
+      .distance-terms-dialog-error {
+        min-height: 1.7em;
+        color: #9f1239;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .distance-terms-dialog-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 18px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
       @media (prefers-color-scheme: dark) {
         body {
           background: #18130f;
@@ -249,6 +556,91 @@
 
         .options-status[data-state="error"] {
           color: #fecdd3;
+        }
+
+        .distance-terms-title,
+        .distance-terms-subtitle,
+        .distance-terms-state-title,
+        .distance-terms-count,
+        .distance-terms-status,
+        .distance-terms-dialog-title {
+          color: #fde68a;
+        }
+
+        .distance-terms-description,
+        .distance-terms-privacy,
+        .distance-terms-master-note,
+        .distance-terms-empty,
+        .distance-terms-maximum,
+        .distance-terms-state-copy,
+        .distance-terms-item-status {
+          color: #f8efd7;
+        }
+
+        .distance-terms-manual-link {
+          color: #fcd34d;
+        }
+
+        .distance-terms-storage-state,
+        .distance-terms-management {
+          border-color: rgba(251, 191, 36, 0.22);
+        }
+
+        .distance-terms-state-card,
+        .distance-terms-item {
+          border-color: rgba(251, 191, 36, 0.3);
+          background: rgba(67, 56, 38, 0.58);
+        }
+
+        .distance-terms-item--off {
+          border-color: rgba(214, 211, 209, 0.48);
+          background: rgba(68, 64, 60, 0.78);
+        }
+
+        .distance-terms-add-input,
+        .distance-terms-secondary-button,
+        .distance-terms-delete-button,
+        .distance-terms-dialog-cancel {
+          border-color: rgba(251, 191, 36, 0.34);
+          background: rgba(67, 56, 38, 0.76);
+          color: #f8efd7;
+        }
+
+        .distance-terms-dialog {
+          border-color: rgba(251, 191, 36, 0.36);
+          background: #2b231b;
+          color: #f8efd7;
+          box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+        }
+
+        .distance-terms-validation,
+        .distance-terms-dialog-error {
+          color: #fecdd3;
+        }
+      }
+
+      @media (max-width: 520px) {
+        body {
+          padding: 14px;
+        }
+
+        .options-card {
+          padding: 18px;
+        }
+
+        .distance-terms-add-form,
+        .distance-terms-item {
+          grid-template-columns: 1fr;
+        }
+
+        .distance-terms-button,
+        .distance-terms-delete-button {
+          width: 100%;
+        }
+
+        .distance-terms-dialog-actions {
+          display: grid;
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -343,10 +735,169 @@
 
         <p id="options-status" class="options-status" role="status" aria-live="polite"></p>
       </section>
+
+      <section
+        id="distance-terms-section"
+        class="options-card distance-terms-card"
+        aria-labelledby="distance-terms-title"
+        aria-busy="true"
+      >
+        <h2 id="distance-terms-title" class="distance-terms-title" tabindex="-1"></h2>
+        <p id="distance-terms-description" class="distance-terms-description"></p>
+        <p id="distance-terms-privacy" class="distance-terms-privacy"></p>
+        <a
+          id="distance-terms-manual-link"
+          class="distance-terms-manual-link"
+          href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/manual.html"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <span id="distance-terms-manual-label"></span>
+          <span aria-hidden="true"> ↗</span>
+          <span id="distance-terms-manual-new-tab" class="visually-hidden"></span>
+        </a>
+
+        <div id="distance-terms-storage-state" class="distance-terms-storage-state"></div>
+
+        <div id="distance-terms-management" class="distance-terms-management" hidden>
+          <label class="distance-terms-master">
+            <input
+              id="distance-terms-master-enabled"
+              class="options-checkbox"
+              type="checkbox"
+            />
+            <span id="distance-terms-master-label" class="distance-terms-master-label"></span>
+            <span id="distance-terms-master-note" class="distance-terms-master-note"></span>
+          </label>
+
+          <div class="distance-terms-add">
+            <h3 id="distance-terms-add-heading" class="distance-terms-subtitle"></h3>
+            <form id="distance-terms-add-form" class="distance-terms-add-form">
+              <input
+                id="distance-terms-add-input"
+                class="distance-terms-add-input"
+                type="text"
+                aria-labelledby="distance-terms-add-heading"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button
+                id="distance-terms-add-button"
+                class="distance-terms-button"
+                type="submit"
+              ></button>
+              <p
+                id="distance-terms-validation"
+                class="distance-terms-validation"
+                hidden
+              ></p>
+            </form>
+            <p id="distance-terms-maximum" class="distance-terms-maximum" hidden></p>
+          </div>
+
+          <p id="distance-terms-count" class="distance-terms-count"></p>
+          <h3
+            id="distance-terms-list-heading"
+            class="distance-terms-subtitle distance-terms-list-title"
+          ></h3>
+          <p id="distance-terms-empty" class="distance-terms-empty"></p>
+          <ul id="distance-terms-list" class="distance-terms-list"></ul>
+        </div>
+
+        <p
+          id="distance-terms-status"
+          class="distance-terms-status"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        ></p>
+      </section>
     </main>
+
+    <dialog
+      id="distance-terms-delete-dialog"
+      class="distance-terms-dialog"
+      aria-labelledby="distance-terms-delete-dialog-title"
+      aria-describedby="distance-terms-delete-dialog-target distance-terms-delete-dialog-cannot-restore distance-terms-delete-dialog-reregister"
+    >
+      <h2 id="distance-terms-delete-dialog-title" class="distance-terms-dialog-title"></h2>
+      <p id="distance-terms-delete-dialog-target"></p>
+      <p id="distance-terms-delete-dialog-cannot-restore"></p>
+      <p id="distance-terms-delete-dialog-reregister"></p>
+      <p
+        id="distance-terms-delete-dialog-error"
+        class="distance-terms-dialog-error"
+        role="status"
+        aria-live="polite"
+      ></p>
+      <div class="distance-terms-dialog-actions">
+        <button
+          id="distance-terms-delete-dialog-cancel"
+          class="distance-terms-dialog-cancel"
+          type="button"
+        ></button>
+        <button id="distance-terms-delete-dialog-action" type="button"></button>
+      </div>
+    </dialog>
+
+    <dialog
+      id="distance-terms-invalid-dialog"
+      class="distance-terms-dialog"
+      aria-labelledby="distance-terms-invalid-dialog-title"
+      aria-describedby="distance-terms-invalid-dialog-body distance-terms-invalid-dialog-cannot-restore distance-terms-invalid-dialog-keeps-valid"
+    >
+      <h2 id="distance-terms-invalid-dialog-title" class="distance-terms-dialog-title"></h2>
+      <p id="distance-terms-invalid-dialog-body"></p>
+      <p id="distance-terms-invalid-dialog-cannot-restore"></p>
+      <p id="distance-terms-invalid-dialog-keeps-valid"></p>
+      <p
+        id="distance-terms-invalid-dialog-error"
+        class="distance-terms-dialog-error"
+        role="status"
+        aria-live="polite"
+      ></p>
+      <div class="distance-terms-dialog-actions">
+        <button
+          id="distance-terms-invalid-dialog-cancel"
+          class="distance-terms-dialog-cancel"
+          type="button"
+        ></button>
+        <button id="distance-terms-invalid-dialog-action" type="button"></button>
+      </div>
+    </dialog>
+
+    <dialog
+      id="distance-terms-reset-dialog"
+      class="distance-terms-dialog"
+      aria-labelledby="distance-terms-reset-dialog-title"
+      aria-describedby="distance-terms-reset-dialog-body distance-terms-reset-dialog-cannot-undo distance-terms-reset-dialog-other-settings"
+    >
+      <h2 id="distance-terms-reset-dialog-title" class="distance-terms-dialog-title"></h2>
+      <p id="distance-terms-reset-dialog-body"></p>
+      <p id="distance-terms-reset-dialog-cannot-undo"></p>
+      <p id="distance-terms-reset-dialog-other-settings"></p>
+      <p
+        id="distance-terms-reset-dialog-error"
+        class="distance-terms-dialog-error"
+        role="status"
+        aria-live="polite"
+      ></p>
+      <div class="distance-terms-dialog-actions">
+        <button
+          id="distance-terms-reset-dialog-cancel"
+          class="distance-terms-dialog-cancel"
+          type="button"
+        ></button>
+        <button id="distance-terms-reset-dialog-action" type="button"></button>
+      </div>
+    </dialog>
 
     <script src="i18n.js"></script>
     <script src="settings.js"></script>
+    <script src="distance-terms-core.js"></script>
+    <script src="distance-terms-mutations.js"></script>
+    <script src="distance-terms-reader.js"></script>
+    <script src="distance-terms-options.js"></script>
     <script src="options.js"></script>
   </body>
 </html>

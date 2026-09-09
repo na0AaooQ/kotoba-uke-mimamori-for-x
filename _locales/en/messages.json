@@ -163,5 +163,179 @@
   },
   "optionSaveError": {
     "message": "Could not save settings."
+  },
+  "distanceTermsSectionTitle": {
+    "message": "Words you'd like some distance from"
+  },
+  "distanceTermsDescription": {
+    "message": "You can register words, short phrases, or hashtags you'd like some distance from for now. When a post contains registered text, a gentle cushion appears before you read it."
+  },
+  "distanceTermsPrivacy": {
+    "message": "Registered text is stored in this browser and is not sent externally."
+  },
+  "distanceTermsMasterLabel": {
+    "message": "Cushions for registered words"
+  },
+  "distanceTermsMasterNote": {
+    "message": "Turning this feature off does not delete registered words or their individual ON/OFF settings."
+  },
+  "distanceTermsAddHeading": {
+    "message": "Add a word, phrase, or hashtag"
+  },
+  "distanceTermsAddPlaceholder": {
+    "message": "Word, short phrase, or hashtag"
+  },
+  "distanceTermsAddButton": {
+    "message": "Add"
+  },
+  "distanceTermsCount": {
+    "message": "Registered: $1 / 30"
+  },
+  "distanceTermsListHeading": {
+    "message": "Registered words"
+  },
+  "distanceTermsDeleteButton": {
+    "message": "Delete"
+  },
+  "distanceTermsEmpty": {
+    "message": "No words are registered yet. If there's something you'd like some distance from for now, you can add it above."
+  },
+  "distanceTermsMaximum": {
+    "message": "You can register up to 30 entries. To add another, delete an entry you no longer need."
+  },
+  "distanceTermsItemStateOn": {
+    "message": "ON"
+  },
+  "distanceTermsItemStateOff": {
+    "message": "OFF"
+  },
+  "distanceTermsValidationLength": {
+    "message": "Enter between 2 and 50 characters."
+  },
+  "distanceTermsValidationSafetyLength": {
+    "message": "This entry is too long. Please enter a shorter one."
+  },
+  "distanceTermsValidationLineBreakTab": {
+    "message": "Enter the text on one line without line breaks or tabs."
+  },
+  "distanceTermsValidationForbidden": {
+    "message": "This entry contains characters that cannot be registered. Some non-visible characters cannot be registered. Please check your input."
+  },
+  "distanceTermsValidationDuplicate": {
+    "message": "This word is already registered."
+  },
+  "distanceTermsAddSuccess": {
+    "message": "Added to your registered words."
+  },
+  "distanceTermsAddFailure": {
+    "message": "Could not add this entry. Your input has been kept. Please try again."
+  },
+  "distanceTermsSettingChangeFailure": {
+    "message": "Could not change this setting. Please try again."
+  },
+  "distanceTermsDeleteSuccess": {
+    "message": "Registered word deleted."
+  },
+  "distanceTermsDeleteFailure": {
+    "message": "Could not delete this entry. Please try again."
+  },
+  "distanceTermsDeleteDialogTitle": {
+    "message": "Delete this registered word?"
+  },
+  "distanceTermsDeleteDialogTarget": {
+    "message": "Delete “$1”."
+  },
+  "distanceTermsDeleteDialogCannotRestore": {
+    "message": "Once deleted, this entry cannot be restored."
+  },
+  "distanceTermsDeleteDialogReregister": {
+    "message": "If you need it again, you'll need to register it again."
+  },
+  "distanceTermsCancel": {
+    "message": "Cancel"
+  },
+  "distanceTermsDeleteDialogAction": {
+    "message": "Delete"
+  },
+  "distanceTermsPartialTitle": {
+    "message": "Some registered settings could not be read"
+  },
+  "distanceTermsPartialBody": {
+    "message": "Cushions will continue using the settings that could be read. Saved data has not been changed automatically."
+  },
+  "distanceTermsPartialCount": {
+    "message": "Problem entries: $1"
+  },
+  "distanceTermsPartialAction": {
+    "message": "Delete problem entries"
+  },
+  "distanceTermsPartialSuccess": {
+    "message": "Problem entries deleted."
+  },
+  "distanceTermsPartialDialogTitle": {
+    "message": "Delete problem entries?"
+  },
+  "distanceTermsPartialDialogBody": {
+    "message": "Entries that could not be read correctly will be deleted."
+  },
+  "distanceTermsPartialDialogCannotRestore": {
+    "message": "Deleted entries cannot be restored."
+  },
+  "distanceTermsPartialDialogKeepsValid": {
+    "message": "Entries that were read correctly will not be deleted."
+  },
+  "distanceTermsWholeInvalidTitle": {
+    "message": "Could not read “Words you'd like some distance from” settings"
+  },
+  "distanceTermsWholeInvalidBody": {
+    "message": "Cushions based on registered words are temporarily paused because the saved settings could not be read safely."
+  },
+  "distanceTermsWholeInvalidFixedRules": {
+    "message": "Cushions based on the existing fixed rules will continue to work."
+  },
+  "distanceTermsWholeInvalidAction": {
+    "message": "Reset these settings"
+  },
+  "distanceTermsResetSuccess": {
+    "message": "“Words you'd like some distance from” settings have been reset."
+  },
+  "distanceTermsResetDialogTitle": {
+    "message": "Reset “Words you'd like some distance from” settings?"
+  },
+  "distanceTermsResetDialogBody": {
+    "message": "All registered words and their individual ON/OFF settings will be deleted, and this feature will return to its initial state."
+  },
+  "distanceTermsResetDialogCannotUndo": {
+    "message": "This action cannot be undone."
+  },
+  "distanceTermsResetDialogOtherSettings": {
+    "message": "Other Kotoba Uke Mimamori settings will not be changed."
+  },
+  "distanceTermsResetDialogAction": {
+    "message": "Reset settings"
+  },
+  "distanceTermsUnsupportedTitle": {
+    "message": "This settings format cannot be read by the current version"
+  },
+  "distanceTermsUnsupportedBody": {
+    "message": "Your “Words you'd like some distance from” settings have been left unchanged."
+  },
+  "distanceTermsUnsupportedPaused": {
+    "message": "Cushions based on registered words are temporarily paused."
+  },
+  "distanceTermsReadErrorTitle": {
+    "message": "Could not load settings"
+  },
+  "distanceTermsReadErrorBody": {
+    "message": "This may be a temporary issue. Your saved settings have not been changed."
+  },
+  "distanceTermsRetry": {
+    "message": "Try again"
+  },
+  "distanceTermsManualLink": {
+    "message": "View the user manual"
+  },
+  "distanceTermsRecoveryUnknown": {
+    "message": "We couldn't confirm that the action was completed. The latest saved settings have been reloaded. Check the current state and try again if needed."
   }
 }
