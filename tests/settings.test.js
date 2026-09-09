@@ -128,7 +128,12 @@ async function testSaveSettingsStoresAllowedSettingsOnly() {
       score: 100,
       matchedRules: ['internal.rule'],
       categories: ['internal_category'],
-      reasons: ['内部理由']
+      reasons: ['内部理由'],
+      distanceTermsSettings: {
+        schemaVersion: 1,
+        masterEnabled: true,
+        items: [{ id: 'do-not-copy', term: '保存経路を分離する言葉', enabled: true }]
+      }
     });
 
     assert.deepEqual(result, {

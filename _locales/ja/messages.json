@@ -163,5 +163,179 @@
   },
   "optionSaveError": {
     "message": "設定の保存に失敗しました。"
+  },
+  "distanceTermsSectionTitle": {
+    "message": "距離を置きたい言葉"
+  },
+  "distanceTermsDescription": {
+    "message": "今は距離を置きたい言葉や短いフレーズ、ハッシュタグを登録できます。登録した言葉を含む投稿には、読む前にワンクッションを表示します。"
+  },
+  "distanceTermsPrivacy": {
+    "message": "登録した言葉はこのブラウザ内に保存され、外部送信されません。"
+  },
+  "distanceTermsMasterLabel": {
+    "message": "登録した言葉によるワンクッション"
+  },
+  "distanceTermsMasterNote": {
+    "message": "この機能をOFFにしても、登録した言葉と個別のON/OFF設定は保持されます。"
+  },
+  "distanceTermsAddHeading": {
+    "message": "距離を置きたい言葉を追加"
+  },
+  "distanceTermsAddPlaceholder": {
+    "message": "言葉・短いフレーズ・ハッシュタグ"
+  },
+  "distanceTermsAddButton": {
+    "message": "追加する"
+  },
+  "distanceTermsCount": {
+    "message": "登録数：$1 / 30"
+  },
+  "distanceTermsListHeading": {
+    "message": "登録した言葉"
+  },
+  "distanceTermsDeleteButton": {
+    "message": "削除"
+  },
+  "distanceTermsEmpty": {
+    "message": "まだ登録されている言葉はありません。今は距離を置きたい言葉があれば、上の入力欄から追加できます。"
+  },
+  "distanceTermsMaximum": {
+    "message": "登録できるのは最大30件です。新しく追加する場合は、不要になった登録を削除してください。"
+  },
+  "distanceTermsItemStateOn": {
+    "message": "ON"
+  },
+  "distanceTermsItemStateOff": {
+    "message": "OFF"
+  },
+  "distanceTermsValidationLength": {
+    "message": "2〜50文字で入力してください。"
+  },
+  "distanceTermsValidationSafetyLength": {
+    "message": "入力内容が長すぎます。より短い文字列で入力してください。"
+  },
+  "distanceTermsValidationLineBreakTab": {
+    "message": "改行やタブを含めず、1行で入力してください。"
+  },
+  "distanceTermsValidationForbidden": {
+    "message": "登録できない文字が含まれています。画面上に表示されない一部の文字は登録できません。入力内容を確認してください。"
+  },
+  "distanceTermsValidationDuplicate": {
+    "message": "この言葉はすでに登録されています。"
+  },
+  "distanceTermsAddSuccess": {
+    "message": "距離を置きたい言葉を追加しました。"
+  },
+  "distanceTermsAddFailure": {
+    "message": "登録できませんでした。入力内容はそのまま残しています。もう一度お試しください。"
+  },
+  "distanceTermsSettingChangeFailure": {
+    "message": "設定を変更できませんでした。もう一度お試しください。"
+  },
+  "distanceTermsDeleteSuccess": {
+    "message": "登録した言葉を削除しました。"
+  },
+  "distanceTermsDeleteFailure": {
+    "message": "削除できませんでした。もう一度お試しください。"
+  },
+  "distanceTermsDeleteDialogTitle": {
+    "message": "登録した言葉を削除しますか？"
+  },
+  "distanceTermsDeleteDialogTarget": {
+    "message": "「$1」を削除します。"
+  },
+  "distanceTermsDeleteDialogCannotRestore": {
+    "message": "登録から削除した言葉は元に戻せません。"
+  },
+  "distanceTermsDeleteDialogReregister": {
+    "message": "必要に応じて、再登録していただく必要があります。"
+  },
+  "distanceTermsCancel": {
+    "message": "キャンセル"
+  },
+  "distanceTermsDeleteDialogAction": {
+    "message": "削除する"
+  },
+  "distanceTermsPartialTitle": {
+    "message": "一部の登録設定を読み込めませんでした"
+  },
+  "distanceTermsPartialBody": {
+    "message": "読み込めた設定だけでワンクッションを続けています。保存されているデータは自動では変更していません。"
+  },
+  "distanceTermsPartialCount": {
+    "message": "問題のある登録：$1件"
+  },
+  "distanceTermsPartialAction": {
+    "message": "問題のある登録を削除する"
+  },
+  "distanceTermsPartialSuccess": {
+    "message": "問題のある登録を削除しました。"
+  },
+  "distanceTermsPartialDialogTitle": {
+    "message": "問題のある登録を削除しますか？"
+  },
+  "distanceTermsPartialDialogBody": {
+    "message": "正常に読み込めなかった登録を削除します。"
+  },
+  "distanceTermsPartialDialogCannotRestore": {
+    "message": "削除した登録は元に戻せません。"
+  },
+  "distanceTermsPartialDialogKeepsValid": {
+    "message": "正常に読み込めている登録は削除されません。"
+  },
+  "distanceTermsWholeInvalidTitle": {
+    "message": "「距離を置きたい言葉」の設定を読み込めませんでした"
+  },
+  "distanceTermsWholeInvalidBody": {
+    "message": "保存されている設定を安全に読み取れないため、登録した言葉によるワンクッションを一時停止しています。"
+  },
+  "distanceTermsWholeInvalidFixedRules": {
+    "message": "既存の固定ルールによるワンクッションは引き続き動作します。"
+  },
+  "distanceTermsWholeInvalidAction": {
+    "message": "「距離を置きたい言葉」の設定を初期化する"
+  },
+  "distanceTermsResetSuccess": {
+    "message": "「距離を置きたい言葉」の設定を初期化しました。"
+  },
+  "distanceTermsResetDialogTitle": {
+    "message": "「距離を置きたい言葉」の設定を初期化しますか？"
+  },
+  "distanceTermsResetDialogBody": {
+    "message": "登録した言葉と、その個別ON/OFF設定をすべて削除し、初期状態に戻します。"
+  },
+  "distanceTermsResetDialogCannotUndo": {
+    "message": "この操作は元に戻せません。"
+  },
+  "distanceTermsResetDialogOtherSettings": {
+    "message": "「ことばうけみまもり」のその他の設定は変更されません。"
+  },
+  "distanceTermsResetDialogAction": {
+    "message": "設定を初期化する"
+  },
+  "distanceTermsUnsupportedTitle": {
+    "message": "この設定形式は現在のバージョンでは読み込めません"
+  },
+  "distanceTermsUnsupportedBody": {
+    "message": "「距離を置きたい言葉」の設定は変更せず、そのまま保持しています。"
+  },
+  "distanceTermsUnsupportedPaused": {
+    "message": "登録した言葉によるワンクッションは一時停止しています。"
+  },
+  "distanceTermsReadErrorTitle": {
+    "message": "設定を読み込めませんでした"
+  },
+  "distanceTermsReadErrorBody": {
+    "message": "一時的に設定を読み込めない可能性があります。保存されている設定は変更していません。"
+  },
+  "distanceTermsRetry": {
+    "message": "もう一度読み込む"
+  },
+  "distanceTermsManualLink": {
+    "message": "操作方法を見る"
+  },
+  "distanceTermsRecoveryUnknown": {
+    "message": "操作を完了したことを確認できませんでした。保存されている最新の設定を読み直しました。現在の状態を確認して、必要に応じてもう一度お試しください。"
   }
 }

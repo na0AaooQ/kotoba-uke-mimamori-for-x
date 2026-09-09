@@ -36,7 +36,13 @@ function initializeOptionsPage(
   return settingsApi
     .loadSettings()
     .then(async (settings) => {
-      await applyOptionsSettings(currentDocument, elements, settings, runtimeApi);
+      const localization = await applyOptionsSettings(
+        currentDocument,
+        elements,
+        settings,
+        runtimeApi
+      );
+      initializeDistanceTermsController(currentDocument, runtimeApi, localization);
       elements.enabledCheckbox.addEventListener('change', () => {
         saveOptionSettings(elements, settingsApi, currentDocument, runtimeApi);
       });
@@ -54,6 +60,10 @@ function initializeOptionsPage(
     .catch(() => {
       applyLocalizedMessages(currentDocument);
       setStatusMessage(elements.statusMessage, 'optionSaveError', true);
+      initializeDistanceTermsController(currentDocument, runtimeApi, {
+        localeMessages: undefined,
+        resolvedLanguage: getFallbackResolvedLanguage()
+      });
 
       return false;
     });
@@ -68,6 +78,7 @@ async function applyOptionsSettings(currentDocument, elements, settings, runtime
   applyLocalizedMessages(currentDocument, localeMessages);
   applyDocumentLanguage(currentDocument, resolvedLanguage);
   applySettingsToElements(elements, settings);
+  updateDistanceTermsLocalization({ localeMessages, resolvedLanguage });
 
   return { localeMessages, resolvedLanguage };
 }
@@ -243,20 +254,85 @@ function getI18nApi() {
   return globalThis.kotobaUkeMimamoriI18n ?? {};
 }
 
-function getLocalizedMessage(key, localeMessages) {
+function getLocalizedMessage(key, localeMessages, substitutions) {
   const i18n = getI18nApi();
   const localeMessage =
-    typeof i18n.getLocaleMessage === 'function' ? i18n.getLocaleMessage(localeMessages, key) : '';
+    typeof i18n.getLocaleMessage === 'function'
+      ? i18n.getLocaleMessage(localeMessages, key, substitutions)
+      : '';
 
   if (localeMessage) {
     return localeMessage;
   }
 
   if (typeof i18n.getMessage === 'function') {
-    return i18n.getMessage(key);
+    return i18n.getMessage(key, substitutions);
   }
 
   return key;
+}
+
+function createDistanceTermsLocalization({ localeMessages, resolvedLanguage }) {
+  return Object.freeze({
+    resolvedLanguage: resolvedLanguage === 'ja' ? 'ja' : 'en',
+    getMessage(key, substitutions) {
+      return getLocalizedMessage(key, localeMessages, substitutions);
+    }
+  });
+}
+
+function initializeDistanceTermsController(currentDocument, runtimeApi, localization) {
+  const distanceTermsOptions = getDistanceTermsOptionsApi();
+
+  if (typeof distanceTermsOptions.initializeDistanceTermsOptions !== 'function') {
+    return;
+  }
+
+  try {
+    const initialization = distanceTermsOptions.initializeDistanceTermsOptions({
+      document: currentDocument,
+      runtimeApi,
+      localization: createDistanceTermsLocalization(localization)
+    });
+
+    Promise.resolve(initialization).catch(() => {});
+  } catch (_error) {
+    // The existing three settings remain usable when the independent distance section fails.
+  }
+}
+
+function updateDistanceTermsLocalization(localization) {
+  const distanceTermsOptions = getDistanceTermsOptionsApi();
+
+  if (typeof distanceTermsOptions.updateDistanceTermsOptionsLocalization !== 'function') {
+    return;
+  }
+
+  try {
+    distanceTermsOptions.updateDistanceTermsOptionsLocalization(
+      createDistanceTermsLocalization(localization)
+    );
+  } catch (_error) {
+    // Localization failure in the distance section does not affect the existing settings.
+  }
+}
+
+function getDistanceTermsOptionsApi() {
+  return globalThis.kotobaUkeMimamoriDistanceTermsOptions ?? {};
+}
+
+function getFallbackResolvedLanguage() {
+  const i18n = getI18nApi();
+
+  if (typeof i18n.resolveUiLanguage === 'function') {
+    try {
+      return i18n.resolveUiLanguage(DEFAULT_UI_LANGUAGE);
+    } catch (_error) {
+      return 'en';
+    }
+  }
+
+  return 'en';
 }
 
 function getExtensionVersion(runtimeApi = globalThis.chrome?.runtime) {
@@ -288,10 +364,12 @@ if (typeof module !== 'undefined') {
     applyLocalizedMessages,
     applyOptionsSettings,
     applySettingsToElements,
+    createDistanceTermsLocalization,
     getExtensionVersion,
     getOptionElements,
     getSelectedUiLanguage,
     initializeOptionsPage,
+    initializeDistanceTermsController,
     saveOptionSettings,
     setStatusMessage
   };

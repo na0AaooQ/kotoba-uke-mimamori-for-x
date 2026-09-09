@@ -41,8 +41,10 @@ async function runTests() {
   testApplyExtensionVersion();
   testGetExtensionVersionFallsBackWhenUnavailable();
   await testInitializeOptionsPageLoadsSafeInitialState();
+  await testDistanceControllerFailureDoesNotBlockExistingSettings();
   await testSaveOptionSettingsStoresThreeSensitivityValues();
   await testLanguageChangeUpdatesOptionsImmediatelyAndKeepsOtherSettings();
+  await testLanguageChangeUpdatesDistanceLocalization();
   await testSaveOptionSettingsShowsErrorMessage();
 
   console.log('All options tests passed.');
@@ -131,6 +133,36 @@ async function testInitializeOptionsPageLoadsSafeInitialState() {
     assert.equal(fakeDocument.enabledCheckbox.checked, false);
     assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'standard');
     assert.equal(fakeDocument.uiLanguageSelect.value, 'auto');
+  });
+}
+
+async function testDistanceControllerFailureDoesNotBlockExistingSettings() {
+  await withI18n(async () => {
+    await withDistanceTermsOptions(
+      {
+        initializeDistanceTermsOptions() {
+          throw new Error('Independent distance controller failed');
+        }
+      },
+      async () => {
+        const fakeDocument = createFakeDocument();
+        const result = await initializeOptionsPage(fakeDocument, {
+          loadSettings: async () => ({
+            enabled: true,
+            cushionSensitivity: 'high',
+            uiLanguage: 'ja'
+          }),
+          saveSettings: async (settings) => settings
+        });
+
+        assert.equal(result, true);
+        assert.equal(fakeDocument.enabledCheckbox.checked, true);
+        assert.equal(fakeDocument.uiLanguageSelect.value, 'ja');
+        assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'high');
+        assert.notEqual(fakeDocument.enabledCheckbox.disabled, true);
+        assert.notEqual(fakeDocument.uiLanguageSelect.disabled, true);
+      }
+    );
   });
 }
 
@@ -228,6 +260,38 @@ async function testLanguageChangeUpdatesOptionsImmediatelyAndKeepsOtherSettings(
       {}
     );
     assert.equal(fakeDocument.uiLanguageSelect.value, 'en');
+  });
+}
+
+async function testLanguageChangeUpdatesDistanceLocalization() {
+  await withI18n(async () => {
+    const localizationUpdates = [];
+
+    await withDistanceTermsOptions(
+      {
+        updateDistanceTermsOptionsLocalization(localization) {
+          localizationUpdates.push(localization);
+        }
+      },
+      async () => {
+        const fakeDocument = createFakeDocument();
+        const elements = getInteractiveElements(fakeDocument);
+
+        await applyOptionsSettings(
+          fakeDocument,
+          elements,
+          { enabled: false, cushionSensitivity: 'standard', uiLanguage: 'en' },
+          {}
+        );
+
+        assert.equal(localizationUpdates.length, 1);
+        assert.equal(localizationUpdates[0].resolvedLanguage, 'en');
+        assert.equal(
+          localizationUpdates[0].getMessage('optionDisplayLanguage'),
+          'Display language'
+        );
+      }
+    );
   });
 }
 
@@ -376,6 +440,26 @@ async function withI18n(callback) {
       delete globalThis.kotobaUkeMimamoriI18n;
     } else {
       globalThis.kotobaUkeMimamoriI18n = previousI18n;
+    }
+  }
+}
+
+async function withDistanceTermsOptions(distanceTermsOptions, callback) {
+  const hadDistanceTermsOptions = Object.hasOwn(
+    globalThis,
+    'kotobaUkeMimamoriDistanceTermsOptions'
+  );
+  const previousDistanceTermsOptions = globalThis.kotobaUkeMimamoriDistanceTermsOptions;
+
+  globalThis.kotobaUkeMimamoriDistanceTermsOptions = distanceTermsOptions;
+
+  try {
+    await callback();
+  } finally {
+    if (hadDistanceTermsOptions) {
+      globalThis.kotobaUkeMimamoriDistanceTermsOptions = previousDistanceTermsOptions;
+    } else {
+      delete globalThis.kotobaUkeMimamoriDistanceTermsOptions;
     }
   }
 }

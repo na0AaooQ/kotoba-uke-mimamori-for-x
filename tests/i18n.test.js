@@ -19,6 +19,66 @@ const REQUIRED_GUIDANCE_KEYS = Object.freeze([
   'cushionGuidanceTendencyDirectedStrongLanguage',
   'cushionGuidanceTendencyPossiblyPressuringLanguage'
 ]);
+const REQUIRED_DISTANCE_OPTIONS_KEYS = Object.freeze([
+  'distanceTermsSectionTitle',
+  'distanceTermsDescription',
+  'distanceTermsPrivacy',
+  'distanceTermsMasterLabel',
+  'distanceTermsMasterNote',
+  'distanceTermsAddHeading',
+  'distanceTermsAddPlaceholder',
+  'distanceTermsAddButton',
+  'distanceTermsCount',
+  'distanceTermsListHeading',
+  'distanceTermsDeleteButton',
+  'distanceTermsEmpty',
+  'distanceTermsMaximum',
+  'distanceTermsItemStateOn',
+  'distanceTermsItemStateOff',
+  'distanceTermsValidationLength',
+  'distanceTermsValidationSafetyLength',
+  'distanceTermsValidationLineBreakTab',
+  'distanceTermsValidationForbidden',
+  'distanceTermsValidationDuplicate',
+  'distanceTermsAddSuccess',
+  'distanceTermsAddFailure',
+  'distanceTermsSettingChangeFailure',
+  'distanceTermsDeleteSuccess',
+  'distanceTermsDeleteFailure',
+  'distanceTermsDeleteDialogTitle',
+  'distanceTermsDeleteDialogTarget',
+  'distanceTermsDeleteDialogCannotRestore',
+  'distanceTermsDeleteDialogReregister',
+  'distanceTermsCancel',
+  'distanceTermsDeleteDialogAction',
+  'distanceTermsPartialTitle',
+  'distanceTermsPartialBody',
+  'distanceTermsPartialCount',
+  'distanceTermsPartialAction',
+  'distanceTermsPartialSuccess',
+  'distanceTermsPartialDialogTitle',
+  'distanceTermsPartialDialogBody',
+  'distanceTermsPartialDialogCannotRestore',
+  'distanceTermsPartialDialogKeepsValid',
+  'distanceTermsWholeInvalidTitle',
+  'distanceTermsWholeInvalidBody',
+  'distanceTermsWholeInvalidFixedRules',
+  'distanceTermsWholeInvalidAction',
+  'distanceTermsResetSuccess',
+  'distanceTermsResetDialogTitle',
+  'distanceTermsResetDialogBody',
+  'distanceTermsResetDialogCannotUndo',
+  'distanceTermsResetDialogOtherSettings',
+  'distanceTermsResetDialogAction',
+  'distanceTermsUnsupportedTitle',
+  'distanceTermsUnsupportedBody',
+  'distanceTermsUnsupportedPaused',
+  'distanceTermsReadErrorTitle',
+  'distanceTermsReadErrorBody',
+  'distanceTermsRetry',
+  'distanceTermsManualLink',
+  'distanceTermsRecoveryUnknown'
+]);
 const REQUIRED_STATE_2_MESSAGES = Object.freeze({
   ja: Object.freeze({
     cushionDismissedMessage: '今は読まないようにしました。',
@@ -56,6 +116,8 @@ async function runTests() {
   testPopupCompactSensitivitySummaryMessages();
   testRequiredGuidanceMessagesExist();
   testRequiredState2MessagesMatchFinalCopy();
+  testRequiredDistanceOptionsMessagesExist();
+  testDistanceOptionsMessagesMatchFinalCopy();
   testRequiredEnglishMessagesExist();
   testEnglishMessagesAvoidStrongPhrases();
 
@@ -260,6 +322,51 @@ function testRequiredState2MessagesMatchFinalCopy() {
       assert.equal(messages[key]?.message, expectedMessage);
     }
   }
+}
+
+function testRequiredDistanceOptionsMessagesExist() {
+  for (const locale of ['ja', 'en']) {
+    const messages = readLocaleMessages(locale);
+
+    for (const key of REQUIRED_DISTANCE_OPTIONS_KEYS) {
+      assert.equal(typeof messages[key]?.message, 'string', `${locale}: ${key}`);
+      assert.notEqual(messages[key].message.trim(), '', `${locale}: ${key}`);
+    }
+  }
+}
+
+function testDistanceOptionsMessagesMatchFinalCopy() {
+  const jaMessages = readLocaleMessages('ja');
+  const enMessages = readLocaleMessages('en');
+
+  assert.equal(jaMessages.distanceTermsSectionTitle.message, '距離を置きたい言葉');
+  assert.equal(
+    jaMessages.distanceTermsDescription.message,
+    '今は距離を置きたい言葉や短いフレーズ、ハッシュタグを登録できます。登録した言葉を含む投稿には、読む前にワンクッションを表示します。'
+  );
+  assert.equal(
+    jaMessages.distanceTermsPrivacy.message,
+    '登録した言葉はこのブラウザ内に保存され、外部送信されません。'
+  );
+  assert.equal(jaMessages.distanceTermsCount.message, '登録数：$1 / 30');
+  assert.equal(
+    jaMessages.distanceTermsRecoveryUnknown.message,
+    '操作を完了したことを確認できませんでした。保存されている最新の設定を読み直しました。現在の状態を確認して、必要に応じてもう一度お試しください。'
+  );
+  assert.equal(enMessages.distanceTermsSectionTitle.message, "Words you'd like some distance from");
+  assert.equal(
+    enMessages.distanceTermsDescription.message,
+    "You can register words, short phrases, or hashtags you'd like some distance from for now. When a post contains registered text, a gentle cushion appears before you read it."
+  );
+  assert.equal(
+    enMessages.distanceTermsPrivacy.message,
+    'Registered text is stored in this browser and is not sent externally.'
+  );
+  assert.equal(enMessages.distanceTermsCount.message, 'Registered: $1 / 30');
+  assert.equal(
+    enMessages.distanceTermsRecoveryUnknown.message,
+    "We couldn't confirm that the action was completed. The latest saved settings have been reloaded. Check the current state and try again if needed."
+  );
 }
 
 function testEnglishMessagesAvoidStrongPhrases() {
