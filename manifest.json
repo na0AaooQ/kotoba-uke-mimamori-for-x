@@ -21,6 +21,9 @@
     }
   },
   "options_page": "options.html",
+  "background": {
+    "service_worker": "distance-terms-service-worker.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://x.com/*", "https://twitter.com/*"],

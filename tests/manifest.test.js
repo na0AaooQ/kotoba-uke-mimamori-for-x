@@ -24,8 +24,10 @@ function runTests() {
   testActionDefaultIconsAreConfigured();
   testIconFilesExist();
   testOptionsPageIsConfigured();
+  testClassicDistanceTermsServiceWorkerIsConfigured();
   testOnlyStoragePermissionIsRequested();
   testHostPermissionsAreNotRequested();
+  testExternalConnectionsAreNotConfigured();
   testOnlyLocaleMessagesAreWebAccessibleFromX();
   testContentScriptLoadingOrderIsPreserved();
   testSettingsScriptLoadsBeforeContentScript();
@@ -81,6 +83,16 @@ function testOptionsPageIsConfigured() {
   assert.equal(manifest.options_page, 'options.html');
 }
 
+function testClassicDistanceTermsServiceWorkerIsConfigured() {
+  const manifest = readManifest();
+
+  assert.deepEqual(manifest.background, {
+    service_worker: 'distance-terms-service-worker.js'
+  });
+  assert.equal(Object.hasOwn(manifest.background, 'type'), false);
+  assert.equal(fs.existsSync(path.join(__dirname, '..', manifest.background.service_worker)), true);
+}
+
 function testOnlyStoragePermissionIsRequested() {
   const manifest = readManifest();
 
@@ -91,6 +103,12 @@ function testHostPermissionsAreNotRequested() {
   const manifest = readManifest();
 
   assert.equal(Object.hasOwn(manifest, 'host_permissions'), false);
+}
+
+function testExternalConnectionsAreNotConfigured() {
+  const manifest = readManifest();
+
+  assert.equal(Object.hasOwn(manifest, 'externally_connectable'), false);
 }
 
 function testOnlyLocaleMessagesAreWebAccessibleFromX() {
