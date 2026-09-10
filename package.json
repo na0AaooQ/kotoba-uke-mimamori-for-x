@@ -1,15 +1,15 @@
 {
   "name": "kotoba-uke-mimamori-for-x",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワンクッション」のソースコード管理リポジトリ",
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "test": "node tests/risk-detector.test.js && node tests/cushion-guidance.test.js && node tests/cushion-guidance-integration.test.js && node tests/i18n.test.js && node tests/docs.test.js && node tests/docs-theme.test.js && node tests/manifest.test.js && node tests/settings.test.js && node tests/options.test.js && node tests/popup.test.js && node tests/content.test.js && node tests/overlay.test.js",
+    "test": "node tests/distance-terms-core.test.js && node tests/distance-terms-mutations.test.js && node tests/distance-terms-reader.test.js && node tests/distance-terms-service-worker.test.js && node tests/distance-terms-options.test.js && node tests/distance-matcher.test.js && node tests/risk-detector.test.js && node tests/cushion-guidance.test.js && node tests/cushion-guidance-integration.test.js && node tests/i18n.test.js && node tests/docs.test.js && node tests/docs-theme.test.js && node tests/manifest.test.js && node tests/settings.test.js && node tests/options.test.js && node tests/popup.test.js && node tests/content.test.js && node tests/overlay.test.js",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "check:syntax": "node --check risk-detector.js && node --check cushion-guidance.js && node --check i18n.js && node --check settings.js && node --check options.js && node --check popup.js && node --check overlay.js && node --check content.js && node --check docs/assets/js/theme-switcher.js && node --check tests/risk-detector.test.js && node --check tests/cushion-guidance.test.js && node --check tests/cushion-guidance-integration.test.js && node --check tests/i18n.test.js && node --check tests/docs.test.js && node --check tests/docs-theme.test.js && node --check tests/manifest.test.js && node --check tests/settings.test.js && node --check tests/options.test.js && node --check tests/popup.test.js && node --check tests/content.test.js && node --check tests/overlay.test.js",
+    "check:syntax": "node --check distance-terms-core.js && node --check distance-terms-mutations.js && node --check distance-terms-reader.js && node --check distance-terms-service-worker.js && node --check distance-terms-options.js && node --check distance-matcher.js && node --check risk-detector.js && node --check cushion-guidance.js && node --check i18n.js && node --check settings.js && node --check options.js && node --check popup.js && node --check overlay.js && node --check content.js && node --check docs/assets/js/theme-switcher.js && node --check tests/distance-terms-core.test.js && node --check tests/distance-terms-mutations.test.js && node --check tests/distance-terms-reader.test.js && node --check tests/distance-terms-service-worker.test.js && node --check tests/distance-terms-options.test.js && node --check tests/distance-matcher.test.js && node --check tests/risk-detector.test.js && node --check tests/cushion-guidance.test.js && node --check tests/cushion-guidance-integration.test.js && node --check tests/i18n.test.js && node --check tests/docs.test.js && node --check tests/docs-theme.test.js && node --check tests/manifest.test.js && node --check tests/settings.test.js && node --check tests/options.test.js && node --check tests/popup.test.js && node --check tests/content.test.js && node --check tests/overlay.test.js",
     "check": "npm run check:syntax && npm test && npm run lint && npm run format:check"
   },
   "keywords": [

@@ -51,6 +51,12 @@ PACKAGE_ITEMS=(
   "risk-detector.js"
   "cushion-guidance.js"
   "i18n.js"
+  "distance-terms-core.js"
+  "distance-terms-mutations.js"
+  "distance-terms-reader.js"
+  "distance-matcher.js"
+  "distance-terms-options.js"
+  "distance-terms-service-worker.js"
   "overlay.js"
   "content.js"
 )

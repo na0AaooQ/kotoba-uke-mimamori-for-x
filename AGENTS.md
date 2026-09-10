@@ -122,9 +122,25 @@ MVPでは、以下を実装しないでください。
 
 設定値の保存には `chrome.storage.local` を使用してください。
 
-`chrome.storage.local` に保存してよいのは、ユーザーが明示的に選択した設定値のみです。現在のMVPでは、拡張機能の有効 / 無効を示す `enabled`、ワンクッションの表示されやすさを示す `cushionSensitivity`、表示言語を示す `uiLanguage` の3つに限定してください。
+`chrome.storage.local` に保存してよいのは、ユーザーが明示的に選択した設定値と、それを安全に管理するための最小限の情報だけです。既存の `enabled`、`cushionSensitivity`、`uiLanguage` は既存のread / write pathを変更せず、`settings.js` で管理してください。
+
+「距離を置きたい言葉」は、既存3設定へ統合せず、独立したtop-level key `distanceTermsSettings` として管理してください。そのwriteはManifest V3 Service Workerだけに限定するSingle Writerを維持し、Options / Content Scriptから直接writeしてはいけません。Options / Content Script / Service Workerのreadは共通validator / classifierを使用し、readだけでrepair、型変換、補完、削除、default write、writebackを行ってはいけません。
 
 投稿本文、判定結果、閲覧履歴、ユーザーID、投稿URL、`score`、`matchedRules`、`categories`、`reasons`、`riskLevel`、`shouldCushion`、`guidance`、`strengthKey`、`tendencyKeys` は保存しないでください。これらを Chrome Storage、Local Storage、IndexedDB、DOM data 属性へ保存したり、外部送信したりしないでください。
+
+### ADR-0001「距離を置きたい言葉」の安全境界
+
+ADR-0001の安全上・意味上の不変条件を最優先し、具体的なmodule、API、Storage、message、UI、test契約は `design/distance-terms-implementation-design.md` を正本として参照してください。実装都合で不変条件を変更する必要が生じた場合は、コードだけを変更せずADRレビューへ戻ってください。
+
+- distance termsは利用者自身のセルフケア設定であり、危険語・悪い語判定ではありません。登録語を善悪、危険度、投稿者の人格評価へ利用しないでください。
+- distance matchをfixed ruleのscore、reason、category、guidanceへ統合せず、fixed-firstを維持してください。fixed ruleでワンクッション表示が確定した場合はdistance matcherを実行しません。
+- matched term、matched ID、matched count、match position、fixed / distance由来等をDOM、data属性、Overlay、runtime responseへ保存・露出しないでください。どの登録語がどの投稿に一致したかという利用履歴も保存しません。
+- 投稿本文、登録語、match結果を外部送信しません。analytics、telemetry、外部AI、外部API、外部serverを追加しないでください。
+- `distanceTermsSettings` のSingle Writerを維持し、read時の自動repair / writebackとresponse消失時のblind retryを行わないでください。
+- 不要なpermission、`host_permissions`、`externally_connectable`、`onMessageExternal`を追加しないでください。
+- distance専用のState 2を作らず、ADR-0002の既存State 2をfixed / distanceで共通利用してください。
+- 登録内容から利用者の精神状態、思想、属性等を推定しないでください。
+- 自動block、mute、reportを行わないでください。
 
 `content.js` の本番動作は、ユーザーが明示的に `enabled=true` にした場合のみ有効にしてください。初期値は `enabled=false` とし、`enabled=false` では表示変更・ぼかし・ワンクッションUI・候補属性付与を行わないでください。
 
@@ -599,7 +615,9 @@ AGENTS.md を更新すべき変更:
 現在のフェーズ:
 
 ```text
-Chrome Web Store正式版 v1.1.0を公開済み。MVPのDOM解析・ワンクッション適用を実装済み。
+Chrome Web Store公開版はv1.1.0。
+リポジトリ上では、ADR-0001「距離を置きたい言葉」を含む次期v2.0.0 release candidateを整備中。
+Phase 5時点ではPhase 6 Full verificationとv2.0.0のChrome Web Store releaseは未完了。
 ```
 
 次の予定:
@@ -609,3 +627,5 @@ Chrome Web Store正式版 v1.1.0を公開済み。MVPのDOM解析・ワンクッ
 - 誤判定・未検出の傾向確認
 - UI文言や表示タイミングの改善検討
 - 必要に応じたルールベース判定の慎重な調整
+- ADR-0001 v2.0.0 release candidateのPhase 6 Full verification
+- Phase 6後のManual用Optionsスクリーンショット更新と公開前確認
