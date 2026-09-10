@@ -268,14 +268,7 @@ function createCushionElement(result = {}, handlers = {}, localization = null) {
   ensureCushionStyles();
 
   const safeHandlers = handlers && typeof handlers === 'object' ? handlers : {};
-
-  const container = document.createElement('section');
-  container.className = 'kum-cushion';
-  container.setAttribute('role', 'group');
-
-  const title = document.createElement('p');
-  title.className = 'kum-cushion__title';
-  title.textContent = getLocalizedMessage('cushionTitle', localization);
+  const container = createBaseCushionElement(localization);
 
   const body = document.createElement('p');
   body.className = 'kum-cushion__body';
@@ -287,10 +280,52 @@ function createCushionElement(result = {}, handlers = {}, localization = null) {
 
   const guidance = createCushionGuidanceElement(result?.guidance, localization);
 
+  container.append(body, reason);
+
+  if (guidance) {
+    container.append(guidance);
+  }
+
+  appendState1Actions(container, safeHandlers, localization);
+
+  return container;
+}
+
+function createDistanceCushionElement(handlers = {}, localization = null) {
+  ensureCushionStyles();
+
+  const safeHandlers = handlers && typeof handlers === 'object' ? handlers : {};
+  const container = createBaseCushionElement(localization);
+
+  const body = document.createElement('p');
+  body.className = 'kum-cushion__body';
+  body.textContent = getLocalizedMessage('distanceCushionBody', localization);
+
+  container.append(body);
+  appendState1Actions(container, safeHandlers, localization);
+
+  return container;
+}
+
+function createBaseCushionElement(localization) {
+  const container = document.createElement('section');
+  container.className = 'kum-cushion';
+  container.setAttribute('role', 'group');
+
+  const title = document.createElement('p');
+  title.className = 'kum-cushion__title';
+  title.textContent = getLocalizedMessage('cushionTitle', localization);
+
+  container.append(title);
+
+  return container;
+}
+
+function appendState1Actions(container, handlers, localization) {
   const actions = document.createElement('div');
   actions.className = 'kum-cushion__actions';
 
-  const showButton = createButton('buttonShowContent', safeHandlers.onShow, localization);
+  const showButton = createButton('buttonShowContent', handlers.onShow, localization);
   let hasEnteredState2 = false;
   const hideButton = createButton(
     'buttonHideForNow',
@@ -300,21 +335,13 @@ function createCushionElement(result = {}, handlers = {}, localization = null) {
       }
 
       hasEnteredState2 = true;
-      renderDismissedCushionElement(container, safeHandlers, localization);
+      renderDismissedCushionElement(container, handlers, localization);
     },
     localization
   );
 
   actions.append(showButton, hideButton);
-  container.append(title, body, reason);
-
-  if (guidance) {
-    container.append(guidance);
-  }
-
   container.append(actions);
-
-  return container;
 }
 
 function createCushionGuidanceElement(guidance, localization) {
@@ -619,7 +646,8 @@ function getLocalizedMessage(key, localization) {
 }
 
 const kotobaUkeMimamoriOverlay = Object.freeze({
-  createCushionElement
+  createCushionElement,
+  createDistanceCushionElement
 });
 
 globalThis.kotobaUkeMimamoriOverlay = kotobaUkeMimamoriOverlay;
@@ -628,6 +656,7 @@ if (typeof module !== 'undefined') {
   module.exports = {
     CUSHION_STYLE_ELEMENT_ID,
     createCushionElement,
+    createDistanceCushionElement,
     ensureCushionStyles,
     GENERIC_REASON_MESSAGE_KEY
   };

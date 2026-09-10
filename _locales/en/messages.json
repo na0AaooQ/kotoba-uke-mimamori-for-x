@@ -11,6 +11,9 @@
   "cushionBody": {
     "message": "This post may include wording that could feel emotionally heavy."
   },
+  "distanceCushionBody": {
+    "message": "This cushion is shown because this post contains text matching something you registered under “Words you'd like some distance from.”"
+  },
   "cushionDismissedMessage": {
     "message": "You chose not to read this for now."
   },

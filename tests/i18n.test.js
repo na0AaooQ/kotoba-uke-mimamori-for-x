@@ -116,6 +116,7 @@ async function runTests() {
   testPopupCompactSensitivitySummaryMessages();
   testRequiredGuidanceMessagesExist();
   testRequiredState2MessagesMatchFinalCopy();
+  testDistanceCushionBodyMatchesFinalCopy();
   testRequiredDistanceOptionsMessagesExist();
   testDistanceOptionsMessagesMatchFinalCopy();
   testRequiredEnglishMessagesExist();
@@ -322,6 +323,20 @@ function testRequiredState2MessagesMatchFinalCopy() {
       assert.equal(messages[key]?.message, expectedMessage);
     }
   }
+}
+
+function testDistanceCushionBodyMatchesFinalCopy() {
+  const jaMessages = readLocaleMessages('ja');
+  const enMessages = readLocaleMessages('en');
+
+  assert.equal(
+    jaMessages.distanceCushionBody?.message,
+    'この投稿には、あなたが登録した「距離を置きたい言葉」に一致する文字列が含まれているため、ワンクッションを表示しています。'
+  );
+  assert.equal(
+    enMessages.distanceCushionBody?.message,
+    "This cushion is shown because this post contains text matching something you registered under “Words you'd like some distance from.”"
+  );
 }
 
 function testRequiredDistanceOptionsMessagesExist() {

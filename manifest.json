@@ -32,6 +32,9 @@
         "risk-detector.js",
         "cushion-guidance.js",
         "i18n.js",
+        "distance-terms-core.js",
+        "distance-terms-reader.js",
+        "distance-matcher.js",
         "overlay.js",
         "content.js"
       ],
