@@ -108,30 +108,45 @@
           <p>
             Chrome拡張機能では、利用者が選択した設定と、それをブラウザ内で安全に管理するための最小限の情報だけを保存します。
           </p>
-          <p>
-            Google Chrome拡張機能の保存領域 <code>chrome.storage.local</code> には、既存設定として、拡張機能を有効にするかどうかを示す <code>enabled</code>、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code>、表示言語を示す <code>uiLanguage</code> を保存します。<code>uiLanguage</code> に保存する値は <code>auto</code>、<code>ja</code>、<code>en</code> のいずれかです。
-          </p>
-          <p>
-            「距離を置きたい言葉」の設定は、独立した <code>distanceTermsSettings</code> として保存します。ここには、利用者が登録した言葉・短いフレーズ・ハッシュタグ、機能全体のON/OFF、各登録項目のON/OFF、登録項目をブラウザ内で管理するための内部ID、保存形式を管理するversion情報が含まれます。内部IDはXのアカウントIDや利用者を識別するIDではありません。
-          </p>
-          <p>
-            表示言語はブラウザ内に保存するユーザー設定であり、外部へ送信しません。
-          </p>
-          <p>
-            公開ドキュメントページでは、利用者が選択した表示テーマを保持するため、ブラウザの <code>localStorage</code> に表示テーマの設定だけを保存します。保存する値は <code>system</code>、<code>light</code>、<code>dark</code> のいずれかです。
-          </p>
-          <p>
-            表示テーマの設定では、投稿本文、判定結果、閲覧履歴、閲覧URL、ユーザー名、アカウントIDなどを保存しません。テーマ設定を外部へ送信せず、Cookieやアクセス解析も使用しません。ブラウザのサイトデータを削除すると、この設定も削除され、「端末に合わせる」に戻ります。
-          </p>
-          <p>
-            X（旧Twitter）の投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、その他のユーザー情報は保存しません。
-          </p>
-          <p>
-            登録した言葉自体は設定としてローカル保存しますが、どの登録語がどの投稿に一致したかという利用履歴・一致結果は保存しません。一致位置、一致件数、投稿URL、Xユーザー名、XアカウントIDも保存しません。
-          </p>
-          <p>
-            内部判定の詳細である <code>score</code>、<code>matchedRules</code>、<code>categories</code>、<code>reasons</code> も保存しません。
-          </p>
+          <ul>
+            <li>
+              Google Chrome拡張機能の保存領域 <code>chrome.storage.local</code> には、以下の設定を保存します。
+              <ul>
+                <li>拡張機能を有効にするかどうかを示す <code>enabled</code></li>
+                <li>ワンクッションの表示されやすさを示す <code>cushionSensitivity</code></li>
+                <li>表示言語を示す <code>uiLanguage</code></li>
+              </ul>
+            </li>
+            <li><code>uiLanguage</code> に保存する値は <code>auto</code>、<code>ja</code>、<code>en</code> のいずれかです。</li>
+            <li>
+              「距離を置きたい言葉」の設定は、独立した <code>distanceTermsSettings</code> として保存します。
+              <p>ここには、以下の情報が含まれます。</p>
+              <ul>
+                <li>ユーザーが登録する言葉・短いフレーズ・ハッシュタグ</li>
+                <li>機能全体のON/OFF</li>
+                <li>各登録項目のON/OFF</li>
+                <li>登録項目をブラウザ内で管理するための内部ID</li>
+                <li>保存形式を管理するバージョン情報</li>
+              </ul>
+              <p>内部IDとは、XのアカウントIDや利用者を識別するIDではありません。</p>
+            </li>
+            <li>表示言語はブラウザ内に保存するユーザー設定であり、外部システムや外部サーバーへ送信しません。</li>
+            <li>
+              公開ドキュメントページでは、利用者が選択した表示テーマ（ライトモード、ダークモード）を保持するため、ブラウザの <code>localStorage</code> に表示テーマの設定だけを保存します。
+              <p>保存する値は <code>system</code>、<code>light</code>、<code>dark</code> のいずれかです。</p>
+            </li>
+            <li>
+              表示テーマ（ライトモード、ダークモード）の設定では、X（旧Twitter）の投稿本文、判定結果、閲覧履歴、閲覧URL、ユーザー名、アカウントIDなどは保存しません。
+              <p>テーマ設定は外部システムや外部サーバーへ送信せず、Cookieやアクセス解析も使用しません。</p>
+            </li>
+            <li>ブラウザのサイトデータを削除すると、この設定も削除され、「端末に合わせる」に戻ります。</li>
+            <li>X（旧Twitter）の投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、その他のユーザー情報は保存しません。</li>
+            <li>
+              登録した言葉自体は設定としてブラウザ内にローカル保存しますが、どの登録語がどの投稿に一致したかという利用履歴・一致結果は保存しません。
+              <p>言葉の一致位置、一致件数、投稿URL、Xユーザー名、XアカウントIDも保存しません。</p>
+            </li>
+            <li>内部判定の詳細である <code>score</code>、<code>matchedRules</code>、<code>categories</code>、<code>reasons</code> も保存しません。</li>
+          </ul>
         </section>
 
         <section id="no-action">

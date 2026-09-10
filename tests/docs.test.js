@@ -647,16 +647,18 @@ function testUiLanguageDocumentation() {
     '<code>uiLanguage</code>'
   ]);
   assertIncludesAll(jaPrivacy, [
-    '<code>enabled</code>、ワンクッションの表示されやすさを示す <code>cushionSensitivity</code>、表示言語を示す <code>uiLanguage</code>',
+    '<li>拡張機能を有効にするかどうかを示す <code>enabled</code></li>',
+    '<li>ワンクッションの表示されやすさを示す <code>cushionSensitivity</code></li>',
+    '<li>表示言語を示す <code>uiLanguage</code></li>',
     '<code>auto</code>、<code>ja</code>、<code>en</code>',
-    '外部へ送信しません。'
+    '外部システムや外部サーバーへ送信しません。'
   ]);
   assertIncludesAll(enPrivacy, [
-    '<code>enabled</code>,',
-    '<code>cushionSensitivity</code>',
-    '<code>uiLanguage</code>',
-    '<code>auto</code>',
-    'not sent\n            externally'
+    '<li><code>enabled</code>, which indicates whether the extension is enabled</li>',
+    '<li><code>cushionSensitivity</code>, which indicates how easily cushions are shown</li>',
+    '<li><code>uiLanguage</code>, which indicates the display language</li>',
+    '<code>auto</code>, <code>ja</code>, or <code>en</code>',
+    'not sent to external systems or external servers'
   ]);
   assert.equal(jaPrivacy.includes('enabled と、ワンクッションの表示されやすさを示す'), false);
   assert.equal(
@@ -772,27 +774,32 @@ function testDistanceTermsManualAndPrivacyDocumentation() {
   assertIncludesAll(jaManual, [
     '距離を置きたい言葉',
     '最大30件',
-    '登録した文字列と投稿本文に一致する文字列',
-    '正規表現や意味検索、AIによる類義語判定',
+    '投稿本文・リプライ・引用ポスト・リポスト内に一致する文字列',
+    '正規表現や意味の検索、AIによる言葉や類義語の判定',
     '固定ルールによるワンクッションを優先',
-    '問題のある登録を削除',
+    '問題のある登録データを削除',
     '設定全体を初期化',
+    'バージョンアップを続けます',
     '保存データを変更せず、そのまま保持'
   ]);
   assertIncludesAll(enManual, [
     "Words you'd like some distance from",
-    'up to 30 entries',
-    'literal text match',
-    'regular expressions, semantic search, or AI-based synonym matching',
+    'up to 30 words, short phrases, or hashtags',
+    'post text, a reply, a quoted post, or a repost',
+    'same text anywhere in the post content',
+    'regular expressions, semantic search, or AI to interpret words or synonyms',
     'fixed-rule cushion takes priority',
-    'delete the problem entries',
-    'reset the entire setting',
+    'deleting only the problem data',
+    'resetting it',
+    'continue to receive version updates',
     'saved data is left unchanged'
   ]);
   assertIncludesAll(jaPrivacy, [
     '<code>distanceTermsSettings</code>',
     'Chromeブラウザ内で完結します',
     'どの登録語がどの投稿に一致したかという利用履歴・一致結果は保存しません',
+    '<li>機能全体のON/OFF</li>',
+    '<li>各登録項目のON/OFF</li>',
     '登録件数',
     '利用者の精神状態を推定しません'
   ]);
@@ -800,6 +807,8 @@ function testDistanceTermsManualAndPrivacyDocumentation() {
     '<code>distanceTermsSettings</code>',
     'entirely within the Chrome browser',
     'which registered entry matched which post',
+    '<li>The entire feature&apos;s ON/OFF setting</li>',
+    '<li>Each entry&apos;s ON/OFF setting</li>',
     'number of registered entries',
     'infer your mental state'
   ]);

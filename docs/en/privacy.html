@@ -120,54 +120,45 @@
             The Chrome extension saves only settings selected by the user and the
             minimum information needed to manage those settings safely in the browser.
           </p>
-          <p>
-            Existing settings saved in <code>chrome.storage.local</code> are
-            <code>enabled</code>, which represents whether the extension is ON,
-            <code>cushionSensitivity</code>, which represents how easily cushions are
-            shown, and <code>uiLanguage</code>, which represents the display language.
-            The allowed <code>uiLanguage</code> values are <code>auto</code>,
-            <code>ja</code>, and <code>en</code>.
-          </p>
-          <p>
-            Settings for &quot;Words you&apos;d like some distance from&quot; are stored separately
-            under <code>distanceTermsSettings</code>. This includes registered words,
-            short phrases, and hashtags; the whole feature&apos;s ON/OFF setting; each
-            entry&apos;s ON/OFF setting; a technical internal ID used to manage the entry
-            in the browser; and version information for the saved format. The internal
-            ID is not an X account ID and does not identify the user.
-          </p>
-          <p>
-            The display language is an in-browser user setting and is not sent
-            externally.
-          </p>
-          <p>
-            On the public documentation pages, only the display theme preference is
-            saved in the browser&apos;s <code>localStorage</code> so your selection can be
-            retained. The saved value is limited to <code>system</code>,
-            <code>light</code>, or <code>dark</code>.
-          </p>
-          <p>
-            The theme preference does not store post text, detection results,
-            browsing history, pages or URLs viewed, usernames, account IDs, or other
-            user information. It is not sent externally, and these pages do not use
-            cookies or analytics. If site data is cleared, this preference is also
-            removed and the pages return to the System setting.
-          </p>
-          <p>
-            Post text is not saved. Detection results are not saved. Browsing history
-            is not saved. Post URLs are not saved. Usernames and account IDs are not
-            saved.
-          </p>
-          <p>
-            Registered text itself is saved locally as a setting, but the extension
-            does not save a usage history or match result showing which registered entry matched which post.
-            Match positions, match counts, post URLs, X usernames, and X account IDs are not saved.
-          </p>
-          <p>
-            Internal checking details such as <code>score</code>,
-            <code>matchedRules</code>, <code>categories</code>, and
-            <code>reasons</code> are not saved.
-          </p>
+          <ul>
+            <li>
+              The following settings are saved in the Chrome extension storage area, <code>chrome.storage.local</code>:
+              <ul>
+                <li><code>enabled</code>, which indicates whether the extension is enabled</li>
+                <li><code>cushionSensitivity</code>, which indicates how easily cushions are shown</li>
+                <li><code>uiLanguage</code>, which indicates the display language</li>
+              </ul>
+            </li>
+            <li>The value saved for <code>uiLanguage</code> is <code>auto</code>, <code>ja</code>, or <code>en</code>.</li>
+            <li>
+              Settings for &quot;Words you&apos;d like some distance from&quot; are saved separately under <code>distanceTermsSettings</code>.
+              <p>This setting contains:</p>
+              <ul>
+                <li>Words, short phrases, and hashtags registered by the user</li>
+                <li>The entire feature&apos;s ON/OFF setting</li>
+                <li>Each entry&apos;s ON/OFF setting</li>
+                <li>An internal ID used to manage each entry in the browser</li>
+                <li>Version information used to manage the saved-data format</li>
+              </ul>
+              <p>The internal ID is not an X account ID and does not identify the user.</p>
+            </li>
+            <li>The display language is a user setting saved in the browser. It is not sent to external systems or external servers.</li>
+            <li>
+              On the public documentation pages, only the display theme preference—light mode or dark mode—is saved in the browser&apos;s <code>localStorage</code> so your choice can be retained.
+              <p>The saved value is <code>system</code>, <code>light</code>, or <code>dark</code>.</p>
+            </li>
+            <li>
+              The display theme preference does not save X (formerly Twitter) post text, detection results, browsing history, pages or URLs viewed, usernames, account IDs, or other user information.
+              <p>The theme preference is not sent to external systems or external servers, and these pages do not use cookies or analytics.</p>
+            </li>
+            <li>If you clear your browser&apos;s site data, this preference is also removed and returns to &quot;Match device settings.&quot;</li>
+            <li>X (formerly Twitter) post text, detection results, browsing history, post URLs, usernames, account IDs, and other user information are not saved.</li>
+            <li>
+              Registered text itself is saved locally in the browser as a setting, but the extension does not save a usage history or match result showing which registered entry matched which post.
+              <p>Match positions, match counts, post URLs, X usernames, and X account IDs are not saved.</p>
+            </li>
+            <li>Internal detection details such as <code>score</code>, <code>matchedRules</code>, <code>categories</code>, and <code>reasons</code> are not saved.</li>
+          </ul>
         </section>
 
         <section id="no-action">

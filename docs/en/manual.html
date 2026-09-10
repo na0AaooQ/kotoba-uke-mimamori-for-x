@@ -195,39 +195,56 @@
             <img src="../assets/img/manual/038_manual-option-en.png" alt="The English Kotoba Uke Mimamori options page showing ON/OFF, Display language, and Cushion display sensitivity">
             <figcaption>Detailed settings let you review and change ON/OFF, display language, and cushion sensitivity.</figcaption>
           </figure>
-          <h3>Register and manage Words you&apos;d like some distance from</h3>
+          <h3>Register and manage &quot;Words you&apos;d like some distance from&quot;</h3>
           <p>
-            &quot;Words you&apos;d like some distance from&quot; is a self-care feature for words, short phrases, or hashtags that you would prefer to have some distance from for now. It does not rate registered text as dangerous or bad.
+            &quot;Words you&apos;d like some distance from&quot; is a self-care feature that lets you register words, short phrases, or hashtags that you would prefer to have some distance from for now.
+          </p>
+          <p>
+            It does not label the words, short phrases, or hashtags you register as dangerous or bad.
           </p>
           <ul>
-            <li>You can register up to 30 entries.</li>
-            <li>You can turn the whole feature ON or OFF, turn individual entries ON or OFF, and delete entries. Turning the whole feature OFF keeps the registered text and individual settings.</li>
-            <li>Reload the open X page after a change for the new setting to take effect.</li>
+            <li>You can register up to 30 words, short phrases, or hashtags.</li>
+            <li>You can turn the entire feature ON or OFF, turn each entry ON or OFF, and delete registered text.</li>
+            <li>Turning the entire feature OFF keeps your registered text and each entry&apos;s ON/OFF setting.</li>
+            <li>After making a change, reload any open X pages for the change to take effect.</li>
           </ul>
           <p>
-            A cushion is shown when the post contains the same text as a registered entry. This is a literal text match within the post, not a word-boundary-only check. The extension does not use regular expressions, semantic search, or AI-based synonym matching.
+            A cushion is shown when matching text is found in post text, a reply, a quoted post, or a repost.
+          </p>
+          <p>
+            The check is not limited to individual words. It looks for the same text anywhere in the post content.
+          </p>
+          <p>
+            The extension does not use regular expressions, semantic search, or AI to interpret words or synonyms.
           </p>
           <p>
             When there is a match, the cushion explains:
           </p>
+          <ul>
+            <li>This cushion is shown because this post contains text matching something you registered under &quot;Words you&apos;d like some distance from.&quot;</li>
+          </ul>
+          <ul>
+            <li>Choose &quot;Show content&quot; to read the post.</li>
+            <li>Choose &quot;Not now&quot; to continue to the existing shared follow-up state.</li>
+          </ul>
           <p>
-            This cushion is shown because this post contains text matching something you registered under “Words you&apos;d like some distance from.”
-          </p>
-          <p>
-            Choose &quot;Show content&quot; to read it, or &quot;Not now&quot; to continue to the existing shared follow-up state.
-          </p>
-          <p>
-            This matching remains separate from fixed-rule scores, reasons, and categories, and the matching registered entry is not shown in the cushion. If both checks apply, the fixed-rule cushion takes priority.
+            This matching is separate from the fixed-rule cushion check, and the matching registered entry is not shown in the cushion. If both checks apply, the fixed-rule cushion takes priority.
           </p>
           <p>
             Registered text is stored in <code>chrome.storage.local</code>, and matching takes place in the Chrome browser. The extension does not send post text, registered text, or match results to an external server.
           </p>
-          <h3>If these settings cannot be read</h3>
+          <h3>If &quot;Words you&apos;d like some distance from&quot; settings cannot be read</h3>
           <ul>
-            <li>If loading fails temporarily, you can try again.</li>
-            <li>If part of the data has a problem, usable entries are kept and you can confirm before choosing to delete the problem entries.</li>
-            <li>If the settings as a whole cannot be read safely, you can confirm before choosing to reset the entire setting. Other extension settings are not changed.</li>
-            <li>If the data uses a newer format that this version cannot handle, the saved data is left unchanged.</li>
+            <li>If the settings temporarily fail to load, you can retry by loading them again.</li>
+            <li>If some registered data has a problem, usable entries are kept, and you can confirm before deleting only the problem data.</li>
+            <li>
+              If the entire &quot;Words you&apos;d like some distance from&quot; setting cannot be read safely, you can confirm before resetting it.
+              <p>Other settings are not changed.</p>
+            </li>
+            <li>
+              Kotoba Uke Mimamori will continue to receive version updates.
+              <p>If an older version encounters a newer saved-data format that it cannot handle, the saved data is left unchanged.</p>
+            </li>
           </ul>
         </section>
 
