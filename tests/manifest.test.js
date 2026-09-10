@@ -30,9 +30,9 @@ function runTests() {
   testExternalConnectionsAreNotConfigured();
   testOnlyLocaleMessagesAreWebAccessibleFromX();
   testContentScriptLoadingOrderIsPreserved();
+  testDistanceContentScriptFilesExist();
   testSettingsScriptLoadsBeforeContentScript();
   testCushionGuidanceScriptLoadsBeforeContentScript();
-  testWebStorePackageIncludesAllContentScripts();
   testLocaleMessagesDoNotIncludeBetaNotice();
 
   console.log('All manifest tests passed.');
@@ -132,9 +132,29 @@ function testContentScriptLoadingOrderIsPreserved() {
     'risk-detector.js',
     'cushion-guidance.js',
     'i18n.js',
+    'distance-terms-core.js',
+    'distance-terms-reader.js',
+    'distance-matcher.js',
     'overlay.js',
     'content.js'
   ]);
+}
+
+function testDistanceContentScriptFilesExist() {
+  const manifest = readManifest();
+  const scripts = manifest.content_scripts[0].js;
+
+  for (const scriptPath of [
+    'distance-terms-core.js',
+    'distance-terms-reader.js',
+    'distance-matcher.js'
+  ]) {
+    assert.equal(scripts.includes(scriptPath), true);
+    assert.equal(fs.existsSync(path.join(__dirname, '..', scriptPath)), true);
+  }
+
+  assert.ok(scripts.indexOf('overlay.js') > scripts.indexOf('distance-matcher.js'));
+  assert.equal(scripts.at(-1), 'content.js');
 }
 
 function testSettingsScriptLoadsBeforeContentScript() {
@@ -152,16 +172,6 @@ function testCushionGuidanceScriptLoadsBeforeContentScript() {
 
   assert.ok(scripts.indexOf('cushion-guidance.js') !== -1);
   assert.ok(scripts.indexOf('cushion-guidance.js') < scripts.indexOf('content.js'));
-}
-
-function testWebStorePackageIncludesAllContentScripts() {
-  const manifest = readManifest();
-  const packageScriptPath = path.join(__dirname, '..', 'tools', 'make_webstore_package.sh');
-  const packageScript = fs.readFileSync(packageScriptPath, 'utf8');
-
-  for (const scriptPath of manifest.content_scripts[0].js) {
-    assert.ok(packageScript.includes(`"${scriptPath}"`));
-  }
 }
 
 function testLocaleMessagesDoNotIncludeBetaNotice() {

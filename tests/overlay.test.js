@@ -6,12 +6,15 @@ const path = require('node:path');
 const {
   CUSHION_STYLE_ELEMENT_ID,
   createCushionElement,
+  createDistanceCushionElement,
   ensureCushionStyles
 } = require('../overlay');
 
 const MESSAGES = Object.freeze({
   cushionTitle: '読む前に、少しだけワンクッションを置きました',
   cushionBody: 'この投稿には、心に負荷がかかる可能性のある表現が含まれているかもしれません。',
+  distanceCushionBody:
+    'この投稿には、あなたが登録した「距離を置きたい言葉」に一致する文字列が含まれているため、ワンクッションを表示しています。',
   reasonGeneric: '心に負荷がかかる可能性のある表現を検知しました',
   cushionGuidanceStrengthLabel: '表現の強さの目安',
   cushionGuidanceTendencyLabel: '検知された表現の傾向',
@@ -38,6 +41,10 @@ const ENGLISH_MESSAGES = readLocaleMessages('en');
 
 function runTests() {
   testCreatesGenericCushionElement();
+  testCreatesDistanceCushionElementWithoutFixedDetails();
+  testDistanceCushionUsesInjectedEnglishLocalizer();
+  testDistanceCushionUsesSharedActionsAndState2();
+  testDistanceConstructorHasNoResultArgumentOrSourceMetadata();
   testCreatesButtonElements();
   testCreatesCushionGuidanceElement();
   testRendersStrengthWithoutGuidanceTendencies();
@@ -61,6 +68,119 @@ function runTests() {
   testDoesNotAddRuntimeCommunicationOrScriptedNavigation();
 
   console.log('All overlay tests passed.');
+}
+
+function testCreatesDistanceCushionElementWithoutFixedDetails() {
+  withFakeDomAndI18n(() => {
+    const element = createDistanceCushionElement({}, createReliableLocalization(MESSAGES, 'ja'));
+
+    assert.equal(element.tagName, 'SECTION');
+    assert.equal(element.className, 'kum-cushion');
+    assert.equal(element.getAttribute('role'), 'group');
+    assert.equal(element.children.length, 3);
+    assert.equal(element.children[0].className, 'kum-cushion__title');
+    assert.equal(element.children[1].className, 'kum-cushion__body');
+    assert.equal(element.children[2].className, 'kum-cushion__actions');
+    assert.equal(element.children[0].textContent, MESSAGES.cushionTitle);
+    assert.equal(element.children[1].textContent, MESSAGES.distanceCushionBody);
+    assert.equal(element.children[2].children[0].textContent, MESSAGES.buttonShowContent);
+    assert.equal(element.children[2].children[1].textContent, MESSAGES.buttonHideForNow);
+    assert.equal(element.textContent.includes(MESSAGES.cushionBody), false);
+    assert.equal(element.textContent.includes(MESSAGES.reasonGeneric), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceStrengthLabel), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceTendencyLabel), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceNote), false);
+    assert.equal(element.textContent.includes('matched term'), false);
+    assert.equal(element.textContent.includes('matched-id'), false);
+    assert.equal(element.textContent.includes('count'), false);
+  });
+}
+
+function testDistanceCushionUsesInjectedEnglishLocalizer() {
+  withFakeDomAndI18n(() => {
+    const element = createDistanceCushionElement(
+      {},
+      createReliableLocalization(ENGLISH_MESSAGES, 'en')
+    );
+
+    assert.equal(element.children[0].textContent, ENGLISH_MESSAGES.cushionTitle);
+    assert.equal(element.children[1].textContent, ENGLISH_MESSAGES.distanceCushionBody);
+    assert.equal(element.children[2].children[0].textContent, ENGLISH_MESSAGES.buttonShowContent);
+    assert.equal(element.children[2].children[1].textContent, ENGLISH_MESSAGES.buttonHideForNow);
+    assert.equal(element.textContent.includes(MESSAGES.distanceCushionBody), false);
+  });
+}
+
+function testDistanceCushionUsesSharedActionsAndState2() {
+  withFakeDomAndI18n(() => {
+    let showCount = 0;
+    let hideCount = 0;
+    const element = createDistanceCushionElement(
+      {
+        onShow() {
+          showCount += 1;
+        },
+        onHide() {
+          hideCount += 1;
+        }
+      },
+      createReliableLocalization(MESSAGES, 'ja')
+    );
+    const initialShowButton = element.children[2].children[0];
+    const hideButton = element.children[2].children[1];
+
+    initialShowButton.click();
+    assert.equal(showCount, 1);
+
+    hideButton.click();
+    hideButton.click();
+
+    assert.equal(hideCount, 1);
+    assert.equal(element.className, 'kum-cushion kum-cushion--dismissed');
+    assert.equal(element.getAttribute('tabindex'), '-1');
+    assert.equal(
+      element.getAttribute('aria-labelledby'),
+      element.children[0].children[0].getAttribute('id')
+    );
+    assert.equal(element._focused, true);
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedMessage));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedBody));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedLeavePost));
+    assert.ok(element.textContent.includes(MESSAGES.cushionDismissedDistanceOptions));
+    assert.ok(element.textContent.includes(MESSAGES.cushionProtectYourHeartLink));
+    assert.ok(element.textContent.includes(MESSAGES.buttonShowContent));
+    assert.equal(element.textContent.includes(MESSAGES.distanceCushionBody), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionBody), false);
+    assert.equal(element.textContent.includes(MESSAGES.reasonGeneric), false);
+    assert.equal(element.textContent.includes(MESSAGES.cushionGuidanceStrengthLabel), false);
+    assert.equal(element.children[3].tagName, 'A');
+    assert.equal(element.children[3].getAttribute('target'), '_blank');
+    assert.deepEqual(element.children[3].getAttribute('rel').split(/\s+/u).sort(), [
+      'noopener',
+      'noreferrer'
+    ]);
+    assert.equal(element.children[4].children[0].tagName, 'BUTTON');
+
+    element.children[4].children[0].click();
+    assert.equal(showCount, 2);
+  });
+}
+
+function testDistanceConstructorHasNoResultArgumentOrSourceMetadata() {
+  const overlaySource = fs.readFileSync(path.join(__dirname, '..', 'overlay.js'), 'utf8');
+
+  assert.match(
+    overlaySource,
+    /function createDistanceCushionElement\(handlers = \{\}, localization = null\)/u
+  );
+  assert.equal(overlaySource.includes('createDistanceCushionElement(result'), false);
+  assert.equal(overlaySource.includes('kum-cushion--distance'), false);
+  assert.equal(overlaySource.includes('data-kum-distance'), false);
+  assert.equal(overlaySource.includes('renderDistanceDismissedCushionElement'), false);
+  assert.deepEqual(Object.keys(globalThis.kotobaUkeMimamoriOverlay).sort(), [
+    'createCushionElement',
+    'createDistanceCushionElement'
+  ]);
 }
 
 function testCreatesGenericCushionElement() {

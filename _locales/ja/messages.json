@@ -11,6 +11,9 @@
   "cushionBody": {
     "message": "この投稿には、心に負荷がかかる可能性のある表現が含まれているかもしれません。"
   },
+  "distanceCushionBody": {
+    "message": "この投稿には、あなたが登録した「距離を置きたい言葉」に一致する文字列が含まれているため、ワンクッションを表示しています。"
+  },
   "cushionDismissedMessage": {
     "message": "今は読まないようにしました。"
   },

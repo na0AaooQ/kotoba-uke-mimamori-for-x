@@ -62,6 +62,9 @@ const STATE_2_LOCALIZATION_MESSAGE_KEYS = Object.freeze([
 // UI表示に必要な安全な情報だけを、対応する本文ノードへ一時的に紐付けます。
 // 生の判定結果や投稿本文はこの経路に保持しません。
 const cushionGuidanceByTargetNode = new WeakMap();
+// distance一致時は対象ノードだけを一時的に保持し、一致した登録語などは保持しません。
+const distanceCushionTargets = new WeakSet();
+const NO_DISTANCE_MATCHER = () => false;
 
 let initialized = false;
 let timelineObserver = null;
@@ -72,7 +75,9 @@ let hasLoggedInitialScan = false;
 async function initialize(
   settingsApi = getSettingsApi(),
   featureFlags = FEATURE_FLAGS,
-  i18nApi = getI18nApi()
+  i18nApi = getI18nApi(),
+  distanceTermsReaderApi = getDistanceTermsReaderApi(),
+  distanceMatcherApi = getDistanceMatcherApi()
 ) {
   if (initialized) {
     return false;
@@ -90,15 +95,17 @@ async function initialize(
   }
 
   const localization = await prepareContentLocalization(settings, i18nApi);
+  const distanceMatcher = await prepareDistanceMatcher(distanceTermsReaderApi, distanceMatcherApi);
 
-  observeTimeline(settings, featureFlags, localization);
+  observeTimeline(settings, featureFlags, localization, distanceMatcher);
   return true;
 }
 
 function observeTimeline(
   settings = getDefaultSettings(),
   featureFlags = FEATURE_FLAGS,
-  localization = null
+  localization = null,
+  distanceMatcher = NO_DISTANCE_MATCHER
 ) {
   if (!isCushionFeatureEnabled(settings, featureFlags)) {
     return false;
@@ -111,14 +118,14 @@ function observeTimeline(
     return false;
   }
 
-  scanCandidatePosts(root, settings, featureFlags, localization);
+  scanCandidatePosts(root, settings, featureFlags, localization, distanceMatcher);
 
   if (timelineObserver || typeof globalThis.MutationObserver !== 'function') {
     return true;
   }
 
   timelineObserver = new globalThis.MutationObserver(() => {
-    scheduleCandidatePostScan(root, settings, featureFlags, localization);
+    scheduleCandidatePostScan(root, settings, featureFlags, localization, distanceMatcher);
   });
 
   timelineObserver.observe(root, {
@@ -172,7 +179,8 @@ function processCandidatePost(
   postNode,
   featureFlags = FEATURE_FLAGS,
   settings = getDefaultSettings(),
-  localization = null
+  localization = null,
+  distanceMatcher = NO_DISTANCE_MATCHER
 ) {
   if (!isCushionFeatureEnabled(settings, featureFlags)) {
     return SKIPPED_PROCESS_RESULT;
@@ -200,26 +208,29 @@ function processCandidatePost(
     };
   }
 
-  if (!textTargets.some((textTarget) => normalizeExtractedText(textTarget.textNode?.textContent))) {
-    markProcessed(postNode);
-
-    return {
-      processed: true,
-      riskChecked: false,
-      shouldCushion: false
-    };
-  }
-
   let processed = false;
   let riskChecked = false;
   let shouldCushion = false;
+  let hasPostText = false;
 
   for (const textTarget of textTargets) {
-    const processResult = processPostTextTarget(textTarget, featureFlags, settings, localization);
+    const processResult = processPostTextTarget(
+      textTarget,
+      featureFlags,
+      settings,
+      localization,
+      distanceMatcher
+    );
 
     processed ||= processResult.processed;
     riskChecked ||= processResult.riskChecked;
     shouldCushion ||= processResult.shouldCushion;
+    hasPostText ||= processResult.hasPostText === true;
+  }
+
+  if (!hasPostText) {
+    markProcessed(postNode);
+    processed = true;
   }
 
   return {
@@ -233,17 +244,21 @@ function processPostTextTarget(
   textTarget,
   featureFlags = FEATURE_FLAGS,
   settings = getDefaultSettings(),
-  localization = null
+  localization = null,
+  distanceMatcher = NO_DISTANCE_MATCHER
 ) {
   const { targetNode, textNode } = textTarget;
+  const rawPostText = textNode?.textContent;
+  const postText = normalizeExtractedText(rawPostText);
 
   if (!isElement(targetNode) || isProcessed(targetNode)) {
     maybeRenderCushionOverlay(targetNode, featureFlags, settings, localization);
 
-    return SKIPPED_PROCESS_RESULT;
+    return {
+      ...SKIPPED_PROCESS_RESULT,
+      hasPostText: Boolean(postText)
+    };
   }
-
-  const postText = normalizeExtractedText(textNode?.textContent);
 
   if (!postText) {
     markProcessed(targetNode);
@@ -251,15 +266,27 @@ function processPostTextTarget(
     return {
       processed: true,
       riskChecked: false,
-      shouldCushion: false
+      shouldCushion: false,
+      hasPostText: false
     };
   }
 
   const riskResult = detectPostTextRisk(postText, settings);
   const riskChecked = Boolean(riskResult);
-  const shouldCushion = Boolean(
+  const fixedShouldCushion = Boolean(
     riskResult?.shouldCushion || shouldForceCushionForDevTest(postText, featureFlags)
   );
+  let distanceShouldCushion = false;
+
+  if (!fixedShouldCushion) {
+    try {
+      distanceShouldCushion = distanceMatcher(rawPostText) === true;
+    } catch (_error) {
+      // distance側の障害はこのtargetだけをno-matchとして扱い、fixed側とscanを継続します。
+    }
+  }
+
+  const shouldCushion = fixedShouldCushion || distanceShouldCushion;
 
   if (riskChecked) {
     markRiskChecked(targetNode);
@@ -273,6 +300,10 @@ function processPostTextTarget(
     }
   }
 
+  if (distanceShouldCushion) {
+    distanceCushionTargets.add(targetNode);
+  }
+
   if (shouldCushion) {
     markCushionCandidate(targetNode);
     maybeRenderCushionOverlay(targetNode, featureFlags, settings, localization);
@@ -283,7 +314,8 @@ function processPostTextTarget(
   return {
     processed: true,
     riskChecked,
-    shouldCushion
+    shouldCushion,
+    hasPostText: true
   };
 }
 
@@ -349,21 +381,25 @@ function maybeRenderCushionOverlay(
   }
 
   const cushionGuidance = cushionGuidanceByTargetNode.get(postNode);
+  const isDistanceCushion = distanceCushionTargets.has(postNode);
   let cushionElement = null;
+  const handlers = {
+    onShow: () => {
+      revealPostContent(postNode, cushionElement);
+    },
+    onHide: () => {
+      keepPostContentHidden(postNode);
+    }
+  };
 
   try {
-    cushionElement = overlay.createCushionElement(
-      createCushionOverlayResult(cushionGuidance),
-      {
-        onShow: () => {
-          revealPostContent(postNode, cushionElement);
-        },
-        onHide: () => {
-          keepPostContentHidden(postNode);
-        }
-      },
-      localization
-    );
+    cushionElement = isDistanceCushion
+      ? overlay.createDistanceCushionElement(handlers, localization)
+      : overlay.createCushionElement(
+          createCushionOverlayResult(cushionGuidance),
+          handlers,
+          localization
+        );
   } catch (_error) {
     return false;
   }
@@ -372,13 +408,25 @@ function maybeRenderCushionOverlay(
     return false;
   }
 
-  if (!insertCushionElement(postNode, cushionElement)) {
+  let inserted = false;
+
+  try {
+    inserted = insertCushionElement(postNode, cushionElement);
+  } catch (_error) {
+    return false;
+  }
+
+  if (!inserted) {
     return false;
   }
 
   applyContentBlur(postNode);
   markCushionRendered(postNode);
   cushionGuidanceByTargetNode.delete(postNode);
+
+  if (isDistanceCushion) {
+    distanceCushionTargets.delete(postNode);
+  }
 
   return true;
 }
@@ -562,16 +610,18 @@ function initializeKotobaUkeMimamoriContentScript() {
 function startDomMonitoring(
   settings = getDefaultSettings(),
   featureFlags = FEATURE_FLAGS,
-  localization = null
+  localization = null,
+  distanceMatcher = NO_DISTANCE_MATCHER
 ) {
-  return observeTimeline(settings, featureFlags, localization);
+  return observeTimeline(settings, featureFlags, localization, distanceMatcher);
 }
 
 function scanCandidatePosts(
   root,
   settings = getDefaultSettings(),
   featureFlags = FEATURE_FLAGS,
-  localization = null
+  localization = null,
+  distanceMatcher = NO_DISTANCE_MATCHER
 ) {
   if (!isCushionFeatureEnabled(settings, featureFlags)) {
     return;
@@ -590,7 +640,13 @@ function scanCandidatePosts(
     let cushionCandidateCount = 0;
 
     for (const postNode of candidatePostNodes) {
-      const processResult = processCandidatePost(postNode, featureFlags, settings, localization);
+      const processResult = processCandidatePost(
+        postNode,
+        featureFlags,
+        settings,
+        localization,
+        distanceMatcher
+      );
 
       if (processResult.processed) {
         processedCount += 1;
@@ -621,7 +677,8 @@ function scheduleCandidatePostScan(
   root,
   settings = getDefaultSettings(),
   featureFlags = FEATURE_FLAGS,
-  localization = null
+  localization = null,
+  distanceMatcher = NO_DISTANCE_MATCHER
 ) {
   if (scanTimerId !== null) {
     return;
@@ -629,8 +686,37 @@ function scheduleCandidatePostScan(
 
   scanTimerId = globalThis.setTimeout(() => {
     scanTimerId = null;
-    scanCandidatePosts(root, settings, featureFlags, localization);
+    scanCandidatePosts(root, settings, featureFlags, localization, distanceMatcher);
   }, OBSERVER_DEBOUNCE_MS);
+}
+
+async function prepareDistanceMatcher(
+  distanceTermsReaderApi = getDistanceTermsReaderApi(),
+  distanceMatcherApi = getDistanceMatcherApi()
+) {
+  let terms = [];
+
+  try {
+    const contentView = await distanceTermsReaderApi?.readDistanceTermsContentView?.();
+
+    if (Array.isArray(contentView?.terms)) {
+      terms = contentView.terms;
+    }
+  } catch (_error) {
+    // 読み込み失敗時はdistance機能だけを空のtermsへ縮退します。
+  }
+
+  try {
+    if (typeof distanceMatcherApi?.createDistanceMatcher !== 'function') {
+      return NO_DISTANCE_MATCHER;
+    }
+
+    const distanceMatcher = distanceMatcherApi.createDistanceMatcher(terms);
+
+    return typeof distanceMatcher === 'function' ? distanceMatcher : NO_DISTANCE_MATCHER;
+  } catch (_error) {
+    return NO_DISTANCE_MATCHER;
+  }
 }
 
 async function loadContentSettings(settingsApi = getSettingsApi()) {
@@ -786,6 +872,26 @@ function getI18nApi() {
   return i18nApi;
 }
 
+function getDistanceTermsReaderApi() {
+  const distanceTermsReaderApi = globalThis.kotobaUkeMimamoriDistanceTermsReader;
+
+  if (!distanceTermsReaderApi || typeof distanceTermsReaderApi !== 'object') {
+    return null;
+  }
+
+  return distanceTermsReaderApi;
+}
+
+function getDistanceMatcherApi() {
+  const distanceMatcherApi = globalThis.kotobaUkeMimamoriDistanceMatcher;
+
+  if (!distanceMatcherApi || typeof distanceMatcherApi !== 'object') {
+    return null;
+  }
+
+  return distanceMatcherApi;
+}
+
 function getDocumentRoot() {
   const currentDocument = globalThis.document;
 
@@ -878,7 +984,7 @@ function getCushionGuidanceApi() {
 function getCushionOverlay() {
   const overlay = globalThis.kotobaUkeMimamoriOverlay;
 
-  if (!overlay || typeof overlay.createCushionElement !== 'function') {
+  if (!overlay || typeof overlay !== 'object') {
     return null;
   }
 
@@ -929,6 +1035,7 @@ if (typeof module !== 'undefined') {
     normalizeContentSettings,
     normalizeContentUiLanguage,
     observeTimeline,
+    prepareDistanceMatcher,
     prepareContentLocalization,
     processCandidatePost,
     removeContentBlur,

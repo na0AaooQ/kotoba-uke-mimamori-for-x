@@ -22,6 +22,7 @@ const {
   loadContentSettings,
   maybeRenderCushionOverlay,
   normalizeContentSettings,
+  prepareDistanceMatcher,
   prepareContentLocalization,
   processCandidatePost,
   scanCandidatePosts
@@ -78,6 +79,19 @@ async function runTests() {
   testRetainsCushionGuidanceWhenCushionElementCreationFails();
   testRetainsAndCleansUpCushionGuidanceAroundOverlayInsertion();
   testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn();
+  testFixedCushionShortCircuitsThrowingDistanceMatcher();
+  testDevForcedCushionShortCircuitsDistanceMatcher();
+  testDistanceMatchCreatesDistanceCushion();
+  testNoDistanceMatchCreatesNoCushion();
+  testDistanceMatchWorksWithoutFixedDetector();
+  testDistanceMatcherFailureDoesNotStopScanOrFixedProtection();
+  testFixedAndDistanceTargetsRemainIndependent();
+  testRawTextSnapshotSeparatesDistanceAndFixedNormalization();
+  testDistanceOverlayFailureDoesNotFallBackToFixedOverlay();
+  testDistanceOverlayInvalidElementAndInsertFailureStayIsolated();
+  await testDisabledInitializationDoesNotReadDistanceTerms();
+  await testEnabledInitializationReadsAndCreatesMatcherOnce();
+  await testDistanceInitializationFailuresDegradeToNoOpMatcher();
   await testInitializePreparesAndSharesLocalizationOnce();
 
   console.log('All content tests passed.');
@@ -1569,6 +1583,581 @@ function testRendersManuallyMarkedProcessedCandidateWhenDevFlagIsOn() {
   );
 }
 
+function testFixedCushionShortCircuitsThrowingDistanceMatcher() {
+  let matcherCallCount = 0;
+  let fixedOverlayCount = 0;
+  let distanceOverlayCount = 0;
+  const postNode = createPostNode(['固定ルール対象']);
+
+  withRiskDetector(
+    {
+      detectTextRisk() {
+        return { shouldCushion: true };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            fixedOverlayCount += 1;
+            return createElement('section');
+          },
+          createDistanceCushionElement() {
+            distanceOverlayCount += 1;
+            return createElement('section');
+          }
+        },
+        () => {
+          const result = processCandidatePost(
+            postNode,
+            FEATURE_FLAGS,
+            ENABLED_SETTINGS,
+            null,
+            () => {
+              matcherCallCount += 1;
+              throw new Error('Distance matcher must not run');
+            }
+          );
+
+          assert.deepEqual(result, {
+            processed: true,
+            riskChecked: true,
+            shouldCushion: true
+          });
+        }
+      );
+    }
+  );
+
+  assert.equal(matcherCallCount, 0);
+  assert.equal(fixedOverlayCount, 1);
+  assert.equal(distanceOverlayCount, 0);
+}
+
+function testDevForcedCushionShortCircuitsDistanceMatcher() {
+  let matcherCallCount = 0;
+  let fixedOverlayCount = 0;
+  const postNode = createPostNode([DEV_TEST_CUSHION_TEXT]);
+
+  withRiskDetector({ detectTextRisk: () => ({ shouldCushion: false }) }, () => {
+    withOverlay(
+      {
+        createCushionElement() {
+          fixedOverlayCount += 1;
+          return createElement('section');
+        }
+      },
+      () => {
+        processCandidatePost(
+          postNode,
+          {
+            enableCushionOverlayDev: true,
+            enableDevTestCushionText: true
+          },
+          DISABLED_SETTINGS,
+          null,
+          () => {
+            matcherCallCount += 1;
+            throw new Error('Distance matcher must not run');
+          }
+        );
+      }
+    );
+  });
+
+  assert.equal(matcherCallCount, 0);
+  assert.equal(fixedOverlayCount, 1);
+}
+
+function testDistanceMatchCreatesDistanceCushion() {
+  let fixedOverlayCount = 0;
+  let distanceOverlayCount = 0;
+  const postNode = createPostNode(['距離対象']);
+
+  withRiskDetector({ detectTextRisk: () => ({ shouldCushion: false }) }, () => {
+    withOverlay(
+      {
+        createCushionElement() {
+          fixedOverlayCount += 1;
+          return createElement('section');
+        },
+        createDistanceCushionElement() {
+          distanceOverlayCount += 1;
+          return createElement('section');
+        }
+      },
+      () => {
+        const result = processCandidatePost(
+          postNode,
+          FEATURE_FLAGS,
+          ENABLED_SETTINGS,
+          null,
+          () => true
+        );
+
+        assert.deepEqual(result, {
+          processed: true,
+          riskChecked: true,
+          shouldCushion: true
+        });
+        assert.equal(Object.hasOwn(result, 'source'), false);
+      }
+    );
+  });
+
+  assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), 'true');
+  assert.equal(postNode.getAttribute(ATTRIBUTES.riskChecked), 'true');
+  assert.equal(
+    Object.keys(ATTRIBUTES).some((key) => key.toLowerCase().includes('distance')),
+    false
+  );
+  assert.equal(fixedOverlayCount, 0);
+  assert.equal(distanceOverlayCount, 1);
+}
+
+function testNoDistanceMatchCreatesNoCushion() {
+  let overlayCount = 0;
+  const postNode = createPostNode(['一致しない本文']);
+
+  withRiskDetector({ detectTextRisk: () => ({ shouldCushion: false }) }, () => {
+    withOverlay(
+      {
+        createCushionElement() {
+          overlayCount += 1;
+        },
+        createDistanceCushionElement() {
+          overlayCount += 1;
+        }
+      },
+      () => {
+        const result = processCandidatePost(
+          postNode,
+          FEATURE_FLAGS,
+          ENABLED_SETTINGS,
+          null,
+          () => false
+        );
+
+        assert.deepEqual(result, {
+          processed: true,
+          riskChecked: true,
+          shouldCushion: false
+        });
+      }
+    );
+  });
+
+  assert.equal(postNode.getAttribute(ATTRIBUTES.cushionCandidate), null);
+  assert.equal(overlayCount, 0);
+}
+
+function testDistanceMatchWorksWithoutFixedDetector() {
+  let distanceOverlayCount = 0;
+  const postNode = createPostNode(['distance only']);
+
+  withRiskDetector(null, () => {
+    withOverlay(
+      {
+        createDistanceCushionElement() {
+          distanceOverlayCount += 1;
+          return createElement('section');
+        }
+      },
+      () => {
+        const result = processCandidatePost(
+          postNode,
+          FEATURE_FLAGS,
+          ENABLED_SETTINGS,
+          null,
+          () => true
+        );
+
+        assert.deepEqual(result, {
+          processed: true,
+          riskChecked: false,
+          shouldCushion: true
+        });
+      }
+    );
+  });
+
+  assert.equal(postNode.getAttribute(ATTRIBUTES.riskChecked), null);
+  assert.equal(distanceOverlayCount, 1);
+}
+
+function testDistanceMatcherFailureDoesNotStopScanOrFixedProtection() {
+  const distanceFailurePost = createPostNode(['distance failure']);
+  const fixedPost = createPostNode(['fixed protection']);
+  const rootNode = createElement('main');
+  let matcherCallCount = 0;
+  let fixedOverlayCount = 0;
+
+  rootNode.querySelectorAll = (selector) =>
+    selector === SELECTORS.post ? [distanceFailurePost, fixedPost] : [];
+
+  withRiskDetector(
+    {
+      detectTextRisk(text) {
+        return { shouldCushion: text === 'fixed protection' };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            fixedOverlayCount += 1;
+            return createElement('section');
+          }
+        },
+        () => {
+          scanCandidatePosts(rootNode, ENABLED_SETTINGS, FEATURE_FLAGS, null, () => {
+            matcherCallCount += 1;
+            throw new Error('Distance matcher unavailable');
+          });
+        }
+      );
+    }
+  );
+
+  assert.equal(matcherCallCount, 1);
+  assert.equal(distanceFailurePost.getAttribute(ATTRIBUTES.cushionCandidate), null);
+  assert.equal(fixedPost.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+  assert.equal(fixedOverlayCount, 1);
+}
+
+function testFixedAndDistanceTargetsRemainIndependent() {
+  const { mainTextNode, postNode, quoteTextNode } = createQuotedPostNodeWithNestedTexts(
+    'fixed target',
+    'distance target'
+  );
+  const matcherTexts = [];
+  let fixedOverlayCount = 0;
+  let distanceOverlayCount = 0;
+
+  withRiskDetector(
+    {
+      detectTextRisk(text) {
+        return { shouldCushion: text === 'fixed target' };
+      }
+    },
+    () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            fixedOverlayCount += 1;
+            return createElement('section');
+          },
+          createDistanceCushionElement() {
+            distanceOverlayCount += 1;
+            return createElement('section');
+          }
+        },
+        () => {
+          processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS, null, (rawText) => {
+            matcherTexts.push(rawText);
+            return rawText === 'distance target';
+          });
+        }
+      );
+    }
+  );
+
+  assert.deepEqual(matcherTexts, ['distance target']);
+  assert.equal(mainTextNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+  assert.equal(quoteTextNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+  assert.equal(fixedOverlayCount, 1);
+  assert.equal(distanceOverlayCount, 1);
+}
+
+function testRawTextSnapshotSeparatesDistanceAndFixedNormalization() {
+  const receivedFixedTexts = [];
+  const receivedDistanceTexts = [];
+  const { postNode, textNode } = createPostNodeWithNestedText();
+  let textContentReadCount = 0;
+
+  Object.defineProperty(textNode, 'textContent', {
+    configurable: true,
+    get() {
+      textContentReadCount += 1;
+      return '  word  word\nnext  ';
+    }
+  });
+
+  withRiskDetector(
+    {
+      detectTextRisk(text) {
+        receivedFixedTexts.push(text);
+        return { shouldCushion: false };
+      }
+    },
+    () => {
+      processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS, null, (rawText) => {
+        receivedDistanceTexts.push(rawText);
+        return false;
+      });
+    }
+  );
+
+  assert.deepEqual(receivedFixedTexts, ['word word next']);
+  assert.deepEqual(receivedDistanceTexts, ['  word  word\nnext  ']);
+  assert.equal(textContentReadCount, 1);
+}
+
+function testDistanceOverlayFailureDoesNotFallBackToFixedOverlay() {
+  let fixedOverlayCount = 0;
+  let distanceOverlayCount = 0;
+  let shouldCreateDistanceOverlay = false;
+  const postNode = createPostNode(['distance target']);
+
+  withRiskDetector({ detectTextRisk: () => ({ shouldCushion: false }) }, () => {
+    withOverlay(
+      {
+        createCushionElement() {
+          fixedOverlayCount += 1;
+          return createElement('section');
+        },
+        createDistanceCushionElement() {
+          distanceOverlayCount += 1;
+
+          if (!shouldCreateDistanceOverlay) {
+            throw new Error('Distance overlay unavailable');
+          }
+
+          return createElement('section');
+        }
+      },
+      () => {
+        processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS, null, () => true);
+        processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+
+        assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), null);
+        assert.equal(fixedOverlayCount, 0);
+        assert.equal(distanceOverlayCount, 2);
+
+        shouldCreateDistanceOverlay = true;
+        processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+      }
+    );
+  });
+
+  assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+  assert.equal(fixedOverlayCount, 0);
+  assert.equal(distanceOverlayCount, 3);
+}
+
+function testDistanceOverlayInvalidElementAndInsertFailureStayIsolated() {
+  let fixedOverlayCount = 0;
+  let distanceOverlayCount = 0;
+  let overlayMode = 'invalid';
+  const postNode = createPostNode(['distance target']);
+  const insertBefore = postNode.insertBefore;
+
+  withRiskDetector({ detectTextRisk: () => ({ shouldCushion: false }) }, () => {
+    withOverlay(
+      {
+        createCushionElement() {
+          fixedOverlayCount += 1;
+          return createElement('section');
+        },
+        createDistanceCushionElement() {
+          distanceOverlayCount += 1;
+          return overlayMode === 'invalid' ? null : createElement('section');
+        }
+      },
+      () => {
+        processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS, null, () => true);
+        assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), null);
+
+        overlayMode = 'insert-failure';
+        postNode.insertBefore = () => {
+          throw new Error('DOM insertion unavailable');
+        };
+        processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+        assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), null);
+
+        overlayMode = 'success';
+        postNode.insertBefore = insertBefore;
+        processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS);
+      }
+    );
+  });
+
+  assert.equal(postNode.getAttribute(ATTRIBUTES.cushionRendered), 'true');
+  assert.equal(fixedOverlayCount, 0);
+  assert.equal(distanceOverlayCount, 3);
+}
+
+async function testDisabledInitializationDoesNotReadDistanceTerms() {
+  const freshContent = loadFreshContentModule();
+  let readCount = 0;
+  let matcherCreationCount = 0;
+
+  const result = await freshContent.initialize(
+    {
+      DEFAULT_SETTINGS: settingsApi.DEFAULT_SETTINGS,
+      loadSettings: async () => DISABLED_SETTINGS,
+      normalizeSettings: settingsApi.normalizeSettings
+    },
+    FEATURE_FLAGS,
+    null,
+    {
+      async readDistanceTermsContentView() {
+        readCount += 1;
+        return { terms: ['unused'] };
+      }
+    },
+    {
+      createDistanceMatcher() {
+        matcherCreationCount += 1;
+        return () => true;
+      }
+    }
+  );
+
+  assert.equal(result, false);
+  assert.equal(readCount, 0);
+  assert.equal(matcherCreationCount, 0);
+}
+
+async function testEnabledInitializationReadsAndCreatesMatcherOnce() {
+  const freshContent = loadFreshContentModule();
+  const previousDocument = globalThis.document;
+  const previousMutationObserver = globalThis.MutationObserver;
+  const previousOverlay = globalThis.kotobaUkeMimamoriOverlay;
+  const previousRiskDetector = globalThis.kotobaUkeMimamoriRiskDetector;
+  const firstPostNode = createPostNode(['first distance target']);
+  const secondPostNode = createPostNode(['second distance target']);
+  const rootNode = createElement('main');
+  let readCount = 0;
+  let matcherCreationCount = 0;
+  let matcherCallCount = 0;
+  let distanceOverlayCount = 0;
+  const initializationOrder = [];
+
+  rootNode.querySelectorAll = (selector) =>
+    selector === SELECTORS.post ? [firstPostNode, secondPostNode] : [];
+  globalThis.document = { body: rootNode };
+  delete globalThis.MutationObserver;
+  globalThis.kotobaUkeMimamoriRiskDetector = {
+    detectTextRisk: () => ({ shouldCushion: false })
+  };
+  globalThis.kotobaUkeMimamoriOverlay = {
+    createDistanceCushionElement() {
+      distanceOverlayCount += 1;
+      return createElement('section');
+    }
+  };
+
+  try {
+    const result = await freshContent.initialize(
+      {
+        DEFAULT_SETTINGS: settingsApi.DEFAULT_SETTINGS,
+        loadSettings: async () => ENABLED_SETTINGS,
+        normalizeSettings: settingsApi.normalizeSettings
+      },
+      FEATURE_FLAGS,
+      {
+        resolveUiLanguage() {
+          initializationOrder.push('resolve-language');
+          return 'en';
+        },
+        async loadLocaleMessages() {
+          initializationOrder.push('load-localization');
+          return {};
+        },
+        getLocaleMessage: i18nApi.getLocaleMessage,
+        getMessage: (key) => key
+      },
+      {
+        async readDistanceTermsContentView() {
+          initializationOrder.push('read-distance');
+          readCount += 1;
+          return { terms: ['target'] };
+        }
+      },
+      {
+        createDistanceMatcher(terms) {
+          initializationOrder.push('create-matcher');
+          matcherCreationCount += 1;
+          assert.deepEqual(terms, ['target']);
+
+          return () => {
+            matcherCallCount += 1;
+            return true;
+          };
+        }
+      }
+    );
+
+    assert.equal(result, true);
+    assert.equal(readCount, 1);
+    assert.equal(matcherCreationCount, 1);
+    assert.equal(matcherCallCount, 2);
+    assert.equal(distanceOverlayCount, 2);
+    assert.deepEqual(initializationOrder, [
+      'resolve-language',
+      'load-localization',
+      'read-distance',
+      'create-matcher'
+    ]);
+  } finally {
+    restoreGlobalValue('document', previousDocument);
+    restoreGlobalValue('MutationObserver', previousMutationObserver);
+    restoreGlobalValue('kotobaUkeMimamoriOverlay', previousOverlay);
+    restoreGlobalValue('kotobaUkeMimamoriRiskDetector', previousRiskDetector);
+  }
+}
+
+async function testDistanceInitializationFailuresDegradeToNoOpMatcher() {
+  const receivedTerms = [];
+  const readerFailureMatcher = await prepareDistanceMatcher(
+    {
+      async readDistanceTermsContentView() {
+        throw new Error('Reader unavailable');
+      }
+    },
+    {
+      createDistanceMatcher(terms) {
+        receivedTerms.push(terms);
+        return () => false;
+      }
+    }
+  );
+  const matcherCreationFailure = await prepareDistanceMatcher(
+    { readDistanceTermsContentView: async () => ({ terms: ['distance'] }) },
+    {
+      createDistanceMatcher() {
+        throw new Error('Matcher creation unavailable');
+      }
+    }
+  );
+
+  assert.deepEqual(receivedTerms, [[]]);
+  assert.equal(readerFailureMatcher('anything'), false);
+  assert.equal(matcherCreationFailure('distance'), false);
+
+  for (const distanceMatcher of [readerFailureMatcher, matcherCreationFailure]) {
+    let fixedOverlayCount = 0;
+    const postNode = createPostNode(['fixed protection']);
+
+    withRiskDetector({ detectTextRisk: () => ({ shouldCushion: true }) }, () => {
+      withOverlay(
+        {
+          createCushionElement() {
+            fixedOverlayCount += 1;
+            return createElement('section');
+          }
+        },
+        () => {
+          processCandidatePost(postNode, FEATURE_FLAGS, ENABLED_SETTINGS, null, distanceMatcher);
+        }
+      );
+    });
+
+    assert.equal(fixedOverlayCount, 1);
+  }
+}
+
 async function testInitializePreparesAndSharesLocalizationOnce() {
   const previousDocument = globalThis.document;
   const previousMutationObserver = globalThis.MutationObserver;
@@ -1868,6 +2457,13 @@ function restoreGlobalValue(key, value) {
   } else {
     globalThis[key] = value;
   }
+}
+
+function loadFreshContentModule() {
+  const contentModulePath = require.resolve('../content');
+  delete require.cache[contentModulePath];
+
+  return require('../content');
 }
 
 runTests().catch((error) => {
