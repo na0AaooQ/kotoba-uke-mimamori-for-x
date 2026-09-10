@@ -10,15 +10,22 @@ const STORE_LISTING_DRAFT_PATH = 'store-listing-draft.md';
 const MANUAL_MODAL_SCRIPT_PATH = 'assets/js/manual-image-modal.js';
 const THEME_SWITCHER_SCRIPT_PATH = 'assets/js/theme-switcher.js';
 const CUSHION_GUIDANCE_DESIGN_PATH = 'design/cushion-guidance.md';
-// Phase 4ではREADMEと配布packageを更新しないため、現在READMEに記載済みの対象だけを確認します。
-// 新しいdistance用Content Scriptを含む配布整合性はPhase 5でmanifest基準へ戻します。
-const PHASE_4_README_PACKAGED_CONTENT_SCRIPTS = Object.freeze([
-  'settings.js',
-  'risk-detector.js',
-  'cushion-guidance.js',
-  'i18n.js',
-  'overlay.js',
-  'content.js'
+const DEVELOPMENT_ONLY_PACKAGE_ITEMS = Object.freeze([
+  '.git',
+  '.github',
+  'node_modules',
+  'tests',
+  'docs',
+  'design',
+  'tools',
+  'README.md',
+  'AGENTS.md',
+  'package.json',
+  'package-lock.json',
+  'biome.json',
+  'LICENSE',
+  'kotoba-uke-mimamori-icon.png',
+  '.DS_Store'
 ]);
 const CHROME_WEB_STORE_URL =
   'https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb';
@@ -209,7 +216,8 @@ function runTests() {
   testManualSensitivityDescriptions();
   testUiLanguageDocumentation();
   testCushionGuidanceDocumentation();
-  testReadmeListsPhase4PackagedContentScripts();
+  testReadmePackageListsMatchPackageScript();
+  testDistanceTermsManualAndPrivacyDocumentation();
   testRuleBasedExplanation();
   testNotPurposeStatements();
   testDocsDoNotExposeInternalRuleIds();
@@ -501,8 +509,8 @@ function testStep8ManualImageUpdates() {
     '※画面内のバージョン番号は画面撮影時点のものです。バージョン番号の違いは操作方法に影響ありません。';
   const englishVersionNote =
     'Note: The version number shown in screenshots reflects the version at the time of capture and does not affect these instructions.';
-  const japaneseManualDate = '最終更新日：<time datetime="2026-07-23">2026年7月23日</time>';
-  const englishManualDate = 'Last updated: <time datetime="2026-07-23">July 23, 2026</time>';
+  const japaneseManualDate = '最終更新日：<time datetime="2026-09-10">2026年9月10日</time>';
+  const englishManualDate = 'Last updated: <time datetime="2026-09-10">September 10, 2026</time>';
 
   assertOrderedIncludes(jaManual, [
     './assets/img/manual/029_manual-popup-ja-off-auto.png',
@@ -727,18 +735,74 @@ function testCushionGuidanceDocumentation() {
   ]);
 }
 
-function testReadmeListsPhase4PackagedContentScripts() {
+function testReadmePackageListsMatchPackageScript() {
   const readme = readRepositoryFile('README.md');
   const packageListStart = readme.indexOf('一覧に以下が含まれていることを確認します。');
   const excludedListStart = readme.indexOf('一覧に以下が含まれていないことを確認します。');
-  const packageList = readme.slice(packageListStart, excludedListStart);
+  const excludedListEnd = readme.indexOf('\n\nZIP作成後', excludedListStart);
 
   assert.ok(packageListStart !== -1);
   assert.ok(excludedListStart > packageListStart);
+  assert.ok(excludedListEnd > excludedListStart);
 
-  for (const scriptPath of PHASE_4_README_PACKAGED_CONTENT_SCRIPTS) {
-    assert.ok(packageList.includes(`- \`${scriptPath}\``));
+  const readmePackageItems = readMarkdownCodeList(
+    readme.slice(packageListStart, excludedListStart)
+  );
+  const readmeExcludedItems = readMarkdownCodeList(
+    readme.slice(excludedListStart, excludedListEnd)
+  );
+  const packageItems = readPackageItems();
+
+  assert.deepEqual(readmePackageItems, packageItems);
+
+  for (const developmentOnlyItem of DEVELOPMENT_ONLY_PACKAGE_ITEMS) {
+    const normalizedItem = normalizePackageItem(developmentOnlyItem);
+
+    assert.equal(readmeExcludedItems.has(normalizedItem), true);
+    assert.equal(packageItems.has(normalizedItem), false);
   }
+}
+
+function testDistanceTermsManualAndPrivacyDocumentation() {
+  const jaManual = readDoc('manual.html');
+  const enManual = readDoc('en/manual.html');
+  const jaPrivacy = readDoc('privacy.html');
+  const enPrivacy = readDoc('en/privacy.html');
+
+  assertIncludesAll(jaManual, [
+    '距離を置きたい言葉',
+    '最大30件',
+    '登録した文字列と投稿本文に一致する文字列',
+    '正規表現や意味検索、AIによる類義語判定',
+    '固定ルールによるワンクッションを優先',
+    '問題のある登録を削除',
+    '設定全体を初期化',
+    '保存データを変更せず、そのまま保持'
+  ]);
+  assertIncludesAll(enManual, [
+    "Words you'd like some distance from",
+    'up to 30 entries',
+    'literal text match',
+    'regular expressions, semantic search, or AI-based synonym matching',
+    'fixed-rule cushion takes priority',
+    'delete the problem entries',
+    'reset the entire setting',
+    'saved data is left unchanged'
+  ]);
+  assertIncludesAll(jaPrivacy, [
+    '<code>distanceTermsSettings</code>',
+    'Chromeブラウザ内で完結します',
+    'どの登録語がどの投稿に一致したかという利用履歴・一致結果は保存しません',
+    '登録件数',
+    '利用者の精神状態を推定しません'
+  ]);
+  assertIncludesAll(enPrivacy, [
+    '<code>distanceTermsSettings</code>',
+    'entirely within the Chrome browser',
+    'which registered entry matched which post',
+    'number of registered entries',
+    'infer your mental state'
+  ]);
 }
 
 function testRuleBasedExplanation() {
@@ -919,8 +983,8 @@ function testDocumentLastUpdatedDates() {
   for (const pagePath of JAPANESE_PAGE_PATHS) {
     const html = readDoc(pagePath);
     const date =
-      pagePath === 'manual.html'
-        ? '最終更新日：<time datetime="2026-07-23">2026年7月23日</time>'
+      pagePath === 'manual.html' || pagePath === 'privacy.html'
+        ? '最終更新日：<time datetime="2026-09-10">2026年9月10日</time>'
         : pagePath !== 'disclaimer.html'
           ? '最終更新日：<time datetime="2026-07-21">2026年7月21日</time>'
           : '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
@@ -932,8 +996,8 @@ function testDocumentLastUpdatedDates() {
   for (const pagePath of ENGLISH_PAGE_PATHS) {
     const html = readDoc(pagePath);
     const date =
-      pagePath === 'en/manual.html'
-        ? 'Last updated: <time datetime="2026-07-23">July 23, 2026</time>'
+      pagePath === 'en/manual.html' || pagePath === 'en/privacy.html'
+        ? 'Last updated: <time datetime="2026-09-10">September 10, 2026</time>'
         : pagePath !== 'en/disclaimer.html'
           ? 'Last updated: <time datetime="2026-07-21">July 21, 2026</time>'
           : 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
@@ -1055,6 +1119,28 @@ function readRepositoryFile(relativePath) {
   assert.equal(fs.existsSync(filePath), true);
 
   return fs.readFileSync(filePath, 'utf8');
+}
+
+function readPackageItems() {
+  const packageScript = readRepositoryFile('tools/make_webstore_package.sh');
+  const packageItemsBlock = /PACKAGE_ITEMS=\(\s*([\s\S]*?)\n\)/u.exec(packageScript);
+
+  assert.ok(packageItemsBlock);
+  return new Set(
+    [...packageItemsBlock[1].matchAll(/^\s*"([^"]+)"\s*$/gmu)].map((match) =>
+      normalizePackageItem(match[1])
+    )
+  );
+}
+
+function readMarkdownCodeList(value) {
+  return new Set(
+    [...value.matchAll(/^- `([^`]+)`\s*$/gmu)].map((match) => normalizePackageItem(match[1]))
+  );
+}
+
+function normalizePackageItem(value) {
+  return value.replace(/\/+$/u, '');
 }
 
 runTests();

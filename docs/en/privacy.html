@@ -6,7 +6,7 @@
     <title>Privacy Policy | Kotoba Uke Mimamori</title>
     <meta
       name="description"
-      content="Privacy policy for Kotoba Uke Mimamori. Post text and detection results are not sent externally, and saved settings are limited to enabled, cushionSensitivity, and uiLanguage."
+      content="Privacy policy for Kotoba Uke Mimamori. Post text, registered Words you'd like some distance from, and match results are not sent externally; extension settings are stored only in the browser."
     >
     <link
       rel="canonical"
@@ -53,7 +53,7 @@
           the current MVP, post text and detection results are not sent to external
           servers, and only the minimum settings are saved.
         </p>
-        <p class="last-updated">Last updated: <time datetime="2026-07-21">July 21, 2026</time></p>
+        <p class="last-updated">Last updated: <time datetime="2026-09-10">September 10, 2026</time></p>
       </header>
 
       <main class="content-card">
@@ -88,6 +88,11 @@
             and detection results are not sent to external servers.
           </p>
           <p>
+            Matching your registered &quot;Words you&apos;d like some distance from&quot; against
+            post text on X takes place entirely within the Chrome browser. Registered
+            text and match results are not sent to external servers.
+          </p>
+          <p>
             The extension does not add a system that collects the checked text or
             internal checking details outside your browser.
           </p>
@@ -96,7 +101,10 @@
           </p>
           <ul>
             <li>Post text is not sent to external servers.</li>
+            <li>Registered &quot;Words you&apos;d like some distance from&quot; are not sent to external servers.</li>
             <li>Detection results are not sent to external servers.</li>
+            <li>Which entry matched, match positions, match counts, and the number of registered entries are not sent externally.</li>
+            <li>Post URLs and X user information are not sent externally.</li>
             <li>Post text is not saved.</li>
             <li>Detection results are not saved.</li>
             <li>Browsing history is not saved.</li>
@@ -109,16 +117,24 @@
         <section id="storage">
           <h2>2. Saved settings</h2>
           <p>
-            The only saved settings are the extension ON/OFF setting, the cushion
-            display sensitivity setting, and the display language setting.
+            The Chrome extension saves only settings selected by the user and the
+            minimum information needed to manage those settings safely in the browser.
           </p>
           <p>
-            The only settings saved in <code>chrome.storage.local</code> are
+            Existing settings saved in <code>chrome.storage.local</code> are
             <code>enabled</code>, which represents whether the extension is ON,
             <code>cushionSensitivity</code>, which represents how easily cushions are
             shown, and <code>uiLanguage</code>, which represents the display language.
             The allowed <code>uiLanguage</code> values are <code>auto</code>,
             <code>ja</code>, and <code>en</code>.
+          </p>
+          <p>
+            Settings for &quot;Words you&apos;d like some distance from&quot; are stored separately
+            under <code>distanceTermsSettings</code>. This includes registered words,
+            short phrases, and hashtags; the whole feature&apos;s ON/OFF setting; each
+            entry&apos;s ON/OFF setting; a technical internal ID used to manage the entry
+            in the browser; and version information for the saved format. The internal
+            ID is not an X account ID and does not identify the user.
           </p>
           <p>
             The display language is an in-browser user setting and is not sent
@@ -143,6 +159,11 @@
             saved.
           </p>
           <p>
+            Registered text itself is saved locally as a setting, but the extension
+            does not save a usage history or match result showing which registered entry matched which post.
+            Match positions, match counts, post URLs, X usernames, and X account IDs are not saved.
+          </p>
+          <p>
             Internal checking details such as <code>score</code>,
             <code>matchedRules</code>, <code>categories</code>, and
             <code>reasons</code> are not saved.
@@ -157,6 +178,11 @@
             <li>It does not automatically report posts or accounts.</li>
             <li>It does not remove post text or post DOM.</li>
             <li>It does not evaluate posters.</li>
+            <li>It does not rate registered text as dangerous or bad.</li>
+            <li>It does not infer your mental state from what you register.</li>
+            <li>It does not infer your beliefs, identity, or other attributes from registered text.</li>
+            <li>It does not turn registered text into a shared list.</li>
+            <li>It does not send registered text to an external service for analysis.</li>
             <li>It does not send post content to an external system for monitoring or evaluation.</li>
             <li>It does not add external communication from Kotoba Uke Mimamori.</li>
           </ul>
@@ -170,11 +196,13 @@
         <section id="network">
           <h2>4. External communication</h2>
           <p>
-            No external communication has been added by Kotoba Uke Mimamori in the
-            current MVP.
+            Kotoba Uke Mimamori does not add external communication, analytics,
+            telemetry, external AI, external APIs, or external servers in the current MVP.
           </p>
           <p>
-            Post text and detection results are not sent to external servers.
+            Post text, registered &quot;Words you&apos;d like some distance from&quot;, match results,
+            which entry matched, match positions, match counts, the number of registered entries,
+            post URLs, X user information, and fixed-rule internal checking details are not sent to external servers.
           </p>
         </section>
 

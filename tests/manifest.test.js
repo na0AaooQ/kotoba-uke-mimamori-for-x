@@ -17,7 +17,7 @@ const STORE_ASSET_ICON_PATHS = Object.freeze([
 ]);
 
 function runTests() {
-  testManifestVersionIsOfficialReleaseVersion();
+  testReleaseCandidateVersionsAreConsistent();
   testLocalizedNameAndDescriptionAreConfigured();
   testPopupIsConfigured();
   testExtensionIconsAreConfigured();
@@ -31,6 +31,7 @@ function runTests() {
   testOnlyLocaleMessagesAreWebAccessibleFromX();
   testContentScriptLoadingOrderIsPreserved();
   testDistanceContentScriptFilesExist();
+  testPackageIncludesRuntimeDependencies();
   testSettingsScriptLoadsBeforeContentScript();
   testCushionGuidanceScriptLoadsBeforeContentScript();
   testLocaleMessagesDoNotIncludeBetaNotice();
@@ -38,10 +39,15 @@ function runTests() {
   console.log('All manifest tests passed.');
 }
 
-function testManifestVersionIsOfficialReleaseVersion() {
+function testReleaseCandidateVersionsAreConsistent() {
   const manifest = readManifest();
+  const packageJson = readJsonFile('package.json');
+  const packageLock = readJsonFile('package-lock.json');
 
-  assert.equal(manifest.version, '1.1.0');
+  assert.deepEqual(
+    [manifest.version, packageJson.version, packageLock.version, packageLock.packages[''].version],
+    ['2.0.0', '2.0.0', '2.0.0', '2.0.0']
+  );
 }
 
 function testLocalizedNameAndDescriptionAreConfigured() {
@@ -157,6 +163,32 @@ function testDistanceContentScriptFilesExist() {
   assert.equal(scripts.at(-1), 'content.js');
 }
 
+function testPackageIncludesRuntimeDependencies() {
+  const manifest = readManifest();
+  const packageItems = readPackageItems();
+  const optionsScripts = readHtmlScriptSources('options.html');
+  const serviceWorkerImports = readServiceWorkerImports(manifest.background.service_worker);
+  const runtimeDependencies = new Set([
+    ...manifest.content_scripts.flatMap((contentScript) => contentScript.js),
+    manifest.background.service_worker,
+    ...optionsScripts,
+    ...serviceWorkerImports
+  ]);
+
+  for (const dependencyPath of runtimeDependencies) {
+    assert.equal(
+      packageItems.has(dependencyPath),
+      true,
+      `${dependencyPath} must be included in the Web Store package`
+    );
+    assert.equal(
+      fs.existsSync(path.join(__dirname, '..', dependencyPath)),
+      true,
+      `${dependencyPath} must exist in the repository`
+    );
+  }
+}
+
 function testSettingsScriptLoadsBeforeContentScript() {
   const manifest = readManifest();
   const scripts = manifest.content_scripts[0].js;
@@ -195,9 +227,40 @@ function testLocaleMessagesDoNotIncludeBetaNotice() {
 }
 
 function readManifest() {
-  const manifestPath = path.join(__dirname, '..', 'manifest.json');
+  return readJsonFile('manifest.json');
+}
 
-  return JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+function readJsonFile(relativePath) {
+  return JSON.parse(fs.readFileSync(path.join(__dirname, '..', relativePath), 'utf8'));
+}
+
+function readPackageItems() {
+  const packageScript = fs.readFileSync(
+    path.join(__dirname, '..', 'tools', 'make_webstore_package.sh'),
+    'utf8'
+  );
+  const packageItemsBlock = /PACKAGE_ITEMS=\(\s*([\s\S]*?)\n\)/u.exec(packageScript);
+
+  assert.ok(packageItemsBlock);
+  return new Set(
+    [...packageItemsBlock[1].matchAll(/^\s*"([^"]+)"\s*$/gmu)].map((match) => match[1])
+  );
+}
+
+function readHtmlScriptSources(relativePath) {
+  const html = fs.readFileSync(path.join(__dirname, '..', relativePath), 'utf8');
+
+  return [...html.matchAll(/<script\s+[^>]*src="([^"]+)"[^>]*><\/script>/gu)].map(
+    (match) => match[1]
+  );
+}
+
+function readServiceWorkerImports(relativePath) {
+  const serviceWorker = fs.readFileSync(path.join(__dirname, '..', relativePath), 'utf8');
+  const imports = /importScripts\(([\s\S]*?)\);/u.exec(serviceWorker);
+
+  assert.ok(imports);
+  return [...imports[1].matchAll(/["']([^"']+)["']/gu)].map((match) => match[1]);
 }
 
 function readMessages(locale) {

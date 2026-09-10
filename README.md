@@ -3,14 +3,14 @@ Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワ
 
 - GitHubリポジトリURL: [https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/](https://github.com/na0AaooQ/kotoba-uke-mimamori-for-x/)
 - Chrome Web Store: [ことばうけみまもり｜Xことばに心のワンクッション](https://chromewebstore.google.com/detail/ofmmdbihaocmkboehlejndjagahcfpfm?utm_source=item-share-cb)
-- 現在のステータス: Chrome Web Store 正式版 v1.1.0 公開済み。
-- 現在の公開バージョン: `1.1.0`
+- Chrome Web Store現在公開版: `v1.1.0`
+- リポジトリ上の次期source / release candidate: `v2.0.0`
 
 ## 概要
 
 「ことばうけみまもり｜Xことばに心のワンクッション」は、X（旧Twitter）で届く言葉のなかで、受け手の心に大きな負荷を与える可能性のある投稿に、そっとワンクッションを置くための補助ツールです。
 人格否定・存在否定・差別的表現・執拗な攻撃など、心に大きな負荷を与える可能性のある投稿を、すぐに読まなくてもよい形にし、ユーザーが「表示する / 今は見ない」を選べるようにすることを目指します。
-現在は、Chrome Web Store正式版 v1.1.0を公開しています。Chrome Web Storeから拡張機能「ことばうけみまもり」を追加できます。
+現在は、Chrome Web Store正式版 v1.1.0を公開しています。リポジトリ上では、「距離を置きたい言葉」を含む次期source / release candidate v2.0.0を整備しています。v2.0.0はChrome Web Storeではまだ公開していません。
 
 ## コンセプト
 
@@ -85,6 +85,7 @@ MVPでは、高信頼性を優先します。
 - 投稿を勝手に削除・消去しない
 - 原則ローカル処理で判定する
 - 投稿本文や判定結果を外部送信しない
+- 利用者自身が登録した「距離を置きたい言葉」に文字列一致する投稿にも、固定ルールとは独立したワンクッションを表示する
 
 ## MVPでやらないこと
 
@@ -219,11 +220,14 @@ NODE
 - ユーザーの閲覧内容を収集しない
 - ユーザーの精神状態を推定しない
 - 投稿本文、判定結果、score、categories、reasons、matchedRules、riskLevel、shouldCushion、guidance、strengthKey、tendencyKeys、URL、Xユーザー情報を永続保存しない
+- 登録した「距離を置きたい言葉」は設定としてブラウザ内に保存するが、どの語がどの投稿に一致したかという利用履歴・一致結果は保存しない
 - 保存が必要な機能を追加する場合は、ユーザーの明示的な操作を前提にする
 
 ## 設定保存方針
 
-オプション画面で、ユーザーが拡張機能の有効 / 無効、表示言語、ワンクッションの表示されやすさを選択できます。設定保存には `chrome.storage.local` を使用し、保存対象は `enabled`、`cushionSensitivity`、`uiLanguage` のみに限定します。投稿本文、判定結果、score、categories、reasons、matchedRules、riskLevel、shouldCushion、guidance、strengthKey、tendencyKeys、URL、Xユーザー情報は保存しません。
+オプション画面で、ユーザーが拡張機能の有効 / 無効、表示言語、ワンクッションの表示されやすさを選択できます。既存3設定の `enabled`、`cushionSensitivity`、`uiLanguage` は、従来どおり `settings.js` の既存pathから `chrome.storage.local` へ保存します。
+
+「距離を置きたい言葉」の設定は、既存3設定へ統合せず、独立したtop-level key `distanceTermsSettings` として `chrome.storage.local` へ保存します。利用者が登録した文字列、機能全体のON/OFF、各登録のON/OFF、ブラウザ内で管理するためのID、保存形式のversionだけを保持し、書き込みはService Workerに限定します。投稿本文、どの登録語がどの投稿に一致したかという履歴・結果、score、categories、reasons、matchedRules、riskLevel、shouldCushion、guidance、strengthKey、tendencyKeys、URL、Xユーザー情報は保存しません。
 
 拡張機能アイコンをクリックすると、簡易ポップアップからON/OFF、表示言語、ワンクッションの表示されやすさを確認・変更できます。Chromeの拡張機能メニュー内にある小さな「オプション」を探さなくても、ポップアップ内の「詳細設定を開く」からオプション画面へ移動できます。
 
@@ -271,7 +275,7 @@ Manifest V3の `web_accessible_resources` は、X上のcontent scriptが拡張�
 }
 ```
 
-`chrome.storage.local` に保存する対象は、この3つのユーザー設定値だけに限定します。`cushionSensitivity` が未設定または不正値の場合は `standard`、`uiLanguage` が未設定または不正値の場合は `auto` に正規化します。
+この3つは既存設定の保存形式です。`cushionSensitivity` が未設定または不正値の場合は `standard`、`uiLanguage` が未設定または不正値の場合は `auto` に正規化します。「距離を置きたい言葉」はこのobjectへ混在させず、独立した `distanceTermsSettings` で管理します。
 
 ### 実装構成
 
@@ -316,9 +320,9 @@ Manifest V3の `web_accessible_resources` は、X上のcontent scriptが拡張�
 
 ### privacy / manual ページへの反映
 
-`docs/privacy.html` に、保存する設定値が `enabled`、`cushionSensitivity`、`uiLanguage` であること、および投稿本文、判定結果、閲覧履歴、投稿URL、ユーザー名、アカウントID、`score`、`matchedRules`、`categories`、`reasons` を保存しないことを明記しています。投稿本文や判定結果を外部送信しない方針も維持します。文言は現在のMVPの説明であり、法務文言を最終確定するものではありません。
+`docs/privacy.html` に、既存3設定と独立した `distanceTermsSettings` に保存する情報、および投稿本文、判定結果、distance matchの利用履歴、投稿URL、ユーザー名、アカウントID、`score`、`matchedRules`、`categories`、`reasons` を保存しないことを明記しています。投稿本文、登録語、match結果を外部送信しない方針も維持します。文言は現在のMVPの説明であり、法務文言を最終確定するものではありません。
 
-`docs/manual.html` には、オプション画面から表示されやすさを選べること、`少なめ` / `標準` / `多め` の意味、変更後は開いているXページを再読み込みすると反映されることを記載しています。
+`docs/manual.html` には、オプション画面から表示されやすさを選べること、`少なめ` / `標準` / `多め` の意味、「距離を置きたい言葉」の登録・管理・Recovery、変更後は開いているXページを再読み込みすると反映されることを記載しています。
 
 ### テスト方針
 
@@ -335,11 +339,19 @@ Manifest V3の `web_accessible_resources` は、X上のcontent scriptが拡張�
 
 加えて、privacy / manual の説明と実際の保存値・反映方法が一致していること、外部通信・投稿本文・判定結果の保存が追加されていないことを実機QAで確認します。
 
-### 次フェーズ候補: 「距離を置きたい言葉」機能
+### 「距離を置きたい言葉」
 
-利用者自身が「距離を置きたい言葉・フレーズ・ハッシュタグ」を登録できる機能は、次フェーズ候補です。登録した文字列は、投稿本文とは別に扱い、literal substring matchingでワンクッションを置くことを検討しています。外部送信は行いません。
+次期source / release candidate v2.0.0では、利用者自身が「今は少し距離を置きたい」と思う言葉・短いフレーズ・ハッシュタグをOptionsから最大30件登録できます。これはセルフケアのための追加保護であり、登録語の善悪や危険性、投稿者の人格を評価する機能ではありません。
 
-この機能は現時点では未実装です。現行v1.1.0の保存対象は引き続き `enabled`、`cushionSensitivity`、`uiLanguage` の3設定のみであり、距離を置きたい言葉の入力UI、保存処理、判定処理は追加していません。詳細な設計判断は [ADR-0001](design/adr/0001-distance-terms-architecture.md) を参照してください。
+- 機能全体のmaster ON/OFF、登録ごとのON/OFF、削除をOptionsから管理できます。masterをOFFにしても登録内容と個別状態は保持します。
+- 登録した文字列と投稿本文をliteralな文字列一致で確認します。単語境界だけを見る仕組み、正規表現、意味検索、AIによる類義語判定ではありません。
+- 固定ルールとは独立しており、登録語をfixed score、reason、category、guidanceへ加えません。
+- 固定ルールと登録語の両方に該当する場合は、固定ルールのワンクッションを優先するfixed-firstを維持します。
+- 設定変更は、開いているXページを再読み込みした後に反映されます。
+- 登録内容は `chrome.storage.local` の独立したtop-level key `distanceTermsSettings` に保存します。投稿本文、どの登録語が一致したかという利用履歴、一致位置、一致件数等は保存・外部送信しません。
+- 投稿本文、登録語、match結果を外部サーバーへ送信する機能や、analytics、telemetry、外部AI/APIはありません。
+
+具体的な安全境界は [ADR-0001](design/adr/0001-distance-terms-architecture.md)、module・Storage・UIの契約は [Implementation Design](design/distance-terms-implementation-design.md) を参照してください。Phase 5時点ではPhase 6 Full verificationとChrome Web Storeへのv2.0.0公開は未完了です。
 
 ## ローカル開発環境のセットアップ
 
@@ -370,7 +382,7 @@ Chrome Web Store正式版の公開に向けて、ユーザー向けdocsにサー
 - 判定は完全ではなく、誤って表示される場合や表示されない場合があること
 - ルール更新は拡張機能本体の更新として行い、投稿本文や判定結果を収集して改善に使わないこと
 - 投稿者を評価しないこと、自動ブロック・自動通報・アカウント危険度判定を行わないこと
-- 保存する設定値は `enabled`、`cushionSensitivity`、`uiLanguage` のみに限定すること
+- 既存3設定 `enabled`、`cushionSensitivity`、`uiLanguage` と、独立した `distanceTermsSettings` の保存内容・境界を説明すること
 
 ユーザー向けdocsでは、具体的な判定語句や `risk-detector.js` 内の具体的な文字列・正規表現を直接掲載しない方針です。説明は、強い侮辱表現、存在否定に近い表現、暴力的・脅迫的に読める表現、心に大きな負荷がかかりやすい表現などのカテゴリ表現に留めます。
 
@@ -470,7 +482,7 @@ cd tools
 
 ### Chrome Web Storeへの申請・更新時のZIPパッケージ作成手順
 
-Chrome Web StoreへアップロードするZIPには、拡張機能本体として必要なファイルのみを含めます。`.git/`、`.github/`、`node_modules/`、`tests/`、`docs/`、`tools/`、`README.md`、`package.json`、`package-lock.json`、生成元画像、開発用設定ファイル、ローカル確認用ファイル、スクリーンショット素材、サービス説明PDFなどは同梱しません。
+Chrome Web StoreへアップロードするZIPには、拡張機能本体として必要なファイルのみを含めます。`.git/`、`.github/`、`node_modules/`、`tests/`、`docs/`、`design/`、`tools/`、`README.md`、`AGENTS.md`、`package.json`、`package-lock.json`、生成元画像、開発用設定ファイル、ローカル確認用ファイル、スクリーンショット素材、サービス説明PDFなどは同梱しません。
 
 リポジトリを clone して、cloneしたディレクトリへ移動した後、依存関係を導入します。
 
@@ -494,7 +506,7 @@ git diff --check
 
 あわせて、`manifest.json` について以下を確認します。
 
-- `version` が `1.1.0` であること
+- 次期source / release candidate用の `version` が `2.0.0` であること
 - `name` が `__MSG_extensionName__` のままであること
 - `description` が `__MSG_extensionDescription__` のままであること
 - `_locales/ja/messages.json` と `_locales/en/messages.json` の拡張機能名・説明文が正式版向けであること
@@ -517,12 +529,12 @@ cd tools
 ./make_webstore_package.sh
 ```
 
-スクリプトは、自身の場所からリポジトリ直下を自動判定します。既定では、ZIPはリポジトリ直下に `kotoba-uke-mimamori-for-x-v1.1.0.zip` として作成されます。ZIP作成用の一時ディレクトリは `/tmp/kotoba-uke-mimamori-cws-package` です。
+スクリプトは、自身の場所からリポジトリ直下を自動判定します。既定では、ZIPはリポジトリ直下に `kotoba-uke-mimamori-for-x-v2.0.0.zip` として作成されます。ZIP作成用の一時ディレクトリは `/tmp/kotoba-uke-mimamori-cws-package` です。
 
 出力先を変えたい場合は、`ZIP_PATH` を指定して実行できます。
 
 ```sh
-ZIP_PATH="$PWD/dist/kotoba-uke-mimamori-for-x-v1.1.0.zip" ./tools/make_webstore_package.sh
+ZIP_PATH="$PWD/dist/kotoba-uke-mimamori-for-x-v2.0.0.zip" ./tools/make_webstore_package.sh
 ```
 
 一覧に以下が含まれていることを確認します。
@@ -539,6 +551,12 @@ ZIP_PATH="$PWD/dist/kotoba-uke-mimamori-for-x-v1.1.0.zip" ./tools/make_webstore_
 - `risk-detector.js`
 - `cushion-guidance.js`
 - `i18n.js`
+- `distance-terms-core.js`
+- `distance-terms-mutations.js`
+- `distance-terms-reader.js`
+- `distance-matcher.js`
+- `distance-terms-options.js`
+- `distance-terms-service-worker.js`
 - `overlay.js`
 - `content.js`
 
@@ -549,8 +567,10 @@ ZIP_PATH="$PWD/dist/kotoba-uke-mimamori-for-x-v1.1.0.zip" ./tools/make_webstore_
 - `node_modules/`
 - `tests/`
 - `docs/`
+- `design/`
 - `tools/`
 - `README.md`
+- `AGENTS.md`
 - `package.json`
 - `package-lock.json`
 - `biome.json`
@@ -992,7 +1012,7 @@ XのDOM変更に備えて継続確認すること:
 
 - [ ] 判定処理がブラウザ内で行われる
 - [ ] 健全な批判、異論、反対意見をワンクッション対象として規制する動作になっていない
-- [ ] `chrome.storage.local` の保存値が `enabled` / `cushionSensitivity` / `uiLanguage` のみである
+- [ ] `chrome.storage.local` の既存3設定が `enabled` / `cushionSensitivity` / `uiLanguage` のままで、`distanceTermsSettings` が独立したtop-level keyである
 - [ ] 投稿本文を保存していない
 - [ ] 判定結果を保存していない
 - [ ] 閲覧履歴を保存していない
@@ -1130,7 +1150,7 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 - [ ] ダークモードでUIが読みやすい
 - [ ] Tab / Enter / Space 操作に問題がない
 - [ ] Consoleに投稿本文・URL・ユーザー情報・内部判定詳細が出ていない
-- [ ] `chrome.storage.local` に `enabled`、`cushionSensitivity`、`uiLanguage` 以外が保存されていない
+- [ ] `chrome.storage.local` に既存3設定と仕様どおりの `distanceTermsSettings` 以外が保存されていない
 - [ ] ことばうけみまもり由来の外部通信が増えていない
 - [ ] 試用後に `enabled=false` へ戻し、表示変更なしを確認した
 
@@ -1193,7 +1213,7 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 - `docs/en/disclaimer.html`
 - `docs/en/manual.html`
 
-`docs/about.html`、`docs/privacy.html`、`docs/disclaimer.html`、`docs/manual.html` では、「いきなり読ませない。でも、読む自由も残す」という本ツールの位置づけを説明しています。外部送信を行わないこと、保存対象が `enabled`、`cushionSensitivity`、`uiLanguage` のみであること、ON/OFF・表示言語・表示されやすさの反映方法やワンクッションUIの動作も記載しています。
+`docs/about.html`、`docs/privacy.html`、`docs/disclaimer.html`、`docs/manual.html` では、「いきなり読ませない。でも、読む自由も残す」という本ツールの位置づけを説明しています。外部送信を行わないこと、既存3設定と独立した `distanceTermsSettings` の保存境界、ON/OFF・表示言語・表示されやすさ・「距離を置きたい言葉」の反映方法やワンクッションUIの動作も記載しています。
 
 英語版の `docs/en/about.html`、`docs/en/privacy.html`、`docs/en/disclaimer.html`、`docs/en/manual.html` では、英語話者にも自然に伝わるよう、強い断定を避けながら「読む前の小さな選択肢」「投稿者を裁くためではなく読む側の心を守る補助ツール」「投稿本文や判定結果を外部送信しない」という方針を説明しています。
 
@@ -1219,6 +1239,8 @@ QA実施後は、必要に応じて以下をPR本文や確認メモに転記し�
 
 現在のMVPは、以下の構成です。
 
+「距離を置きたい言葉」は6つのmoduleへ責務を分けています。`distance-terms-core.js` は文字列・Storage validation、`distance-terms-mutations.js` はpureなmutation計画、`distance-terms-reader.js` はread-onlyのStorage adapter、`distance-matcher.js` はbooleanだけを返すliteral matcher、`distance-terms-options.js` はOptions UI、`distance-terms-service-worker.js` はSingle Writerを担当します。
+
 ```
 Chrome Extension
 ├─ manifest.json
@@ -1238,6 +1260,12 @@ Chrome Extension
 │  ├─ popup / options 用の表示言語解決と同梱locale読込
 │  ├─ テスト環境でのフォールバック
 │  └─ UI文言取得処理の一元化
+├─ distance-terms-core.js
+├─ distance-terms-mutations.js
+├─ distance-terms-reader.js
+├─ distance-matcher.js
+├─ distance-terms-options.js
+├─ distance-terms-service-worker.js
 ├─ _locales
 │  ├─ ja
 │  │  └─ messages.json
@@ -1261,6 +1289,12 @@ Chrome Extension
 ├─ chrome.storage.local
 └─ tests
    ├─ risk-detector.test.js
+   ├─ distance-terms-core.test.js
+   ├─ distance-terms-mutations.test.js
+   ├─ distance-terms-reader.test.js
+   ├─ distance-terms-service-worker.test.js
+   ├─ distance-terms-options.test.js
+   ├─ distance-matcher.test.js
    ├─ i18n.test.js
    ├─ docs.test.js
    ├─ manifest.test.js
@@ -1308,13 +1342,15 @@ npm run format:check
 npm run check
 ```
 
+Phase 5以降の `npm run check` は、新規6 production moduleと新規6 test suiteの構文確認、およびPhase 1〜4のdistance系testを含む正式な全体checkです。
+
 ## 開発ステータス
 
-現在のステータス: Chrome Web Store 正式版 v1.1.0 公開済みです。
+現在のステータス: Chrome Web Store 正式版はv1.1.0です。リポジトリ上の次期source / release candidateはv2.0.0です。
 
-Chrome拡張機能として、X上の投稿DOM候補検出、投稿本文抽出、固定的なルールベース判定、ワンクッションUI表示、ぼかし表示、「内容を表示する」「今は見ない」の導線、ON/OFF設定、ワンクッションの表示されやすさ設定、ポップアップ、オプション画面、日本語・英語UI、公開ドキュメント整備まで実装済みです。
+Chrome拡張機能として、X上の投稿DOM候補検出、投稿本文抽出、固定的なルールベース判定、「距離を置きたい言葉」の登録・literal matching、ワンクッションUI表示、ぼかし表示、「内容を表示する」「今は見ない」の導線、ON/OFF設定、ワンクッションの表示されやすさ設定、ポップアップ、オプション画面、日本語・英語UI、公開ドキュメント整備までリポジトリ上で実装済みです。
 
-現在の公開バージョンは `1.1.0` です。日本語 / 英語のサービス説明、プライバシーポリシー、免責事項、操作マニュアルを公開し、マニュアルはChrome Web Storeから追加する手順へ更新済みです。マニュアル画像の拡大モーダルも追加済みです。
+現在の公開バージョンは `1.1.0` です。v2.0.0はPhase 6 Full verificationとChrome Web Storeへのupload / submit / publishが未完了です。日本語 / 英語のサービス説明、プライバシーポリシー、免責事項、操作マニュアルを公開し、マニュアルはChrome Web Storeから追加する手順へ更新済みです。マニュアル画像の拡大モーダルも追加済みです。
 
 ## 今後の予定
 
@@ -1323,7 +1359,8 @@ Chrome拡張機能として、X上の投稿DOM候補検出、投稿本文抽出�
 - 誤判定・未検出の傾向確認
 - UI文言や表示タイミングの改善検討
 - 必要に応じたルールベース判定の慎重な調整
-- ユーザー追加ワード機能など次フェーズ候補の検討
+- 「距離を置きたい言葉」v2.0.0 release candidateのPhase 6 Full verification
+- Phase 6後のManual用Optionsスクリーンショット更新と公開前確認
 - README / docs / Chrome Web Store掲載情報の継続更新
 
 ## 関連プロジェクト
