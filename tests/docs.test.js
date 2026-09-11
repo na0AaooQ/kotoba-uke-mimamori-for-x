@@ -509,8 +509,8 @@ function testStep8ManualImageUpdates() {
     '※画面内のバージョン番号は画面撮影時点のものです。バージョン番号の違いは操作方法に影響ありません。';
   const englishVersionNote =
     'Note: The version number shown in screenshots reflects the version at the time of capture and does not affect these instructions.';
-  const japaneseManualDate = '最終更新日：<time datetime="2026-09-10">2026年9月10日</time>';
-  const englishManualDate = 'Last updated: <time datetime="2026-09-10">September 10, 2026</time>';
+  const japaneseManualDate = '最終更新日：<time datetime="2026-09-12">2026年9月12日</time>';
+  const englishManualDate = 'Last updated: <time datetime="2026-09-12">September 12, 2026</time>';
 
   assertOrderedIncludes(jaManual, [
     './assets/img/manual/029_manual-popup-ja-off-auto.png',
@@ -773,6 +773,7 @@ function testDistanceTermsManualAndPrivacyDocumentation() {
 
   assertIncludesAll(jaManual, [
     '距離を置きたい言葉',
+    '1件につき2〜50文字',
     '最大30件',
     '投稿本文・リプライ・引用ポスト・リポスト内に一致する文字列',
     '正規表現や意味の検索、AIによる言葉や類義語の判定',
@@ -784,6 +785,7 @@ function testDistanceTermsManualAndPrivacyDocumentation() {
   ]);
   assertIncludesAll(enManual, [
     "Words you'd like some distance from",
+    'Each entry must be between 2 and 50 characters',
     'up to 30 words, short phrases, or hashtags',
     'post text, a reply, a quoted post, or a repost',
     'same text anywhere in the post content',
@@ -992,11 +994,13 @@ function testDocumentLastUpdatedDates() {
   for (const pagePath of JAPANESE_PAGE_PATHS) {
     const html = readDoc(pagePath);
     const date =
-      pagePath === 'manual.html' || pagePath === 'privacy.html'
-        ? '最終更新日：<time datetime="2026-09-10">2026年9月10日</time>'
-        : pagePath !== 'disclaimer.html'
-          ? '最終更新日：<time datetime="2026-07-21">2026年7月21日</time>'
-          : '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
+      pagePath === 'manual.html'
+        ? '最終更新日：<time datetime="2026-09-12">2026年9月12日</time>'
+        : pagePath === 'privacy.html'
+          ? '最終更新日：<time datetime="2026-09-10">2026年9月10日</time>'
+          : pagePath !== 'disclaimer.html'
+            ? '最終更新日：<time datetime="2026-07-21">2026年7月21日</time>'
+            : '最終更新日：<time datetime="2026-06-16">2026年6月16日</time>';
 
     assert.equal(countOccurrences(html, date), 1);
     assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
@@ -1005,11 +1009,13 @@ function testDocumentLastUpdatedDates() {
   for (const pagePath of ENGLISH_PAGE_PATHS) {
     const html = readDoc(pagePath);
     const date =
-      pagePath === 'en/manual.html' || pagePath === 'en/privacy.html'
-        ? 'Last updated: <time datetime="2026-09-10">September 10, 2026</time>'
-        : pagePath !== 'en/disclaimer.html'
-          ? 'Last updated: <time datetime="2026-07-21">July 21, 2026</time>'
-          : 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
+      pagePath === 'en/manual.html'
+        ? 'Last updated: <time datetime="2026-09-12">September 12, 2026</time>'
+        : pagePath === 'en/privacy.html'
+          ? 'Last updated: <time datetime="2026-09-10">September 10, 2026</time>'
+          : pagePath !== 'en/disclaimer.html'
+            ? 'Last updated: <time datetime="2026-07-21">July 21, 2026</time>'
+            : 'Last updated: <time datetime="2026-06-16">June 16, 2026</time>';
 
     assert.equal(countOccurrences(html, date), 1);
     assert.ok(html.indexOf(date) < html.indexOf('<main class="content-card">'));
