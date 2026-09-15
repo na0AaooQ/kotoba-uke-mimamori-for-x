@@ -15,5 +15,5 @@
 
 | ADR | Status | Implementation status | 概要 |
 | --- | --- | --- | --- |
-| [ADR-0001](0001-distance-terms-architecture.md) | Accepted | Not implemented | 「距離を置きたい言葉」機能のアーキテクチャ |
+| [ADR-0001](0001-distance-terms-architecture.md) | Accepted | Implemented | 「距離を置きたい言葉」機能のアーキテクチャ |
 | [ADR-0002](0002-after-not-now-support.md) | Accepted | Implemented | 「今は見ない」後のセルフケア・距離の取り方支援 |

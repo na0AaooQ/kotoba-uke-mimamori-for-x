@@ -10,7 +10,9 @@ Google Chrome拡張機能「ことばうけみまもり｜Xことばに心のワ
 
 「ことばうけみまもり｜Xことばに心のワンクッション」は、X（旧Twitter）で届く言葉のなかで、受け手の心に大きな負荷を与える可能性のある投稿に、そっとワンクッションを置くための補助ツールです。
 人格否定・存在否定・差別的表現・執拗な攻撃など、心に大きな負荷を与える可能性のある投稿を、すぐに読まなくてもよい形にし、ユーザーが「表示する / 今は見ない」を選べるようにすることを目指します。
-現在は、Chrome Web Store正式版 v1.1.0を公開しています。リポジトリ上では、「距離を置きたい言葉」を含む次期source / release candidate v2.0.0を整備しています。v2.0.0はChrome Web Storeではまだ公開していません。
+現在は、Chrome Web Store正式版 v1.1.0を公開しています。
+リポジトリ上の「距離を置きたい言葉」を含む次期source / release candidate v2.0.0は実装が完了しており、Phase 6 Full verificationも完了しています。
+v2.0.0はChrome Web Storeではまだ公開していません。
 
 ## コンセプト
 
@@ -351,7 +353,9 @@ Manifest V3の `web_accessible_resources` は、X上のcontent scriptが拡張�
 - 登録内容は `chrome.storage.local` の独立したtop-level key `distanceTermsSettings` に保存します。投稿本文、どの登録語が一致したかという利用履歴、一致位置、一致件数等は保存・外部送信しません。
 - 投稿本文、登録語、match結果を外部サーバーへ送信する機能や、analytics、telemetry、外部AI/APIはありません。
 
-具体的な安全境界は [ADR-0001](design/adr/0001-distance-terms-architecture.md)、module・Storage・UIの契約は [Implementation Design](design/distance-terms-implementation-design.md) を参照してください。Phase 5時点ではPhase 6 Full verificationとChrome Web Storeへのv2.0.0公開は未完了です。
+具体的な安全境界は [ADR-0001](design/adr/0001-distance-terms-architecture.md)、module・Storage・UIの契約は [Implementation Design](design/distance-terms-implementation-design.md) を参照してください。
+v2.0.0 release candidateへの実装とPhase 6 Full verificationは完了しています。
+Chrome Web Storeへのv2.0.0公開は未実施です。
 
 ## ローカル開発環境のセットアップ
 
@@ -1346,21 +1350,27 @@ Phase 5以降の `npm run check` は、新規6 production moduleと新規6 test 
 
 ## 開発ステータス
 
-現在のステータス: Chrome Web Store 正式版はv1.1.0です。リポジトリ上の次期source / release candidateはv2.0.0です。
+現在のステータス: Chrome Web Store 正式版はv1.1.0です。
+リポジトリ上の次期source / release candidate v2.0.0は実装が完了しており、Phase 6 Full verificationも完了しています。
 
 Chrome拡張機能として、X上の投稿DOM候補検出、投稿本文抽出、固定的なルールベース判定、「距離を置きたい言葉」の登録・literal matching、ワンクッションUI表示、ぼかし表示、「内容を表示する」「今は見ない」の導線、ON/OFF設定、ワンクッションの表示されやすさ設定、ポップアップ、オプション画面、日本語・英語UI、公開ドキュメント整備までリポジトリ上で実装済みです。
 
-現在の公開バージョンは `1.1.0` です。v2.0.0はPhase 6 Full verificationとChrome Web Storeへのupload / submit / publishが未完了です。日本語 / 英語のサービス説明、プライバシーポリシー、免責事項、操作マニュアルを公開し、マニュアルはChrome Web Storeから追加する手順へ更新済みです。マニュアル画像の拡大モーダルも追加済みです。
+現在の公開バージョンは `1.1.0` です。
+v2.0.0のPhase 6 Full verificationは完了しています。
+Chrome Web Storeへのupload / submit / publishは未実施です。
+日本語 / 英語のサービス説明、プライバシーポリシー、免責事項、操作マニュアルを公開し、マニュアルはChrome Web Storeから追加する手順へ更新済みです。
+マニュアル画像の拡大モーダルも追加済みです。
 
 ## 今後の予定
 
+- Phase 6後の残対応の検討・必要対応
+- Manual用Optionsスクリーンショット更新と公開前確認
+- 残対応完了後のv2.0.0 Chrome Web Store公開工程
 - 正式版公開後のフィードバック確認
 - XのDOM変更に対する継続確認
 - 誤判定・未検出の傾向確認
 - UI文言や表示タイミングの改善検討
 - 必要に応じたルールベース判定の慎重な調整
-- 「距離を置きたい言葉」v2.0.0 release candidateのPhase 6 Full verification
-- Phase 6後のManual用Optionsスクリーンショット更新と公開前確認
 - README / docs / Chrome Web Store掲載情報の継続更新
 
 ## 関連プロジェクト
