@@ -2,14 +2,16 @@
 
 - Initial implementation target: v2.0.0
 - Design finalized: 2026-09-08
-- Implementation status: Not implemented
-- 実装状況: 未実装
+- Implementation status: Implemented
+- Phase 6 Full verification completed: 2026-09-16
+- 実装状況: 実装済み（Chrome Web Store未リリース）
 - Related ADR: [ADR-0001 「距離を置きたい言葉」機能のアーキテクチャ](adr/0001-distance-terms-architecture.md)
 - Related state design: [ADR-0002 「今は見ない」後のセルフケア・距離の取り方支援](adr/0002-after-not-now-support.md)
 
 ## 1. 文書の目的と正本関係
 
-この文書は、ADR-0001で確定した設計判断をv2.0.0へ実装するための、具体的なmodule、API、UI、Storage、message、test、file scopeの契約を記録します。この文書が存在することは、機能が実装済みであることを意味しません。
+この文書は、ADR-0001で確定した設計判断をv2.0.0へ実装するための、具体的なmodule、API、UI、Storage、message、test、file scopeの契約を記録します。
+現在は、この契約に基づくv2.0.0 release candidateへの実装とPhase 6 Full verificationが完了しています。
 
 正本の優先関係は次のとおりです。
 
@@ -2019,4 +2021,5 @@ DevTools等で、投稿本文・登録語・matched term・結果を外部送信
 - GitHub Pages、Chrome Web Store、release、deploy作業。
 - commit、push、Pull Request作成、merge。
 
-この文書作業の完了時点でも、Implementation statusは `Not implemented` / `未実装` のままです。
+2026-09-08の本設計文書確定時点では、Implementation statusは `Not implemented` / `未実装` でした。
+現在の実装状況は本書冒頭のmetadataを正本とします。

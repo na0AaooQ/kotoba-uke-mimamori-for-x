@@ -616,16 +616,19 @@ AGENTS.md を更新すべき変更:
 
 ```text
 Chrome Web Store公開版はv1.1.0。
-リポジトリ上では、ADR-0001「距離を置きたい言葉」を含む次期v2.0.0 release candidateを整備中。
-Phase 5時点ではPhase 6 Full verificationとv2.0.0のChrome Web Store releaseは未完了。
+リポジトリ上では、ADR-0001「距離を置きたい言葉」を含む
+次期v2.0.0 release candidateへの実装とPhase 6 Full verificationが完了。
+v2.0.0のChrome Web Store releaseは未実施。
+Phase 6後の残対応を検討し、必要対応の完了後にChrome Web Store公開工程へ進む。
 ```
 
 次の予定:
 
+- Phase 6後の残対応の検討・必要対応
+- Manual用Optionsスクリーンショット更新と公開前確認
+- 残対応完了後のv2.0.0 Chrome Web Store公開工程
 - 正式版公開後のフィードバック確認
 - XのDOM変更に対する継続確認
 - 誤判定・未検出の傾向確認
 - UI文言や表示タイミングの改善検討
 - 必要に応じたルールベース判定の慎重な調整
-- ADR-0001 v2.0.0 release candidateのPhase 6 Full verification
-- Phase 6後のManual用Optionsスクリーンショット更新と公開前確認
