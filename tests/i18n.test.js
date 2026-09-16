@@ -114,6 +114,7 @@ async function runTests() {
   await testLocaleMessageLoadingFailureIsSafe();
   testLocaleKeysMatch();
   testPopupCompactSensitivitySummaryMessages();
+  testPopupDiscoveryMessagesMatchFinalCopy();
   testRequiredGuidanceMessagesExist();
   testRequiredState2MessagesMatchFinalCopy();
   testDistanceCushionBodyMatchesFinalCopy();
@@ -262,6 +263,8 @@ function testRequiredEnglishMessagesExist() {
     'popupTitle',
     'popupTagline',
     'popupOpenOptions',
+    'popupDistanceTermsHint',
+    'popupManualLink',
     'optionsTitle',
     'optionsDescription',
     'optionEnableExtension',
@@ -302,6 +305,22 @@ function testPopupCompactSensitivitySummaryMessages() {
     enMessages.popupSensitivityCompactSummary.message,
     'Low = stronger expressions / Standard = usual / High = more sensitive'
   );
+}
+
+function testPopupDiscoveryMessagesMatchFinalCopy() {
+  const jaMessages = readLocaleMessages('ja');
+  const enMessages = readLocaleMessages('en');
+
+  assert.equal(
+    jaMessages.popupDistanceTermsHint.message,
+    '詳細設定では、「距離を置きたい言葉」を登録できます。'
+  );
+  assert.equal(jaMessages.popupManualLink.message, '操作マニュアルを見る');
+  assert.equal(
+    enMessages.popupDistanceTermsHint.message,
+    "In detailed settings, you can add words you'd like some distance from."
+  );
+  assert.equal(enMessages.popupManualLink.message, 'View the user manual');
 }
 
 function testRequiredGuidanceMessagesExist() {

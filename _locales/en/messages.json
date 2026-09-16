@@ -107,6 +107,12 @@
   "popupOpenOptions": {
     "message": "Open detailed settings"
   },
+  "popupDistanceTermsHint": {
+    "message": "In detailed settings, you can add words you'd like some distance from."
+  },
+  "popupManualLink": {
+    "message": "View the user manual"
+  },
   "optionsTitle": {
     "message": "Kotoba Uke Mimamori Settings"
   },
