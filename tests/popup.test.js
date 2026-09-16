@@ -17,6 +17,9 @@ const MESSAGES = Object.freeze({
   popupTitle: 'ことばうけみまもり',
   popupTagline: 'Xことばに心のワンクッション',
   popupOpenOptions: '詳細設定を開く',
+  popupDistanceTermsHint: '詳細設定では、「距離を置きたい言葉」を登録できます。',
+  popupManualLink: '操作マニュアルを見る',
+  linkOpensInNewTab: '新しいタブで開きます',
   optionEnableExtension: 'ことばうけみまもりを有効にする',
   optionDisplayLanguage: '表示言語',
   optionLanguageAuto: '自動',
@@ -66,12 +69,27 @@ function testPopupHtmlContainsCompactControlsOnly() {
   assert.match(popupHtml, /value="standard"/);
   assert.match(popupHtml, /value="high"/);
   assert.match(popupHtml, /id="popup-open-options"/);
+  assert.match(popupHtml, /id="popup-discovery"/);
+  assert.match(popupHtml, /id="popup-distance-terms-hint"/);
+  assert.match(popupHtml, /data-i18n="popupDistanceTermsHint"/);
+  assert.match(popupHtml, /id="popup-manual-link"/);
+  assert.match(popupHtml, /id="popup-manual-label"/);
+  assert.match(popupHtml, /data-i18n="popupManualLink"/);
+  assert.match(popupHtml, /id="popup-manual-new-tab"/);
+  assert.match(popupHtml, /class="visually-hidden"/);
+  assert.match(popupHtml, /data-i18n="linkOpensInNewTab"/);
+  assert.match(popupHtml, /target="_blank"/);
+  assert.match(popupHtml, /rel="noopener noreferrer"/);
+  assert.match(popupHtml, /<span aria-hidden="true"> ↗<\/span>/);
   assert.match(popupHtml, /data-i18n="popupSensitivityCompactSummary"/);
   assert.match(popupHtml, /data-i18n="optionPrivacyNote"/);
   assert.match(popupHtml, /data-i18n="optionReloadNote"/);
   assert.doesNotMatch(popupHtml, /popup-status|popupStatus(Label|On|Off)/);
   assert.doesNotMatch(popupHtml, /popup-sensitivity-descriptions/);
-  assert.doesNotMatch(popupHtml, /textarea|postText|matchedRules|categories|reasons/);
+  assert.doesNotMatch(
+    popupHtml,
+    /textarea|postText|matchedRules|categories|reasons|distanceTermsSettings|distance-terms-list|distance-terms-count/
+  );
 }
 
 function testPopupCssUsesCompactLayoutWithoutHidingContent() {
@@ -79,8 +97,11 @@ function testPopupCssUsesCompactLayoutWithoutHidingContent() {
 
   assert.match(popupCss, /grid-template-columns: minmax\(0, 1fr\) minmax\(132px, 144px\)/);
   assert.match(popupCss, /\.popup-save-status:not\(:empty\)\s*{\s*margin: 8px 0;/);
+  assert.match(popupCss, /\.popup-discovery\s*{\s*margin-top: 12px;/);
+  assert.match(popupCss, /\.popup-manual-link:focus-visible/);
+  assert.match(popupCss, /\.visually-hidden\s*{[\s\S]*?clip: rect\(0, 0, 0, 0\);/);
   assert.doesNotMatch(popupCss, /\.popup-save-status\s*{[^}]*min-height/);
-  assert.doesNotMatch(popupCss, /overflow:\s*hidden/);
+  assert.doesNotMatch(popupCss, /\.popup-(?:container|card)\s*{[^}]*overflow:\s*hidden/);
 }
 
 function testApplyExtensionVersion() {
@@ -110,9 +131,20 @@ async function testApplyLocalizedMessages() {
     const titleElement = createLocalizedElement('h1', 'popupTitle');
     const taglineElement = createLocalizedElement('p', 'popupTagline');
     const compactSummaryElement = createLocalizedElement('p', 'popupSensitivityCompactSummary');
+    const distanceTermsHint = createLocalizedElement('p', 'popupDistanceTermsHint');
+    const manualLabel = createLocalizedElement('span', 'popupManualLink');
+    const manualNewTab = createLocalizedElement('span', 'linkOpensInNewTab');
     const optionsButton = createLocalizedElement('button', 'popupOpenOptions');
     const fakeDocument = createFakeDocument({
-      localizedElements: [titleElement, taglineElement, compactSummaryElement, optionsButton]
+      localizedElements: [
+        titleElement,
+        taglineElement,
+        compactSummaryElement,
+        distanceTermsHint,
+        manualLabel,
+        manualNewTab,
+        optionsButton
+      ]
     });
 
     applyLocalizedMessages(fakeDocument);
@@ -121,6 +153,9 @@ async function testApplyLocalizedMessages() {
     assert.equal(titleElement.textContent, MESSAGES.popupTitle);
     assert.equal(taglineElement.textContent, MESSAGES.popupTagline);
     assert.equal(compactSummaryElement.textContent, MESSAGES.popupSensitivityCompactSummary);
+    assert.equal(distanceTermsHint.textContent, MESSAGES.popupDistanceTermsHint);
+    assert.equal(manualLabel.textContent, MESSAGES.popupManualLink);
+    assert.equal(manualNewTab.textContent, MESSAGES.linkOpensInNewTab);
     assert.equal(optionsButton.textContent, MESSAGES.popupOpenOptions);
   });
 }
@@ -137,6 +172,10 @@ async function testInitializePopupLoadsCurrentState() {
     assert.equal(result, true);
     assert.equal(fakeDocument.enabledCheckbox.checked, true);
     assert.equal(fakeDocument.documentElement.lang, 'ja');
+    assert.equal(
+      fakeDocument.manualLink.href,
+      'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/manual.html'
+    );
     assert.equal(getSelectedSensitivity(fakeDocument.sensitivityInputs), 'high');
     assert.equal(fakeDocument.uiLanguageSelect.value, 'auto');
   });
@@ -174,8 +213,20 @@ async function testLanguageChangeUpdatesPopupImmediatelyAndKeepsOtherSettings() 
     const japaneseOption = createLocalizedElement('option', 'optionLanguageJapanese');
     const englishOption = createLocalizedElement('option', 'optionLanguageEnglish');
     const compactSummary = createLocalizedElement('p', 'popupSensitivityCompactSummary');
+    const distanceTermsHint = createLocalizedElement('p', 'popupDistanceTermsHint');
+    const manualLabel = createLocalizedElement('span', 'popupManualLink');
+    const manualNewTab = createLocalizedElement('span', 'linkOpensInNewTab');
     const fakeDocument = createFakeDocument({
-      localizedElements: [languageLabel, autoOption, japaneseOption, englishOption, compactSummary]
+      localizedElements: [
+        languageLabel,
+        autoOption,
+        japaneseOption,
+        englishOption,
+        compactSummary,
+        distanceTermsHint,
+        manualLabel,
+        manualNewTab
+      ]
     });
     const elements = getInteractiveElements(fakeDocument);
 
@@ -192,6 +243,16 @@ async function testLanguageChangeUpdatesPopupImmediatelyAndKeepsOtherSettings() 
     assert.equal(autoOption.textContent, 'Auto');
     assert.equal(japaneseOption.textContent, '日本語');
     assert.equal(englishOption.textContent, 'English');
+    assert.equal(
+      distanceTermsHint.textContent,
+      "In detailed settings, you can add words you'd like some distance from."
+    );
+    assert.equal(manualLabel.textContent, 'View the user manual');
+    assert.equal(manualNewTab.textContent, 'Opens in a new tab');
+    assert.equal(
+      fakeDocument.manualLink.href,
+      'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/manual.html'
+    );
     assert.equal(
       compactSummary.textContent,
       'Low = stronger expressions / Standard = usual / High = more sensitive'
@@ -311,6 +372,7 @@ function createFakeDocument({ localizedElements = [] } = {}) {
   });
   const versionLabel = createElement('span');
   const saveStatus = createElement('p');
+  const manualLink = createElement('a');
   const openOptionsButton = createElement('button');
 
   return {
@@ -319,6 +381,7 @@ function createFakeDocument({ localizedElements = [] } = {}) {
     sensitivityInputs,
     versionLabel,
     saveStatus,
+    manualLink,
     openOptionsButton,
     documentElement: { lang: 'ja' },
     title: '',
@@ -337,6 +400,10 @@ function createFakeDocument({ localizedElements = [] } = {}) {
 
       if (id === 'popup-save-status') {
         return saveStatus;
+      }
+
+      if (id === 'popup-manual-link') {
+        return manualLink;
       }
 
       if (id === 'popup-open-options') {
@@ -366,6 +433,7 @@ function getInteractiveElements(fakeDocument) {
     sensitivityInputs: fakeDocument.sensitivityInputs,
     versionLabel: fakeDocument.versionLabel,
     saveStatus: fakeDocument.saveStatus,
+    manualLink: fakeDocument.manualLink,
     openOptionsButton: fakeDocument.openOptionsButton
   };
 }
@@ -439,6 +507,10 @@ function createEnglishMessages() {
     popupTitle: 'Kotoba Uke Mimamori',
     popupTagline: 'A gentle cushion for words on X',
     popupOpenOptions: 'Open detailed settings',
+    popupDistanceTermsHint:
+      "In detailed settings, you can add words you'd like some distance from.",
+    popupManualLink: 'View the user manual',
+    linkOpensInNewTab: 'Opens in a new tab',
     optionEnableExtension: 'Enable Kotoba Uke Mimamori',
     optionDisplayLanguage: 'Display language',
     optionLanguageAuto: 'Auto',

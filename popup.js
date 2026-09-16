@@ -6,11 +6,16 @@ const POPUP_ELEMENTS = Object.freeze({
   sensitivityInputSelector: 'input[name="popup-cushion-sensitivity"]',
   versionLabel: 'popup-version',
   saveStatus: 'popup-save-status',
+  manualLink: 'popup-manual-link',
   openOptionsButton: 'popup-open-options'
 });
 
 const DEFAULT_CUSHION_SENSITIVITY = 'standard';
 const DEFAULT_UI_LANGUAGE = 'auto';
+const MANUAL_URLS = Object.freeze({
+  ja: 'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/manual.html',
+  en: 'https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/manual.html'
+});
 
 function initializePopup(
   currentDocument = globalThis.document,
@@ -30,6 +35,7 @@ function initializePopup(
     !elements.uiLanguageSelect ||
     elements.sensitivityInputs.length === 0 ||
     !elements.saveStatus ||
+    !elements.manualLink ||
     !elements.openOptionsButton
   ) {
     return Promise.resolve(false);
@@ -72,6 +78,7 @@ async function applyPopupSettings(currentDocument, elements, settings, runtimeAp
 
   applyLocalizedMessages(currentDocument, localeMessages);
   applyDocumentLanguage(currentDocument, resolvedLanguage);
+  applyManualLink(elements.manualLink, resolvedLanguage);
   applySettingsToElements(elements, settings);
 
   return { localeMessages, resolvedLanguage };
@@ -110,8 +117,21 @@ function getPopupElements(currentDocument) {
     ),
     versionLabel: currentDocument.getElementById(POPUP_ELEMENTS.versionLabel),
     saveStatus: currentDocument.getElementById(POPUP_ELEMENTS.saveStatus),
+    manualLink: currentDocument.getElementById(POPUP_ELEMENTS.manualLink),
     openOptionsButton: currentDocument.getElementById(POPUP_ELEMENTS.openOptionsButton)
   };
+}
+
+function applyManualLink(manualLink, resolvedLanguage) {
+  if (!manualLink) {
+    return '';
+  }
+
+  const href = resolvedLanguage === 'ja' ? MANUAL_URLS.ja : MANUAL_URLS.en;
+
+  manualLink.href = href;
+
+  return href;
 }
 
 function applyExtensionVersion(
@@ -306,6 +326,7 @@ if (typeof module !== 'undefined') {
     applyDocumentLanguage,
     applyExtensionVersion,
     applyLocalizedMessages,
+    applyManualLink,
     applyPopupSettings,
     applySettingsToElements,
     getExtensionVersion,

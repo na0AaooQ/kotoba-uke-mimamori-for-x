@@ -256,8 +256,46 @@ body {
   color: #9f1239;
 }
 
+.popup-discovery {
+  margin-top: 12px;
+  padding: 0 2px;
+}
+
+.popup-distance-terms-hint {
+  margin: 0;
+  color: #57534e;
+  font-size: 13px;
+}
+
+.popup-manual-link {
+  display: inline-block;
+  margin-top: 6px;
+  border-radius: 4px;
+  color: #9a5b05;
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.popup-manual-link:focus-visible {
+  outline: 3px solid rgba(245, 158, 11, 0.7);
+  outline-offset: 3px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .popup-options-button {
   width: 100%;
+  margin-top: 16px;
   padding: 11px 16px;
   border: 1px solid #d97706;
   border-radius: 10px;
@@ -306,6 +344,7 @@ body {
   .popup-version,
   .popup-toggle-row,
   .popup-sensitivity-summary,
+  .popup-distance-terms-hint,
   .popup-note {
     color: #f8efd7;
   }
@@ -330,6 +369,10 @@ body {
     border-color: rgba(251, 191, 36, 0.32);
     background: rgba(67, 56, 38, 0.5);
     color: #f8efd7;
+  }
+
+  .popup-manual-link {
+    color: #fcd34d;
   }
 
   .popup-save-status[data-state="error"] {

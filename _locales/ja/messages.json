@@ -107,6 +107,12 @@
   "popupOpenOptions": {
     "message": "詳細設定を開く"
   },
+  "popupDistanceTermsHint": {
+    "message": "詳細設定では、「距離を置きたい言葉」を登録できます。"
+  },
+  "popupManualLink": {
+    "message": "操作マニュアルを見る"
+  },
   "optionsTitle": {
     "message": "ことばうけみまもりの設定"
   },
