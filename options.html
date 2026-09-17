@@ -322,6 +322,13 @@
         margin-top: 22px;
       }
 
+      .distance-terms-add-hint {
+        margin: 6px 0 0;
+        color: #57534e;
+        font-size: 14px;
+        font-weight: 400;
+      }
+
       .distance-terms-add-form {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -573,7 +580,8 @@
         .distance-terms-empty,
         .distance-terms-maximum,
         .distance-terms-state-copy,
-        .distance-terms-item-status {
+        .distance-terms-item-status,
+        .distance-terms-add-hint {
           color: #f8efd7;
         }
 
@@ -772,12 +780,17 @@
 
           <div class="distance-terms-add">
             <h3 id="distance-terms-add-heading" class="distance-terms-subtitle"></h3>
+            <p
+              id="distance-terms-add-length-hint"
+              class="distance-terms-add-hint"
+            ></p>
             <form id="distance-terms-add-form" class="distance-terms-add-form">
               <input
                 id="distance-terms-add-input"
                 class="distance-terms-add-input"
                 type="text"
                 aria-labelledby="distance-terms-add-heading"
+                aria-describedby="distance-terms-add-length-hint"
                 autocomplete="off"
                 spellcheck="false"
               />

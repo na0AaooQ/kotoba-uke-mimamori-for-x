@@ -37,6 +37,23 @@ test('Options HTMLはsemantic sectionと3 native dialogと依存順を持つ', (
   );
   assert.equal((html.match(/<dialog\b/g) ?? []).length, 3);
   assert.match(html, /id="distance-terms-add-form"/);
+  assert.match(
+    html,
+    /id="distance-terms-add-heading"[\s\S]*id="distance-terms-add-length-hint"[\s\S]*id="distance-terms-add-form"/
+  );
+  assert.match(html, /id="distance-terms-add-length-hint"[\s\S]*class="distance-terms-add-hint"/);
+  assert.match(
+    html,
+    /id="distance-terms-add-input"[\s\S]*aria-describedby="distance-terms-add-length-hint"/
+  );
+  assert.doesNotMatch(
+    html.match(/<input\s+id="distance-terms-add-input"[\s\S]*?\/>/)?.[0] ?? '',
+    /\bmaxlength\s*=/
+  );
+  assert.doesNotMatch(
+    html.match(/<p\s+id="distance-terms-add-length-hint"[\s\S]*?<\/p>/)?.[0] ?? '',
+    /\b(?:role|aria-live)\s*=/
+  );
   assert.match(html, /id="distance-terms-master-enabled"[\s\S]*type="checkbox"/);
   assert.match(html, /role="status"[\s\S]*aria-live="polite"[\s\S]*aria-atomic="true"/);
   assert.match(html, /target="_blank"/);
@@ -274,7 +291,35 @@ test('Addはcanonical化前のraw draftを送信しlatest read後だけclearす�
   assert.equal(harness.elements.status.textContent, JA_MESSAGES.distanceTermsAddSuccess.message);
 });
 
-test('client validationはsendせずdraft・focus・aria-invalid・describedbyを維持する', async () => {
+test('文字数helperは常時表示され、言語切替でもStorageやmutationを発生させない', async () => {
+  const runtime = createRuntime();
+  const reader = createReader({ views: [missingView()] });
+  const harness = await initializeHarness({ reader, runtime });
+
+  assert.equal(
+    harness.elements.addLengthHint.textContent,
+    JA_MESSAGES.distanceTermsAddLengthHint.message
+  );
+  assert.equal(
+    harness.elements.addInput.getAttribute('aria-describedby'),
+    'distance-terms-add-length-hint'
+  );
+  assert.equal(harness.elements.addLengthHint.getAttribute('role'), null);
+  assert.equal(harness.elements.addLengthHint.getAttribute('aria-live'), null);
+  assert.equal(runtime.requests.length, 0);
+  assert.equal(reader.optionReadCount, 1);
+
+  harness.controller.updateLocalization(createLocalization('en'));
+
+  assert.equal(
+    harness.elements.addLengthHint.textContent,
+    EN_MESSAGES.distanceTermsAddLengthHint.message
+  );
+  assert.equal(runtime.requests.length, 0);
+  assert.equal(reader.optionReadCount, 1);
+});
+
+test('client validationはsendせずdraft・focus・helperとvalidationのdescribedbyを維持する', async () => {
   for (const [draft, expectedMessage] of [
     ['a', JA_MESSAGES.distanceTermsValidationLength.message],
     ['ab\ncd', JA_MESSAGES.distanceTermsValidationLineBreakTab.message],
@@ -296,9 +341,32 @@ test('client validationはsendせずdraft・focus・aria-invalid・describedby�
     assert.equal(harness.elements.addInput.getAttribute('aria-invalid'), 'true');
     assert.equal(
       harness.elements.addInput.getAttribute('aria-describedby'),
-      'distance-terms-validation'
+      'distance-terms-add-length-hint distance-terms-validation'
     );
   }
+});
+
+test('validation errorを解消するとaria-invalidを外しhelperだけを再関連付けする', async () => {
+  const harness = await initializeHarness({ reader: createReader({ views: [missingView()] }) });
+  harness.elements.addInput.value = 'a';
+  await harness.elements.addInput.dispatch('input');
+  await harness.elements.addForm.dispatch('submit');
+
+  assert.equal(harness.elements.addInput.getAttribute('aria-invalid'), 'true');
+  assert.equal(
+    harness.elements.addInput.getAttribute('aria-describedby'),
+    'distance-terms-add-length-hint distance-terms-validation'
+  );
+
+  harness.elements.addInput.value = '仕事';
+  await harness.elements.addInput.dispatch('input');
+
+  assert.equal(harness.elements.validation.hidden, true);
+  assert.equal(harness.elements.addInput.getAttribute('aria-invalid'), null);
+  assert.equal(
+    harness.elements.addInput.getAttribute('aria-describedby'),
+    'distance-terms-add-length-hint'
+  );
 });
 
 test('server duplicate・limit・generic failureはlocalized copyとdraftを維持する', async () => {
@@ -925,6 +993,7 @@ function createFakeDocument() {
   createStatic('masterLabel', 'distance-terms-master-label', 'span');
   createStatic('masterNote', 'distance-terms-master-note', 'span');
   createStatic('addHeading', 'distance-terms-add-heading', 'h3');
+  createStatic('addLengthHint', 'distance-terms-add-length-hint', 'p');
   createStatic('addForm', 'distance-terms-add-form', 'form');
   createStatic('addInput', 'distance-terms-add-input', 'input');
   createStatic('addButton', 'distance-terms-add-button', 'button');
@@ -984,6 +1053,7 @@ function createFakeDocument() {
     elements.masterLabel,
     elements.masterNote,
     elements.addHeading,
+    elements.addLengthHint,
     elements.addForm,
     elements.maximum,
     elements.count,

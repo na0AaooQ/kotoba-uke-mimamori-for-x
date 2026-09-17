@@ -28,6 +28,7 @@
     masterLabel: 'distance-terms-master-label',
     masterNote: 'distance-terms-master-note',
     addHeading: 'distance-terms-add-heading',
+    addLengthHint: 'distance-terms-add-length-hint',
     addForm: 'distance-terms-add-form',
     addInput: 'distance-terms-add-input',
     addButton: 'distance-terms-add-button',
@@ -538,6 +539,7 @@
       elements.masterLabel.textContent = message('distanceTermsMasterLabel');
       elements.masterNote.textContent = message('distanceTermsMasterNote');
       elements.addHeading.textContent = message('distanceTermsAddHeading');
+      elements.addLengthHint.textContent = message('distanceTermsAddLengthHint');
       elements.addInput.placeholder = message('distanceTermsAddPlaceholder');
       elements.addButton.textContent = message('distanceTermsAddButton');
       elements.listHeading.textContent = message('distanceTermsListHeading');
@@ -719,10 +721,13 @@
 
       if (validationMessage) {
         elements.addInput.setAttribute('aria-invalid', 'true');
-        elements.addInput.setAttribute('aria-describedby', ELEMENT_IDS.validation);
+        elements.addInput.setAttribute(
+          'aria-describedby',
+          `${ELEMENT_IDS.addLengthHint} ${ELEMENT_IDS.validation}`
+        );
       } else {
         elements.addInput.removeAttribute('aria-invalid');
-        elements.addInput.removeAttribute('aria-describedby');
+        elements.addInput.setAttribute('aria-describedby', ELEMENT_IDS.addLengthHint);
       }
     }
 

@@ -26,6 +26,7 @@ const REQUIRED_DISTANCE_OPTIONS_KEYS = Object.freeze([
   'distanceTermsMasterLabel',
   'distanceTermsMasterNote',
   'distanceTermsAddHeading',
+  'distanceTermsAddLengthHint',
   'distanceTermsAddPlaceholder',
   'distanceTermsAddButton',
   'distanceTermsCount',
@@ -383,6 +384,8 @@ function testDistanceOptionsMessagesMatchFinalCopy() {
     '登録した言葉はこのブラウザ内に保存され、外部送信されません。'
   );
   assert.equal(jaMessages.distanceTermsCount.message, '登録数：$1 / 30');
+  assert.equal(jaMessages.distanceTermsAddLengthHint.message, '2〜50文字で入力できます。');
+  assert.equal(jaMessages.distanceTermsValidationLength.message, '2〜50文字で入力してください。');
   assert.equal(
     jaMessages.distanceTermsRecoveryUnknown.message,
     '操作を完了したことを確認できませんでした。保存されている最新の設定を読み直しました。現在の状態を確認して、必要に応じてもう一度お試しください。'
@@ -397,6 +400,14 @@ function testDistanceOptionsMessagesMatchFinalCopy() {
     'Registered text is stored in this browser and is not sent externally.'
   );
   assert.equal(enMessages.distanceTermsCount.message, 'Registered: $1 / 30');
+  assert.equal(
+    enMessages.distanceTermsAddLengthHint.message,
+    'You can enter between 2 and 50 characters.'
+  );
+  assert.equal(
+    enMessages.distanceTermsValidationLength.message,
+    'Enter between 2 and 50 characters.'
+  );
   assert.equal(
     enMessages.distanceTermsRecoveryUnknown.message,
     "We couldn't confirm that the action was completed. The latest saved settings have been reloaded. Check the current state and try again if needed."
