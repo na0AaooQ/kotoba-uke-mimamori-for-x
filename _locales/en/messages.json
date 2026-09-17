@@ -191,6 +191,9 @@
   "distanceTermsAddHeading": {
     "message": "Add a word, phrase, or hashtag"
   },
+  "distanceTermsAddLengthHint": {
+    "message": "You can enter between 2 and 50 characters."
+  },
   "distanceTermsAddPlaceholder": {
     "message": "Word, short phrase, or hashtag"
   },

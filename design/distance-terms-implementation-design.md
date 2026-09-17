@@ -1045,7 +1045,10 @@ reconciliationではOptions view APIとMutation snapshot APIを別々に呼ば�
   │
   ├─ normal-management-area
   │    ├─ master checkbox
+  │    ├─ add heading
+  │    ├─ always-visible length hint
   │    ├─ add form
+  │    │    └─ validation message
   │    ├─ registered count
   │    └─ registered items
   │
@@ -1074,6 +1077,8 @@ distance section
 │       └─ no reset / normal management / mutation
 ├─ normal-management-area (missing / valid / partially_invalid)
 │  ├─ master
+│  ├─ add heading
+│  ├─ always-visible length hint
 │  ├─ add form
 │  │    └─ validation message
 │  └─ item list
@@ -1110,7 +1115,8 @@ focus latest state UI
 - Master / item ON/OFFはnative `<input type="checkbox">` を基礎とし、Tab、Space、`checked` semanticsを維持します。`role="switch"` の後付けを必須にしません。
 - Addはnative `<form>`、text input、`<button type="submit">` とします。
 - `event.isComposing === true` またはcomposition中のEnterではsubmitしません。
-- validationはinput直下のmessageと `aria-describedby` / `aria-invalid` で関連付けます。
+- Add headingの直下、input直前に常時helper textを表示します。日本語は「2〜50文字で入力できます。」、Englishは「You can enter between 2 and 50 characters.」です。
+- Add inputは通常時からhelper（`#distance-terms-add-length-hint`）を `aria-describedby` で参照します。validation error中はhelperとvalidation messageの両方を参照し、error解消後はhelperだけへ戻します。`aria-invalid="true"` はerror中だけ維持します。helperはlive region / alertにせず、`maxlength` を追加せずに既存のgrapheme validationを正式仕様とします。
 - 30件時はAdd buttonをdisabledにし、最大件数説明を表示します。通常時のinputは内容確認・copyのためdisabledにしません。
 - 登録数はusable件数でなく `rawItemCount / 30` です。
 - 一覧は登録順の全件表示です。pagination、filter、sort、drag reorderは行いません。
@@ -1167,6 +1173,7 @@ transient statusは1か所のpolite live regionです。
 | Master | 登録した言葉によるワンクッション | Cushions for registered words |
 | Master note | この機能をOFFにしても、登録した言葉と個別のON/OFF設定は保持されます。 | Turning this feature off does not delete registered words or their individual ON/OFF settings. |
 | Add heading | 距離を置きたい言葉を追加 | Add a word, phrase, or hashtag |
+| Add length hint | 2〜50文字で入力できます。 | You can enter between 2 and 50 characters. |
 | Placeholder | 言葉・短いフレーズ・ハッシュタグ | Word, short phrase, or hashtag |
 | Add button | 追加する | Add |
 | Count example | 登録数：8 / 30 | Registered: 8 / 30 |

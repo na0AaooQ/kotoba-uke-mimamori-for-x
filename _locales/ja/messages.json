@@ -191,6 +191,9 @@
   "distanceTermsAddHeading": {
     "message": "距離を置きたい言葉を追加"
   },
+  "distanceTermsAddLengthHint": {
+    "message": "2〜50文字で入力できます。"
+  },
   "distanceTermsAddPlaceholder": {
     "message": "言葉・短いフレーズ・ハッシュタグ"
   },
