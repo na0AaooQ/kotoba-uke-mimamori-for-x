@@ -1116,7 +1116,10 @@ focus latest state UI
 - Addはnative `<form>`、text input、`<button type="submit">` とします。
 - `event.isComposing === true` またはcomposition中のEnterではsubmitしません。
 - Add headingの直下、input直前に常時helper textを表示します。日本語は「2〜50文字で入力できます。」、Englishは「You can enter between 2 and 50 characters.」です。
-- Add inputは通常時からhelper（`#distance-terms-add-length-hint`）を `aria-describedby` で参照します。validation error中はhelperとvalidation messageの両方を参照し、error解消後はhelperだけへ戻します。`aria-invalid="true"` はerror中だけ維持します。helperはlive region / alertにせず、`maxlength` を追加せずに既存のgrapheme validationを正式仕様とします。
+- Add inputは通常時からhelper（`#distance-terms-add-length-hint`）を `aria-describedby` で参照します。
+  Add input時のvalidation error中、helperとvalidation messageの両方を参照し、error解消後はhelperだけに戻します。
+  `aria-invalid="true"` はerror中だけ維持します。
+  helperはlive region / alertにせず、`maxlength` を追加せず、既存のgrapheme validationを正式仕様とします。
 - 30件時はAdd buttonをdisabledにし、最大件数説明を表示します。通常時のinputは内容確認・copyのためdisabledにしません。
 - 登録数はusable件数でなく `rawItemCount / 30` です。
 - 一覧は登録順の全件表示です。pagination、filter、sort、drag reorderは行いません。
