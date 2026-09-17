@@ -44,7 +44,8 @@ const JA_MANUAL_IMAGES = Object.freeze([
   './assets/img/manual/031_manual-popup-ja-on-ja.png',
   './assets/img/manual/032_manual-cushion-ja.png',
   './assets/img/manual/033_manual-collapsed-ja.png',
-  './assets/img/manual/037_manual-option-ja.png'
+  './assets/img/manual/037_manual-option-ja.png',
+  './assets/img/manual/039_manual-option-distance-terms-ja.png'
 ]);
 const EN_MANUAL_IMAGES = Object.freeze([
   '../assets/img/manual/016_manual-show-content-en.png',
@@ -58,7 +59,8 @@ const EN_MANUAL_IMAGES = Object.freeze([
   '../assets/img/manual/034_manual-popup-ja-on-en.png',
   '../assets/img/manual/035_manual-cushion-en.png',
   '../assets/img/manual/036_manual-collapsed-en.png',
-  '../assets/img/manual/038_manual-option-en.png'
+  '../assets/img/manual/038_manual-option-en.png',
+  '../assets/img/manual/040_manual-option-distance-terms-en.png'
 ]);
 const MANUAL_ASSET_FILES = Object.freeze([
   'assets/img/manual/001_manual-load-extension.jpeg',
@@ -89,7 +91,9 @@ const MANUAL_ASSET_FILES = Object.freeze([
   'assets/img/manual/035_manual-cushion-en.png',
   'assets/img/manual/036_manual-collapsed-en.png',
   'assets/img/manual/037_manual-option-ja.png',
-  'assets/img/manual/038_manual-option-en.png'
+  'assets/img/manual/038_manual-option-en.png',
+  'assets/img/manual/039_manual-option-distance-terms-ja.png',
+  'assets/img/manual/040_manual-option-distance-terms-en.png'
 ]);
 const STEP8_MANUAL_ASSET_FILES = Object.freeze([
   'assets/img/manual/029_manual-popup-ja-off-auto.png',
@@ -365,6 +369,7 @@ function testManualAssetsExist() {
   for (const assetPath of MANUAL_ASSET_FILES) {
     const filePath = path.join(__dirname, '..', 'docs', assetPath);
     assert.equal(fs.existsSync(filePath), true);
+    assert.ok(fs.statSync(filePath).size > 0);
   }
 
   for (const assetPath of STEP8_MANUAL_ASSET_FILES) {
@@ -509,8 +514,8 @@ function testStep8ManualImageUpdates() {
     '※画面内のバージョン番号は画面撮影時点のものです。バージョン番号の違いは操作方法に影響ありません。';
   const englishVersionNote =
     'Note: The version number shown in screenshots reflects the version at the time of capture and does not affect these instructions.';
-  const japaneseManualDate = '最終更新日：<time datetime="2026-09-12">2026年9月12日</time>';
-  const englishManualDate = 'Last updated: <time datetime="2026-09-12">September 12, 2026</time>';
+  const japaneseManualDate = '最終更新日：<time datetime="2026-09-17">2026年9月17日</time>';
+  const englishManualDate = 'Last updated: <time datetime="2026-09-17">September 17, 2026</time>';
 
   assertOrderedIncludes(jaManual, [
     './assets/img/manual/029_manual-popup-ja-off-auto.png',
@@ -781,7 +786,10 @@ function testDistanceTermsManualAndPrivacyDocumentation() {
     '問題のある登録データを削除',
     '設定全体を初期化',
     'バージョンアップを続けます',
-    '保存データを変更せず、そのまま保持'
+    '保存データを変更せず、そのまま保持',
+    './assets/img/manual/039_manual-option-distance-terms-ja.png',
+    '「距離を置きたい言葉」の設定で2〜50文字の入力案内、日本語と英語のサンプル4件、各項目のON/OFFと削除ボタンが表示されている画面',
+    '表示言語にかかわらず、登録した言葉を含む投稿にワンクッションを表示できます。画像では日本語と英語の例を登録しています。'
   ]);
   assertIncludesAll(enManual, [
     "Words you'd like some distance from",
@@ -794,7 +802,10 @@ function testDistanceTermsManualAndPrivacyDocumentation() {
     'deleting only the problem data',
     'resetting it',
     'continue to receive version updates',
-    'saved data is left unchanged'
+    'saved data is left unchanged',
+    '../assets/img/manual/040_manual-option-distance-terms-en.png',
+    "The Words you'd like some distance from settings showing the 2-to-50-character input guidance, four Japanese and English sample entries, each entry's ON/OFF state, and Delete buttons",
+    "Registered text can trigger a cushion regardless of the extension's display language. This example includes Japanese and English entries."
   ]);
   assertIncludesAll(jaPrivacy, [
     '<code>distanceTermsSettings</code>',
@@ -995,7 +1006,7 @@ function testDocumentLastUpdatedDates() {
     const html = readDoc(pagePath);
     const date =
       pagePath === 'manual.html'
-        ? '最終更新日：<time datetime="2026-09-12">2026年9月12日</time>'
+        ? '最終更新日：<time datetime="2026-09-17">2026年9月17日</time>'
         : pagePath === 'privacy.html'
           ? '最終更新日：<time datetime="2026-09-10">2026年9月10日</time>'
           : pagePath !== 'disclaimer.html'
@@ -1010,7 +1021,7 @@ function testDocumentLastUpdatedDates() {
     const html = readDoc(pagePath);
     const date =
       pagePath === 'en/manual.html'
-        ? 'Last updated: <time datetime="2026-09-12">September 12, 2026</time>'
+        ? 'Last updated: <time datetime="2026-09-17">September 17, 2026</time>'
         : pagePath === 'en/privacy.html'
           ? 'Last updated: <time datetime="2026-09-10">September 10, 2026</time>'
           : pagePath !== 'en/disclaimer.html'
