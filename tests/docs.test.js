@@ -459,7 +459,7 @@ function testChromeWebStoreManual() {
     ],
     [
       './assets/img/manual/033_manual-collapsed-ja.png',
-      '本文をぼかしたまま、あとから内容を表示できます。'
+      '本文のぼかしを維持したまま、投稿から離れることや距離を取る方法を確認でき、必要ならあとから内容を表示できます。'
     ],
     [
       './assets/img/manual/028_manual-add-extensions-ja.png',
@@ -495,7 +495,7 @@ function testChromeWebStoreManual() {
     ],
     [
       '../assets/img/manual/036_manual-collapsed-en.png',
-      'the post stays blurred and you can still show the content later.'
+      'The post remains blurred while options for leaving the post or taking some distance are shown, and Show content remains available for later.'
     ],
     [
       '../assets/img/manual/028_manual-add-extensions-ja.png',
@@ -514,8 +514,8 @@ function testStep8ManualImageUpdates() {
     '※画面内のバージョン番号は画面撮影時点のものです。バージョン番号の違いは操作方法に影響ありません。';
   const englishVersionNote =
     'Note: The version number shown in screenshots reflects the version at the time of capture and does not affect these instructions.';
-  const japaneseManualDate = '最終更新日：<time datetime="2026-09-17">2026年9月17日</time>';
-  const englishManualDate = 'Last updated: <time datetime="2026-09-17">September 17, 2026</time>';
+  const japaneseManualDate = '最終更新日：<time datetime="2026-09-19">2026年9月19日</time>';
+  const englishManualDate = 'Last updated: <time datetime="2026-09-19">September 19, 2026</time>';
 
   assertOrderedIncludes(jaManual, [
     './assets/img/manual/029_manual-popup-ja-off-auto.png',
@@ -539,6 +539,16 @@ function testStep8ManualImageUpdates() {
   assert.equal(countOccurrences(enManual, englishVersionNote), 1);
   assert.equal(countOccurrences(jaManual, japaneseManualDate), 1);
   assert.equal(countOccurrences(enManual, englishManualDate), 1);
+  assert.ok(
+    jaManual.includes(
+      '<a href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/protect-your-heart.html" target="_blank" rel="noopener noreferrer">心を守る使い方を見る</a>'
+    )
+  );
+  assert.ok(
+    enManual.includes(
+      '<a href="https://na0aaooq.github.io/kotoba-uke-mimamori-for-x/en/protect-your-heart.html" target="_blank" rel="noopener noreferrer">Learn more about protecting your peace of mind</a>'
+    )
+  );
   assert.ok(enManual.includes('<h3>Detailed settings</h3>'));
   assert.ok(enManual.includes('Select &quot;Open detailed settings&quot; in the popup'));
   assert.ok(
@@ -1006,7 +1016,7 @@ function testDocumentLastUpdatedDates() {
     const html = readDoc(pagePath);
     const date =
       pagePath === 'manual.html'
-        ? '最終更新日：<time datetime="2026-09-17">2026年9月17日</time>'
+        ? '最終更新日：<time datetime="2026-09-19">2026年9月19日</time>'
         : pagePath === 'privacy.html'
           ? '最終更新日：<time datetime="2026-09-10">2026年9月10日</time>'
           : pagePath !== 'disclaimer.html'
@@ -1021,7 +1031,7 @@ function testDocumentLastUpdatedDates() {
     const html = readDoc(pagePath);
     const date =
       pagePath === 'en/manual.html'
-        ? 'Last updated: <time datetime="2026-09-17">September 17, 2026</time>'
+        ? 'Last updated: <time datetime="2026-09-19">September 19, 2026</time>'
         : pagePath === 'en/privacy.html'
           ? 'Last updated: <time datetime="2026-09-10">September 10, 2026</time>'
           : pagePath !== 'en/disclaimer.html'
