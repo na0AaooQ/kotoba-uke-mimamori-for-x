@@ -66,7 +66,7 @@ Chromeによる自然な更新後も、`chrome.storage.local`に保存されて�
 | Version A | 2.0.0 |
 | Version B | 2.0.1 |
 
-Version Bは、Version AからStore packageとして意味のある内容について`manifest.json`のversionを`2.0.0`から`2.0.1`へ変更しただけの検証packageである。
+Version BとしてChrome Web Storeへ提出したZIPは、Version Aの提出ZIPと比較して、`manifest.json`のversionを`2.0.0`から`2.0.1`へ変更したことだけが内容上の差分である。
 A/B Store ZIPを別々に展開して比較し、内容差分が`manifest.json`のversionのみであることを確認済みである。
 これにより、機能変更を混ぜず、Chrome Web Store通常更新という条件そのものを検証した。
 
