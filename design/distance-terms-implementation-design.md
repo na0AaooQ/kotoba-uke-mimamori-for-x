@@ -7,6 +7,7 @@
 - 実装状況: 実装済み（Chrome Web Store未リリース）
 - Related ADR: [ADR-0001 「距離を置きたい言葉」機能のアーキテクチャ](adr/0001-distance-terms-architecture.md)
 - Related state design: [ADR-0002 「今は見ない」後のセルフケア・距離の取り方支援](adr/0002-after-not-now-support.md)
+- Related verification: [Chrome Web Store通常更新時の `chrome.storage.local` 保存データ保持検証](chrome-web-store-update-storage-verification.md)
 
 ## 1. 文書の目的と正本関係
 
