@@ -17,3 +17,6 @@
 | --- | --- | --- | --- |
 | [ADR-0001](0001-distance-terms-architecture.md) | Accepted | Implemented | 「距離を置きたい言葉」機能のアーキテクチャ |
 | [ADR-0002](0002-after-not-now-support.md) | Accepted | Implemented | 「今は見ない」後のセルフケア・距離の取り方支援 |
+
+ADR-0001とADR-0002の実装はChrome Web Store正式版v2.0.0に含まれており、
+正式公開および公開後Smoke Testまで完了しています。
