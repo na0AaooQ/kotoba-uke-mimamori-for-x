@@ -4,11 +4,14 @@
 - Date: 2026-09-04
 - Implementation status: Implemented
 - Implementation date: 2026-09-06
-- 実装状況: 実装済み（Chrome Web Store未リリース）
+- 実装状況: v2.0.0へ実装済み（Chrome Web Store正式公開済み）
 
 `Accepted` は、このADRに記録した設計判断が採用されたことを意味します。v1.1.0へ実装済みであることは意味しません。以下のUI、状態遷移、文言は概念設計です。実装ファイル名、具体的なARIA属性、CSS、最終i18n文言は将来の実装・レビューで確定します。
 
-上記は2026-09-04のAccepted時点の記録である。その後、2026-09-06までに詳細設計を確定し、PR #100でState 2を実装してmainへマージした。現在のリポジトリ上では実装済みだが、Chrome Web Storeへのリリースはまだ行っていない。
+上記は2026-09-04のAccepted時点の記録である。
+その後、2026-09-06までに詳細設計を確定し、PR #100でState 2を実装してmainへマージした。
+現在はState 2を含むv2.0.0をChrome Web Storeで正式公開しており、
+productionの自然更新確認およびState 2を含む公開後Smoke Testも完了している。
 
 ## Context
 
@@ -525,4 +528,6 @@ reliabilityを保証できない場合はprotect-your-heart補助リンクだけ
 
 ### 現在の公開状態
 
-State 2実装はmainへマージ済みである。一方、Chrome Web Storeへはまだリリースしておらず、現在の公開版v1.1.0にはADR-0002のState 2実装は含まれない。Chrome Web Storeへの審査・リリースは、ADR-0001対応完了後に別工程として扱う予定である。
+State 2実装はmainへマージ済みであり、Chrome Web Store正式版v2.0.0に含まれる。
+production itemでは同一extension IDでv1.1.0からv2.0.0への自然更新を確認し、
+State 2を含む公開後Smoke Testも完了している。

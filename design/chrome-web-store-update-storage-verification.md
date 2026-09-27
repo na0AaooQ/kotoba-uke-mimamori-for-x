@@ -2,7 +2,8 @@
 
 - Status: Verified
 - 検証日: 2026-09-24
-- 対象: ことばうけみまもり DEVELOPMENT BUILD
+- 主検証対象: ことばうけみまもり DEVELOPMENT BUILD（Private / Trusted Tester用test itemの2.0.0→2.0.1検証）
+- 追加確認: production itemのv1.1.0→v2.0.0正式公開後の自然更新
 - Version A: 2.0.0
 - Version B: 2.0.1
 - Chrome Web Store test item ID: `megpmaldmnadmmoikidgbjlcjchdenci`（検証専用のPrivate / Trusted Tester用item。production itemではない）
@@ -148,6 +149,39 @@ Storageにデータが残っているだけでなく、Version Bが保存済み�
 
 本検証はPASSと判定する。
 同一Store item・同一extension ID・同一Chrome ProfileにおけるChrome Web Storeの自然な通常更新で、`chrome.storage.local`の既存設定と`distanceTermsSettings`が保持され、更新後も正常に利用できたためである。
+
+## 11.1 正式公開後のproduction追加確認
+
+本節は、前節までに記録したPrivate / Trusted Tester用test itemでのVersion A 2.0.0→Version B 2.0.1検証とは別に、
+正式公開後のproduction itemで実施した追加確認の記録である。
+両者はextension ID、更新前version、および証明範囲が異なる。
+
+| 項目 | production追加確認 |
+| --- | --- |
+| production extension ID | `ofmmdbihaocmkboehlejndjagahcfpfm` |
+| 更新 | v1.1.0 → v2.0.0 |
+| 更新方式 | Chrome Web Storeからの自然更新 |
+| 更新前の設定 | `enabled = true`、`cushionSensitivity = "high"`、`uiLanguage = "ja"` |
+
+同一production extension IDの通常Profileで、v1.1.0からv2.0.0へChrome Web Storeから自然更新されることを確認した。
+更新直後、設定を変更する前に、上記3設定がそのまま保持されていることを確認した。
+
+v1.1.0には`distanceTermsSettings`自体が存在しなかったため、更新直後もこのkeyはmissingだった。
+これはv2.0.0における正常な0件の初期状態である。
+update / startup / read / Options表示を理由に自動初期化・自動writeは行われていない。
+
+更新後の公開後Smoke Testでは、次を確認した。
+
+- 「距離を置きたい言葉」を1件登録できる。
+- 登録語を含むX投稿にdistance由来のワンクッションが表示される。
+- 登録項目を個別OFFにすると、その登録語によるワンクッションが表示されない。
+- 「今は見ない」後のState 2および「心を守る使い方を見る」導線が正常に動作する。
+- 既存設定、popup、Options、X上の基本動作に問題がない。
+
+このproduction確認で示せるのは、同一production extension IDにおけるv1.1.0→v2.0.0の自然更新、既存3設定の保持、
+`distanceTermsSettings` missingが正常な初期状態として維持されたこと、および更新後のv2.0.0新機能の正常動作である。
+`distanceTermsSettings`自体が通常更新で保持されることは、既存のtest itemによる2.0.0→2.0.1検証で確認した範囲であり、
+production確認の結果として主張しない。
 
 ## 12. この検証から判断できないこと
 

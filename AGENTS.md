@@ -275,7 +275,10 @@ UIは、落ち着いた、やさしい、非断定的な表現にしてくださ
 - ガイダンスはAIによる文章理解・危険性判断ではなく、投稿の危険性・事実関係・投稿者の人格や悪意を断定・評価するものではない。
 - 感度設定はワンクッションの表示しきい値だけへ影響させ、同じ本文の `score` や表現の強さの意味を変えない。
 - `overlay.js` の表示可能な guidance キーはホワイトリスト方式を維持し、未知のキーは表示しない。
-- 「今は見ない」後は、利用者の判断を尊重して guidance を残さない。
+- 「今は見ない」後は、投稿本文のぼかしを維持したState 2で、今は読まなくてもよいこと、あとから内容を表示できること、投稿から離れる選択肢を案内する。
+必要な場合にはX公式のミュート・ブロック等で距離を取る方法があることを穏やかに案内し、「心を守る使い方を見る」補助リンクを提供する。
+- State 2では、State 1のfixed-rule guidance、score、matchedRules、matched term等の内部判定情報を表示しない。
+自動ミュート・自動ブロック・特定行動の推奨や強制は行わず、「内容を表示する」でrevealできるようにする。
 - 強さごとに赤い警告色、危険アイコン、危険度ゲージ、プログレスバー、強い色分けを加えない。
 - 引用する側の投稿と引用元投稿は独立した対象として扱い、ガイダンスや表示・解除状態を相互に伝播させない。
 
@@ -615,21 +618,17 @@ AGENTS.md を更新すべき変更:
 現在のフェーズ:
 
 ```text
-Chrome Web Store公開版はv1.1.0。
-リポジトリ上では、ADR-0001「距離を置きたい言葉」を含む
-次期v2.0.0 release candidateへの実装とPhase 6 Full verificationが完了。
-Phase 6後の残対応、およびChrome Web Store通常更新時の
-`chrome.storage.local`保存データ保持検証も完了。
-v2.0.0のChrome Web Store releaseは未実施。
-現在はv2.0.0の正式なChrome Web Store公開工程へ進む段階。
+Chrome Web Store公開版はv2.0.0。
+ADR-0001「距離を置きたい言葉」とADR-0002「今は見ない」後のState 2を含む
+v2.0.0を正式公開済み。
+Phase 6 Full verification、本番用Chrome Web Store提出ZIPの検証、
+Chrome Web Store通常更新時の`chrome.storage.local`保存データ保持検証、公開後Smoke Testも完了。
+production itemでは、同一extension IDでv1.1.0からv2.0.0への自然更新を確認し、
+既存3設定が保持され、`distanceTermsSettings` がmissingの正常な初期状態であることを確認済み。
 ```
 
 次の予定:
 
-- v2.0.0リリース前の本番正本・ドキュメント・Store掲載情報の最終確認
-- 本番用v2.0.0 Chrome Web Store提出ZIPの生成・検証
-- 最終ZIPの公開前スモークテスト
-- v2.0.0 Chrome Web Store審査申請・正式公開
 - 正式版公開後の動作確認・フィードバック確認
 - XのDOM変更に対する継続確認
 - 誤判定・未検出の傾向確認

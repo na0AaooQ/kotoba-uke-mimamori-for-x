@@ -5,13 +5,13 @@
 - Implementation-ready design date: 2026-09-08
 - Implementation status: Implemented
 - Phase 6 Full verification completed: 2026-09-16
-- 実装状況: 実装済み（Chrome Web Store未リリース）
+- 実装状況: v2.0.0へ実装済み（Chrome Web Store正式公開済み）
 
 `Accepted` は、このADRに記録した設計判断を採用したことを意味します。Chrome拡張機能へ実装済みであることは意味しません。2026-09-04はAccepted時点の概念設計、2026-09-08は実装前詳細設計レビューの確定日です。Accepted時点の設計判断・検討履歴は本ADR内に保持しますが、概念例と2026-09-08の詳細設計が異なる場合は、後者を今後の実装仕様として扱います。
 
 Implementation statusは `Implemented`（実装済み）です。
-v2.0.0 release candidateへの実装とPhase 6 Full verificationは完了しています。
-Chrome Web Store公開版は引き続きv1.1.0であり、v2.0.0のChrome Web Store releaseは未実施です。
+v2.0.0への実装、Phase 6 Full verification、Chrome Web Store正式公開、
+および公開後Smoke Testは完了しています。
 具体的な実装契約は [「距離を置きたい言葉」実装設計](../distance-terms-implementation-design.md) を正本とします。
 
 ## Context

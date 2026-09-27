@@ -4,7 +4,7 @@
 - Design finalized: 2026-09-08
 - Implementation status: Implemented
 - Phase 6 Full verification completed: 2026-09-16
-- 実装状況: 実装済み（Chrome Web Store未リリース）
+- 実装状況: v2.0.0へ実装済み（Chrome Web Store正式公開済み）
 - Related ADR: [ADR-0001 「距離を置きたい言葉」機能のアーキテクチャ](adr/0001-distance-terms-architecture.md)
 - Related state design: [ADR-0002 「今は見ない」後のセルフケア・距離の取り方支援](adr/0002-after-not-now-support.md)
 - Related verification: [Chrome Web Store通常更新時の `chrome.storage.local` 保存データ保持検証](chrome-web-store-update-storage-verification.md)
@@ -12,7 +12,8 @@
 ## 1. 文書の目的と正本関係
 
 この文書は、ADR-0001で確定した設計判断をv2.0.0へ実装するための、具体的なmodule、API、UI、Storage、message、test、file scopeの契約を記録します。
-現在は、この契約に基づくv2.0.0 release candidateへの実装とPhase 6 Full verificationが完了しています。
+現在は、この契約に基づくv2.0.0への実装、Phase 6 Full verification、Chrome Web Store正式公開、
+通常更新時のStorage検証、および公開後Smoke Testが完了しています。
 
 正本の優先関係は次のとおりです。
 
