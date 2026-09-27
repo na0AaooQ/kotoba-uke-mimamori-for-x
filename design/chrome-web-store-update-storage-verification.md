@@ -2,6 +2,7 @@
 
 - Status: Verified
 - 検証日: 2026-09-24
+- production追加確認日: 2026-09-27
 - 主検証対象: ことばうけみまもり DEVELOPMENT BUILD（Private / Trusted Tester用test itemの2.0.0→2.0.1検証）
 - 追加確認: production itemのv1.1.0→v2.0.0正式公開後の自然更新
 - Version A: 2.0.0
